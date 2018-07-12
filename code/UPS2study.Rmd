@@ -1,0 +1,110 @@
+---
+title: "UPS2 study"
+author: "Benjamin Sanchez"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading packages
+
+```{r warning = FALSE, message = FALSE, results = FALSE}
+library(knitr)
+```
+
+## Loading and pre-processing data
+
+```{r echo=FALSE}
+read_chunk('loadData.R')
+read_chunk('combineData.R')
+read_chunk('plotData.R')
+```
+
+#### Load UPS2:
+
+The commercial kit brings 10.6 ug of protein, however only 2.2 ug were used later.
+
+```{r loadUPS2}
+```
+
+#### Load internal standard (IS) data:
+
+In the internal standard there are 6 samples that will be used, two for each of the 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of those 2 with a different method `top5` & `top10`:
+
+* top5_batch1
+* top5_batch2
+* top5_batch3
+* top10_batch1
+* top10_batch2
+* top10_batch3
+
+```{r loadISdata}
+```
+
+#### Get ES data:
+
+In each sample of the internal standard data there are 2 things mixed:
+
+* 12 ug of IS: yeast samples all marked, i.e. will appear in the heavy fraction (H)
+* 2.2 ug of ES: universal protein standard (UPS2) unmarked, i.e. appears in the light fraction (L)
+
+```{r getESdata}
+```
+
+## Computing absolute abundace of IS
+
+Abundance of the IS can be computed by building a standard curve for the ES and applying it to the H peaks in the IS sample:
+
+```{r getISabundance}
+```
+
+Let's take a look at the total protein content of each of the 6 samples
+
+```{r plotTotalProt}
+```
+
+```{r}
+protPlot(ISdata,'Abundance.')
+```
+
+
+The overall protein content seems to vary quite a bit based among samples, so let's take a look at the ES data + standard curves:
+
+```{r plotLM}
+```
+
+```{r plotES}
+```
+
+```{r}
+ESplots(ESdata,1,1,FALSE)
+```
+
+Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample) that we can use later together with the heavy (H) iBAQ intensities to infer abundances of the internal standard (IS). But they don't look the best (consider they are in log), many other curves could almost equally fit that data. What if instead we just assume that all proteins in the IS should add up to what we have injected, i.e. 12 ug of protein? Can we work back similar fits?
+
+## Alternative inference of ES standard curves
+
+The alternative: All H peaks added up together should result in 12 ug of protein.
+
+```{r skippUPS2}
+```
+
+Let's check the protein contents if they were scaled correctly:
+
+```{r}
+protPlot(ISdata,'AbundanceNoUPS2.')
+```
+
+Now we can look at the new fits to the UPS2 data, as we have esentially created a linear model:
+
+`abundance = m*Hpeak`, where m = (12ug)/(sum of all Hpeaks)
+
+`log(abundance) = log(Hpeak) + m` -> linear model with a = 1 and b = m
+
+```{r}
+Hpeaks <- grep('iBAQ.H.T4h',names(ISdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
+ESplots(ESdata,12*1e6/colSums(ISdata[,Hpeaks], na.rm = TRUE),1,TRUE)
+```
+
