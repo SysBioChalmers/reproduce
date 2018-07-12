@@ -3,7 +3,7 @@ reproduce
 
 Assesing the quality and reproducibility of absolute proteomic data
 
-This repository is administered by BenjamÃ­n J. SÃ¡nchez ([@BenjaSanchez](https://github.com/benjasanchez)), Division of Systems and Synthetic Biology, Department of Biology and Biological Engineering, Chalmers University of Technology.
+This repository is administered by Benjamín J. Sánchez ([@BenjaSanchez](https://github.com/benjasanchez)), Division of Systems and Synthetic Biology, Department of Biology and Biological Engineering, Chalmers University of Technology.
 
 Acknowledgements
 ----------------
