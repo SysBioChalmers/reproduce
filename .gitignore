@@ -1,0 +1,35 @@
+# folders holding intermediate/final data
+data/final/
+data/intermediate/
+
+# the scratch folder which, by definition should not contain anything worth saving
+scratch/
+
+# passwords etc
+.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+.installed.cfg
+*.egg
+*.egg-info/
+
+# Other rubbish that accumulates
+\.#*
+*~
+*.Rproj.user
+*.Rhistory
+*.RData
