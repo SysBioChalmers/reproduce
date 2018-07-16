@@ -29,9 +29,9 @@ The commercial kit brings 10.6 ug of protein, however only 2.2 ug were used late
 ```{r loadUPS2}
 ```
 
-#### Load internal standard (IS) data:
+#### Load iBAQ data:
 
-In the internal standard there are 6 samples that will be used, two for each of the 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of those 2 with a different method `top5` & `top10`:
+In the iBAQ data there are 6 samples, two for each of the 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of those 2 with a different method `top5` & `top10`:
 
 * top5_batch1
 * top5_batch2
@@ -40,7 +40,7 @@ In the internal standard there are 6 samples that will be used, two for each of 
 * top10_batch2
 * top10_batch3
 
-```{r loadISdata}
+```{r loadIBAQdata}
 ```
 
 #### Get ES data:
@@ -66,11 +66,11 @@ Let's take a look at the total protein content of each of the 6 samples
 ```
 
 ```{r}
-protPlot(ISdata,'Abundance.')
+protPlot(iBAQdata,'Abundance.')
 ```
 
 
-The overall protein content seems to vary quite a bit based among samples, so let's take a look at the ES data + standard curves:
+The overall protein content seems to vary quite a bit among samples, so let's take a look at the ES data + standard curves:
 
 ```{r plotLM}
 ```
@@ -94,7 +94,7 @@ The alternative: All H peaks added up together should result in 12 ug of protein
 Let's check the protein contents if they were scaled correctly:
 
 ```{r}
-protPlot(ISdata,'AbundanceNoUPS2.')
+protPlot(iBAQdata,'AbundanceNoUPS2.')
 ```
 
 Now we can look at the new fits to the UPS2 data, as we have esentially created a linear model:
@@ -104,7 +104,7 @@ Now we can look at the new fits to the UPS2 data, as we have esentially created 
 `log(abundance) = log(Hpeak) + m` -> linear model with a = 1 and b = m
 
 ```{r}
-Hpeaks <- grep('iBAQ.H.T4h',names(ISdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
-ESplots(ESdata,12*1e6/colSums(ISdata[,Hpeaks], na.rm = TRUE),1,TRUE)
+Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
+ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),1,TRUE)
 ```
 

@@ -4,8 +4,8 @@
 
 
 ## @knitr getESdata
-# ES data is inside the IS data (among other measurements)
-ESdata <- ISdata[grep('ups',ISdata$Protein.IDs),]
+# ES data is inside the iBAQ data (among other measurements)
+ESdata <- iBAQdata[grep('ups',iBAQdata$Protein.IDs),]
 # Leave only the protein from UPS2 (ends in "ups")
 for(i in 1:length(ESdata$Protein.IDs)) {
   group <- strsplit(as.character(ESdata$Protein.IDs[i]),';')[[1]]
@@ -21,35 +21,35 @@ ESdata$amount.pg <- ESdata$amount.fmoles*ESdata$Mol..weight..kDa.
 
 
 ## @knitr getISabundance
-Hpeaks <- grep('iBAQ.H.T4h',names(ISdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
+Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
 for(Hpeak in Hpeaks) {
   #Define name of relevant variables:
-  Hpeak_name <- names(ISdata)[Hpeak]
+  Hpeak_name <- names(iBAQdata)[Hpeak]
   Lpeak_name <- gsub('.H.','.L.',Hpeak_name)  #name of ES peak
   #Build linear model and apply to iBAQ(H) to get abundance of H:
   UPS2abundances <- log10(ESdata$amount.pg)                 
   UPS2peaks      <- log10(ESdata[[Lpeak_name]])
-  lmodel         <- lm(UPS2abundances ~ UPS2peaks)  #ES curve
-  coeff1         <- lmodel[1]$coefficients[1]       #slope
-  coeff2         <- lmodel[1]$coefficients[2]       #intercept
-  iBAQH          <- ISdata[Hpeak]                   #iBAQ(H)
+  lmodel         <- lm(UPS2abundances ~ UPS2peaks)      #ES curve
+  coeff1         <- lmodel[1]$coefficients[1]           #slope
+  coeff2         <- lmodel[1]$coefficients[2]           #intercept
+  iBAQH          <- iBAQdata[Hpeak]                     #iBAQ(H)
   ISabundance    <- 10^(coeff1 + coeff2*log10(iBAQH))   #L.T. for log(iBAQ(H)) [pg in sample]
   #Add abundances to dataset:
   new_name <- gsub('^.*?_','',Hpeak_name)
   new_name <- paste0('Abundance.',new_name)     #name for abundance of sample
-  ISdata[[new_name]] <- ISabundance
+  iBAQdata[[new_name]] <- ISabundance
 }
 
 ## @knitr skippUPS2
-Hpeaks <- grep('iBAQ.H.T4h',names(ISdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
+Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
 for(Hpeak in Hpeaks) {
-  abundance <- ISdata[,Hpeak]
+  abundance <- iBAQdata[,Hpeak]
   abundance <- abundance/sum(abundance, na.rm = TRUE)   #g/g in sample
   abundance <- abundance*12*1e-6                        #g in sample
   abundance <- abundance*1e12                           #pg in sample
   #Add abundances to dataset:
-  new_name <- gsub('^.*?_','',names(ISdata)[Hpeak])
+  new_name <- gsub('^.*?_','',names(iBAQdata)[Hpeak])
   new_name <- paste0('AbundanceNoUPS2.',new_name)     #name for abundance of sample
-  ISdata[[new_name]] <- abundance
+  iBAQdata[[new_name]] <- abundance
 }
 
