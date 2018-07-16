@@ -5,22 +5,23 @@
 
 ## @knitr plotLM
 # Linear model plotting function
-LMplot <- function(x,y,scaling,pos,fixToZero,allInOne) {
-  if(scaling == 1) {
+LMplot <- function(x,y,scaling,allInOne) {
+  #Make linear model with fixed slope = 1
+  lmodel    <- lm(y - x ~ 1)
+  intercept <- lmodel$coefficients[1]
+  if(scaling == 0) {
     pos <- 0
-  }
-  lmodel <- lm(y ~ x)
-  if(fixToZero) {
-    lmodel$coefficients <- c(log10(scaling),1)
   } else {
-    lmodel$coefficients[1] <- lmodel$coefficients[1]+log10(scaling)
+    pos <- 1
+    intercept <- log10(scaling)  #Also fix intercept
   }
+  col_opt <- ifelse(scaling == 0,'red','green')
+  abline(a = intercept, b = 1, col = col_opt)
+  #Compute and display R2 adjusted:
   n       <- length(x)
-  yp      <- as.numeric(t(predict(lmodel)))
+  yp      <- x + intercept
   R2      <- 1 - (sum((y - yp)^2)/sum((y - mean(y))^2))
   R2adj   <- round(1-((1-R2)*(n-1)/(n-1-1)),2)
-  col_opt <- ifelse(pos==0,'red',ifelse(pos == 1,'green','black'))
-  abline(lmodel, col = col_opt)
   if(!allInOne) {
     text(min(x, na.rm = TRUE),max(y, na.rm = TRUE)-pos-0.5, bquote('R'^2 ~ '=' ~ .(R2adj)), pos = 4, col = col_opt)
   }
@@ -28,16 +29,13 @@ LMplot <- function(x,y,scaling,pos,fixToZero,allInOne) {
 
 ## @knitr plotES
 # ES plotting function:
-ESplot <- function(ESdata,scaling1,scaling2,name,fixToZero,allInOne,first) {
+ESplot <- function(ESdata,scaling,name,allInOne,first) {
   x    <- log10(ESdata[[paste0('iBAQ.L.T4h_',tolower(name))]])
   y    <- log10(ESdata$amount.pg)
   y    <- y[!is.na(x)]
   x    <- x[!is.na(x)]
-  if(length(scaling1) > 1) {
-    scaling1 <- mean(scaling1[grep(name,names(scaling1))])
-  }
-  if(length(scaling2) > 1) {
-    scaling2 <- mean(scaling2[grep(name,names(scaling2))])
+  if(length(scaling) > 1) {
+    scaling <- scaling[grep(name,names(scaling))]
   }
   if(allInOne) {
     if(first) {
@@ -48,24 +46,23 @@ ESplot <- function(ESdata,scaling1,scaling2,name,fixToZero,allInOne,first) {
   } else {
     plot(x,y, col = 'blue', xaxt = 'n', yaxt = 'n', main = name)
   }
-  LMplot(x,y,1,0,FALSE,allInOne)
-  LMplot(x,y,scaling1,1,fixToZero,allInOne)
-  LMplot(x,y,scaling2,2,FALSE,allInOne)
+  LMplot(x,y,0,allInOne)
+  LMplot(x,y,scaling,allInOne)
 }
 # plot all ES plots
-ESplots <- function(ESdata,scaling1,scaling2,fixToZero,allInOne) {
+ESplots <- function(ESdata,scaling,allInOne) {
   if(allInOne) {
     num_plots <- c(1,1)
   } else {
     num_plots <- c(2,3)
   }
   par(mfrow = num_plots, mar = c(0, 0, 1, 0) + 0.5, cex = 1)
-  ESplot(ESdata,scaling1,scaling2,'top5_batch1',fixToZero,allInOne,TRUE)
-  ESplot(ESdata,scaling1,scaling2,'top5_batch2',fixToZero,allInOne,FALSE)
-  ESplot(ESdata,scaling1,scaling2,'top5_batch3',fixToZero,allInOne,FALSE)
-  ESplot(ESdata,scaling1,scaling2,'top10_batch1',fixToZero,allInOne,FALSE)
-  ESplot(ESdata,scaling1,scaling2,'top10_batch2',fixToZero,allInOne,FALSE)
-  ESplot(ESdata,scaling1,scaling2,'top10_batch3',fixToZero,allInOne,FALSE)
+  ESplot(ESdata,scaling,'top5_batch1',allInOne,TRUE)
+  ESplot(ESdata,scaling,'top5_batch2',allInOne,FALSE)
+  ESplot(ESdata,scaling,'top5_batch3',allInOne,FALSE)
+  ESplot(ESdata,scaling,'top10_batch1',allInOne,FALSE)
+  ESplot(ESdata,scaling,'top10_batch2',allInOne,FALSE)
+  ESplot(ESdata,scaling,'top10_batch3',allInOne,FALSE)
 }
 
 

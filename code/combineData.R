@@ -29,11 +29,10 @@ for(Hpeak in Hpeaks) {
   # Build linear model and apply to iBAQ(H) to get abundance of H:
   UPS2abundances <- log10(ESdata$amount.pg)                 
   UPS2peaks      <- log10(ESdata[[Lpeak_name]])
-  lmodel         <- lm(UPS2abundances ~ UPS2peaks)      #ES curve
-  coeff1         <- lmodel[1]$coefficients[1]           #slope
-  coeff2         <- lmodel[1]$coefficients[2]           #intercept
+  lmodel         <- lm(UPS2abundances - UPS2peaks ~ 1)  #ES curve with fixed slope = 1
+  intercept      <- lmodel[1]$coefficients[1]           #intercept
   iBAQH          <- iBAQdata[Hpeak]                     #iBAQ(H)
-  ISabundance    <- 10^(coeff1 + coeff2*log10(iBAQH))   #L.T. for log(iBAQ(H)) [pg in sample]
+  ISabundance    <- 10^(intercept + log10(iBAQH))       #L.T. for log(iBAQ(H)) [pg in sample]
   # Add abundances to dataset:
   new_name <- gsub('^.*?_','',Hpeak_name)
   new_name <- paste0('Abundance.',new_name)     #name for abundance of sample
