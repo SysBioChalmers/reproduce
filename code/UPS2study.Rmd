@@ -117,7 +117,7 @@ The overall protein content seems to vary quite a bit among samples depending on
 ```
 
 ```{r}
-ESplots(ESdata,1,1,FALSE)
+ESplots(ESdata,1,1,FALSE,FALSE)
 ```
 
 Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample) that we can use later together with the heavy (H) iBAQ intensities to infer abundances of the internal standard (IS). But they don't look the best (consider they are in log), many other curves could almost equally fit that data. What if instead we just assume that all proteins in the IS should add up to what we have injected, i.e. 12 ug of protein? Can we work back similar fits?
@@ -143,7 +143,15 @@ Now we can look at the new fits to the UPS2 data, as we have esentially created 
 
 ```{r}
 Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
-ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),1,TRUE)
+ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),1,TRUE,FALSE)
+```
+
+The fits are almost the same, validating our approach. Let's see everything in the same plot:
+
+```{r}
+ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),1,TRUE,TRUE)
+```
+
 
 Looking now at the sample total abundances:
 
