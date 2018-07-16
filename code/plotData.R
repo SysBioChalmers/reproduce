@@ -59,7 +59,9 @@ protPlot <- function(data,pattern) {
   abundances <- data[,grep(pattern,names(data))]
   names(abundances) <- gsub(pattern,'',names(abundances))
   totProt <- colSums(abundances, na.rm = TRUE)/1e6  #ug in sample
-  par(mfcol = c(1,1), mar = c(2.5,2.5,1,1), cex = 1.5)
-  barplot(totProt, names.arg = NULL, col = 1:length(names(abundances)), cex.names = 0.5)
+  par(mfcol = c(1,1), mar = c(2.5,2.5,1,1), cex = 1)
+  show_label <- ifelse(length(totProt) > 6,'n','s')
+  barplot(totProt, col = factor(names(abundances)), ylab = 'Total protein content in sample [ug]', 
+          cex.names = 0.8, mgp = c(1.5, 0.5, 0), xaxt = show_label)
 }
 

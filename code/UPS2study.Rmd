@@ -24,7 +24,7 @@ read_chunk('plotData.R')
 
 #### Load UPS2:
 
-The commercial kit brings 10.6 ug of protein, however only 2.2 ug were used later.
+The commercial kit brings 10.6 ug of protein, however only 2.2 ug were used:
 
 ```{r loadUPS2}
 ```
@@ -43,9 +43,25 @@ In the iBAQ data there are 6 samples, two for each of the 3 technical replicates
 ```{r loadIBAQdata}
 ```
 
+#### Load SILAC data:
+
+There are 18 different samples:
+
+* 3 biological replicates (`R1`, `R2` & `R3`)
+* each with 3 technical replicates (`batch1`, `batch2` & `batch3`)
+* each with a different method (`top5` & `top10`)
+
+Each sample consists of:
+
+* 15 ug of IS (detected in the H fraction)
+* 15 ug of actual sample (detected in the L fraction)
+
+```{r loadSILACdata}
+```
+
 #### Get ES data:
 
-In each sample of the internal standard data there are 2 things mixed:
+In each sample of the iBAQ data there are:
 
 * 12 ug of IS: yeast samples all marked, i.e. will appear in the heavy fraction (H)
 * 2.2 ug of ES: universal protein standard (UPS2) unmarked, i.e. appears in the light fraction (L)
@@ -53,14 +69,16 @@ In each sample of the internal standard data there are 2 things mixed:
 ```{r getESdata}
 ```
 
-## Computing absolute abundace of IS
+## Computing absolute abundance of samples
 
-Abundance of the IS can be computed by building a standard curve for the ES and applying it to the H peaks in the IS sample:
+#### Computing absolute abundance of IS
+
+Abundance of the IS can be computed by building a standard curve for the ES and applying it to the H peaks in the iBAQ sample:
 
 ```{r getISabundance}
 ```
 
-Let's take a look at the total protein content of each of the 6 samples
+Let's take a look at the total protein content of each of the 6 samples:
 
 ```{r plotTotalProt}
 ```
@@ -69,8 +87,28 @@ Let's take a look at the total protein content of each of the 6 samples
 protPlot(iBAQdata,'Abundance.')
 ```
 
+#### Getting sample abundances
 
-The overall protein content seems to vary quite a bit among samples, so let's take a look at the ES data + standard curves:
+We now use the absolute abundances from the IS (pg/sample) to infer absolute abundances in each sample in the SILAC data (pg/sample), by doing:
+
+`abundance(sample) = (L/H)ratio * abundance(IS)`
+
+Note that the total mass of IS in the iBAQ sample was of 12 ug, whereas the total mass of IS in the SILAC sample was of 15 ug, therefore we need to rescale the abundances.
+
+```{r getSamplesAbundance}
+```
+
+```{r}
+SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance.')
+```
+
+Let's take a look at the total protein content of each of the 18 samples, colored by the original ES curve used for the calibration:
+
+```{r}
+protPlot(SILACdata,'Abundance.R..1_')
+```
+
+The overall protein content seems to vary quite a bit among samples depending on the ES, so let's take a look at the ES data + standard curves:
 
 ```{r plotLM}
 ```
@@ -106,5 +144,17 @@ Now we can look at the new fits to the UPS2 data, as we have esentially created 
 ```{r}
 Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
 ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),1,TRUE)
+
+Looking now at the sample total abundances:
+
+```{r}
+SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceNoUPS2.')
 ```
 
+```{r}
+protPlot(SILACdata,'AbundanceNoUPS2.R..')
+```
+
+We get much more similar total abundances, less influenced by the external standard.
+
+In conclusion, by assuming that the iBAQ data adds up to the total injected protein amount (therefore skipping any information from the ES), we can reproduce almost exactly the ES curves, and achieve much more consistent results accross samples.
