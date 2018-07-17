@@ -8,13 +8,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Loading packages
+## 1. Loading and pre-processing data
+
+#### Load packages
 
 ```{r warning = FALSE, message = FALSE, results = FALSE}
 library(knitr)
 ```
-
-## Loading and pre-processing data
 
 ```{r echo=FALSE}
 read_chunk('loadData.R')
@@ -69,9 +69,9 @@ Each sample consists of:
 ```{r loadSILACdata}
 ```
 
-## Computing absolute abundance of samples
+## 2. Computing absolute abundance of samples
 
-#### Computing absolute abundance of IS
+#### IS abundances from ES
 
 Abundance of the IS can be computed by building a log-log standard curve for the ES and applying it to the H peaks in the iBAQ sample. Note that said ES curve MUST have slope = 1, as the underlying assumption is that iBAQ peaks are linearly proportional to the mass of the corresponding proteins, therefore:
 
@@ -98,7 +98,7 @@ protPlot(iBAQdata,'Abundance.')
 <center>**Figure 1: Total detected protein amounts in all 6 IS**</center>
 <br>
 
-#### Getting sample abundances
+#### Sample abundances from IS
 
 We now use the absolute abundances from the IS (pg/sample) to infer absolute abundances in each sample of the SILAC data (pg/sample), by doing:
 
@@ -139,7 +139,7 @@ ESplots(ESdata,0,FALSE)
 
 Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we just assume that all proteins in the IS should add up to what we have injected, i.e. 12 ug of protein? Can we work back similar fits?
 
-## Alternative inference of ES standard curves
+## 3. Rescaling IS data
 
 The alternative: All H peaks added up together should result in 12 ug of protein.
 
@@ -179,6 +179,8 @@ ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),TRUE)
 <center>**Figure 6: ES curves for all 6 measurements of UPS2, original (red) Vs rescaled (green)**</center>
 <br>
 
+Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude. This supports the idea that an alternative linear fit could replace the original ES curve, as both would be an appoximation anyway.
+
 Looking now at the total detected protein amounts in the samples:
 
 ```{r}
@@ -196,8 +198,9 @@ We get much more similar total detected protein amounts, less influenced by the 
 
 In conclusion, by assuming that the iBAQ data adds up to the total injected protein amount (therefore skipping any information from the ES), we can reproduce almost exactly the ES curves, and achieve much more consistent results accross samples.
 
-####Questions:
+## 4. Questions:
 
-* Are the differences in figure 1 only due to pipetting errors?
+* Are the differences in figure 1 due to pipetting errors and/or MS detection issues?
 * Is the best solution to rescale to 12 ug?
 * Are ES curves always constructed with a slope = 1?
+* How relevant is this finding? Old news in the field or actually relevant?

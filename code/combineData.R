@@ -5,7 +5,8 @@
 
 ## @knitr getESdata
 # ES data is inside the iBAQ data (among other measurements)
-ESdata <- iBAQdata[grep('ups',iBAQdata$Protein.IDs),]
+ESdata   <- iBAQdata[grep('ups', iBAQdata$Protein.IDs),]
+iBAQdata <- iBAQdata[grep('ups', iBAQdata$Protein.IDs, invert = TRUE),]
 # Leave only the proteins from UPS2 (ends in "ups")
 for(i in 1:length(ESdata$Protein.IDs)) {
   group <- strsplit(as.character(ESdata$Protein.IDs[i]),';')[[1]]
