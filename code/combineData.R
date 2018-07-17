@@ -65,16 +65,20 @@ getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
 }
 
 
-## @knitr skippUPS2
-Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
-for(Hpeak in Hpeaks) {
-  abundance <- iBAQdata[,Hpeak]
-  abundance <- abundance/sum(abundance, na.rm = TRUE)   #g/g in sample
-  abundance <- abundance*12*1e-6                        #g in sample [12 ug]
-  abundance <- abundance*1e12                           #pg in sample
-  # Add abundances to dataset:
-  new_name <- gsub('^.*?_','',names(iBAQdata)[Hpeak])
-  new_name <- paste0('AbundanceNoUPS2.',new_name)     #name for abundance of sample
-  iBAQdata[[new_name]] <- abundance
+## @knitr rescaleIS
+rescaleIS <- function(iBAQdata,mean_totProt) {
+  Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
+  for(Hpeak in Hpeaks) {
+    # Compute new abundance:
+    abundance <- iBAQdata[,Hpeak]
+    abundance <- abundance/sum(abundance, na.rm = TRUE)   #g/g in sample
+    abundance <- abundance*mean_totProt                   #pg in sample
+    # Add abundances to dataset:
+    new_name <- gsub('^.*?_','',names(iBAQdata)[Hpeak])
+    new_name <- paste0('AbundanceRescaled.',new_name)     #name for abundance of sample
+    iBAQdata[[new_name]] <- abundance
+  }
+  return(iBAQdata)
 }
+
 

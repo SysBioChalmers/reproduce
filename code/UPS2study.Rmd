@@ -92,7 +92,7 @@ Let's take a look at the total detected protein amount in each of the 6 samples:
 ```
 
 ```{r fig.align="center"}
-protPlot(iBAQdata,'Abundance.')
+mean_totProt <- protPlot(iBAQdata,'Abundance.')
 ```
 
 <center>**Figure 1: Total detected protein amounts in all 6 IS**</center>
@@ -116,7 +116,7 @@ SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance.')
 Let's take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration:
 
 ```{r fig.align="center"}
-protPlot(SILACdata,'Abundance.R..1_')
+mean_sample <- protPlot(SILACdata,'Abundance.R..1_')
 ```
 
 <center>**Figure 2: Total detected protein amounts in all 18 samples**</center>
@@ -137,19 +137,24 @@ ESplots(ESdata,0,FALSE)
 <center>**Figure 3: ES curves for all 6 measurements of UPS2**</center>
 <br>
 
-Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we just assume that all proteins in the IS should add up to what we have injected, i.e. 12 ug of protein? Can we work back similar fits?
+Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we assume that all proteins in the IS should add up to the average of the totals shown in figure 1? How would the new ES curves look like?
 
 ## 3. Rescaling IS data
 
-The alternative: All H peaks added up together should result in 12 ug of protein.
+The alternative: All H peaks added up together should result in the average total detection from figure 1:
 
-```{r skippUPS2}
+```{r rescaleIS}
 ```
+
+```{r}
+iBAQdata <- rescaleIS(iBAQdata,mean_totProt)
+```
+
 
 Let's check the total detected protein amount to see if we scaled correctly:
 
 ```{r fig.align="center"}
-protPlot(iBAQdata,'AbundanceNoUPS2.')
+mean_rescaled <- protPlot(iBAQdata,'AbundanceRescaled.')
 ```
 
 <center>**Figure 4: Total detected protein amounts in all 6 IS, rescaled**</center>
@@ -157,13 +162,13 @@ protPlot(iBAQdata,'AbundanceNoUPS2.')
 
 Now we can look at the new fits of the UPS2 data, as we have esentially created a linear model:
 
-`abundance = m*Hpeak`, where `m = (12ug)/(sum of all Hpeaks)`
+`abundance = m*Hpeak`, where `m = (average total abundance)/(sum of all Hpeaks)`
 
 `log(abundance) = log(Hpeak) + log(m)` -> linear model with a = 1 and b = log(m)
 
 ```{r fig.align="center"}
 Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
-ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
+ESplots(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
 ```
 
 <center>**Figure 5: ES curves for all 6 measurements of UPS2, original (red) Vs rescaled (green)**</center>
@@ -172,7 +177,7 @@ ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
 The fits are almost the same, validating our approach. Let's see everything in the same plot:
 
 ```{r fig.align="center"}
-ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),TRUE)
+ESplots(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),TRUE)
 ```
 
 <br>
@@ -184,23 +189,23 @@ Note that the MS precision is quite poor: the same protein detection can vary al
 Looking now at the total detected protein amounts in the samples:
 
 ```{r}
-SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceNoUPS2.')
+SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceRescaled.')
 ```
 
 ```{r fig.align="center"}
-protPlot(SILACdata,'AbundanceNoUPS2.R..')
+mean_sampleRescaled <- protPlot(SILACdata,'AbundanceRescaled.R..1_')
 ```
 
 <center>**Figure 7: Total detected protein amounts in all 18 samples, rescaled**</center>
 <br>
 
-We get much more similar total detected protein amounts, less influenced by the external standard.
+We get much more similar total detected protein amounts, showing that the choice of ES curve will have a major effect in the final abundances. Therefore, one should hopefully have more than just one ES curve, as results will be greatly biased by it.
 
-In conclusion, by assuming that the iBAQ data adds up to the total injected protein amount (therefore skipping any information from the ES), we can reproduce almost exactly the ES curves, and achieve much more consistent results accross samples.
+In conclusion, by assuming that the iBAQ data should always adds up to a given protein amount, we can reproduce almost exactly the ES curves, and achieve much more consistent results accross samples. The ES curve achieved with UPS2 therefore is only useful to get an estimate of the percentage of detection in the IS data.
 
 ## 4. Questions:
 
-* Are the differences in figure 1 due to pipetting errors and/or MS detection issues?
-* Is the best solution to rescale to 12 ug?
-* Are ES curves always constructed with a slope = 1?
-* How relevant is this finding? Old news in the field or actually relevant?
+1. Are the differences in figure 1 due to pipetting errors and/or MS detection issues? or something else?
+2. Is rescaling to the average total amount the best strategy? It requires then for any proteomic study to run several ES curves (in order to get an idea of the variability of the MS machine). Maybe the detection percentage could be estimated in another way? I think this might be the "purest" way of estimating it, as it relies only on the MS data and not in any external database (PaxDB, uniprot, etc)
+3. Are ES curves always constructed with a slope = 1? Also not sure if this was a given in the field or people actually fit both a and b in y=ax+b
+4. How relevant are these findings? Old news in the field or actually something interesting? Most times I've only seen a single ES curve...
