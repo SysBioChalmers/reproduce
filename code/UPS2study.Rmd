@@ -31,7 +31,7 @@ The commercial kit brings 10.6 ug of protein, however only 2.2 ug were used:
 
 #### Load iBAQ data:
 
-In the iBAQ data there are 6 samples, two for each of the 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of those 2 with a different method `top5` & `top10`:
+In the iBAQ data (IS+ES) there are 6 samples: 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of them processed with 2 different MS methods `top5` & `top10`. We will have then 6 different ES curves:
 
 * top5_batch1
 * top5_batch2
@@ -43,13 +43,23 @@ In the iBAQ data there are 6 samples, two for each of the 3 technical replicates
 ```{r loadIBAQdata}
 ```
 
+#### Get ES data:
+
+In each sample of the iBAQ data there are:
+
+* 12 ug of IS: yeast samples, all marked; i.e. will appear in the heavy fraction (H)
+* 2.2 ug of ES: universal protein standard (UPS2) unmarked; i.e. will appear in the light fraction (L)
+
+```{r getESdata}
+```
+
 #### Load SILAC data:
 
 There are 18 different samples:
 
 * 3 biological replicates (`R1`, `R2` & `R3`)
 * each with 3 technical replicates (`batch1`, `batch2` & `batch3`)
-* each with a different method (`top5` & `top10`)
+* each estimated with a different MS method (`top5` & `top10`)
 
 Each sample consists of:
 
@@ -59,37 +69,38 @@ Each sample consists of:
 ```{r loadSILACdata}
 ```
 
-#### Get ES data:
-
-In each sample of the iBAQ data there are:
-
-* 12 ug of IS: yeast samples all marked, i.e. will appear in the heavy fraction (H)
-* 2.2 ug of ES: universal protein standard (UPS2) unmarked, i.e. appears in the light fraction (L)
-
-```{r getESdata}
-```
-
 ## Computing absolute abundance of samples
 
 #### Computing absolute abundance of IS
 
-Abundance of the IS can be computed by building a standard curve for the ES and applying it to the H peaks in the iBAQ sample:
+Abundance of the IS can be computed by building a log-log standard curve for the ES and applying it to the H peaks in the iBAQ sample. Note that said ES curve MUST have slope = 1, as the underlying assumption is that iBAQ peaks are linearly proportional to the mass of the corresponding proteins, therefore:
+
+`mass = m*iBAQ`
+
+`log10(mass) = log10(m*iBAQ)`
+
+`log10(mass) = log10(iBAQ) + log10(m)`
+
+So if the fit is done in the log space, we fix the ES curve to always have slope = 1, and find the corresponding fit for the intercept:
 
 ```{r getISabundance}
 ```
 
-Let's take a look at the total protein content of each of the 6 samples:
+Let's take a look at the total detected protein amount in each of the 6 samples:
 
 ```{r plotTotalProt}
 ```
 
-```{r}
+```{r fig.align="center"}
 protPlot(iBAQdata,'Abundance.')
 ```
 
+<center>**Figure 1: Total detected protein amounts in all 6 IS**</center>
+<br>
+
 #### Getting sample abundances
 
-We now use the absolute abundances from the IS (pg/sample) to infer absolute abundances in each sample in the SILAC data (pg/sample), by doing:
+We now use the absolute abundances from the IS (pg/sample) to infer absolute abundances in each sample of the SILAC data (pg/sample), by doing:
 
 `abundance(sample) = (L/H)ratio * abundance(IS)`
 
@@ -102,13 +113,16 @@ Note that the total mass of IS in the iBAQ sample was of 12 ug, whereas the tota
 SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance.')
 ```
 
-Let's take a look at the total protein content of each of the 18 samples, colored by the original ES curve used for the calibration:
+Let's take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration:
 
-```{r}
+```{r fig.align="center"}
 protPlot(SILACdata,'Abundance.R..1_')
 ```
 
-The overall protein content seems to vary quite a bit among samples depending on the ES, so let's take a look at the ES data + standard curves:
+<center>**Figure 2: Total detected protein amounts in all 18 samples**</center>
+<br>
+
+The total detected protein seems to vary quite a bit among samples depending on the ES, so let's take a look at the ES data + standard curves:
 
 ```{r plotLM}
 ```
@@ -116,11 +130,14 @@ The overall protein content seems to vary quite a bit among samples depending on
 ```{r plotES}
 ```
 
-```{r}
+```{r fig.align="center"}
 ESplots(ESdata,0,FALSE)
 ```
 
-Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample) that we can use later together with the heavy (H) iBAQ intensities to infer abundances of the internal standard (IS). But they don't look the best (consider they are in log), many other curves could almost equally fit that data. What if instead we just assume that all proteins in the IS should add up to what we have injected, i.e. 12 ug of protein? Can we work back similar fits?
+<center>**Figure 3: ES curves for all 6 measurements of UPS2**</center>
+<br>
+
+Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we just assume that all proteins in the IS should add up to what we have injected, i.e. 12 ug of protein? Can we work back similar fits?
 
 ## Alternative inference of ES standard curves
 
@@ -129,40 +146,58 @@ The alternative: All H peaks added up together should result in 12 ug of protein
 ```{r skippUPS2}
 ```
 
-Let's check the protein contents if they were scaled correctly:
+Let's check the total detected protein amount to see if we scaled correctly:
 
-```{r}
+```{r fig.align="center"}
 protPlot(iBAQdata,'AbundanceNoUPS2.')
 ```
 
-Now we can look at the new fits to the UPS2 data, as we have esentially created a linear model:
+<center>**Figure 4: Total detected protein amounts in all 6 IS, rescaled**</center>
+<br>
 
-`abundance = m*Hpeak`, where m = (12ug)/(sum of all Hpeaks)
+Now we can look at the new fits of the UPS2 data, as we have esentially created a linear model:
 
-`log(abundance) = log(Hpeak) + m` -> linear model with a = 1 and b = m
+`abundance = m*Hpeak`, where `m = (12ug)/(sum of all Hpeaks)`
 
-```{r}
+`log(abundance) = log(Hpeak) + log(m)` -> linear model with a = 1 and b = log(m)
+
+```{r fig.align="center"}
 Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
 ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
 ```
 
+<center>**Figure 5: ES curves for all 6 measurements of UPS2, original (red) Vs rescaled (green)**</center>
+<br>
+
 The fits are almost the same, validating our approach. Let's see everything in the same plot:
 
-```{r}
+```{r fig.align="center"}
 ESplots(ESdata,12*1e6/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),TRUE)
 ```
 
+<br>
+<center>**Figure 6: ES curves for all 6 measurements of UPS2, original (red) Vs rescaled (green)**</center>
+<br>
 
-Looking now at the sample total abundances:
+Looking now at the total detected protein amounts in the samples:
 
 ```{r}
 SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceNoUPS2.')
 ```
 
-```{r}
+```{r fig.align="center"}
 protPlot(SILACdata,'AbundanceNoUPS2.R..')
 ```
 
-We get much more similar total abundances, less influenced by the external standard.
+<center>**Figure 7: Total detected protein amounts in all 18 samples, rescaled**</center>
+<br>
+
+We get much more similar total detected protein amounts, less influenced by the external standard.
 
 In conclusion, by assuming that the iBAQ data adds up to the total injected protein amount (therefore skipping any information from the ES), we can reproduce almost exactly the ES curves, and achieve much more consistent results accross samples.
+
+####Questions:
+
+* Are the differences in figure 1 only due to pipetting errors?
+* Is the best solution to rescale to 12 ug?
+* Are ES curves always constructed with a slope = 1?

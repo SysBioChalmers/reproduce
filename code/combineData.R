@@ -6,7 +6,7 @@
 ## @knitr getESdata
 # ES data is inside the iBAQ data (among other measurements)
 ESdata <- iBAQdata[grep('ups',iBAQdata$Protein.IDs),]
-# Leave only the protein from UPS2 (ends in "ups")
+# Leave only the proteins from UPS2 (ends in "ups")
 for(i in 1:length(ESdata$Protein.IDs)) {
   group <- strsplit(as.character(ESdata$Protein.IDs[i]),';')[[1]]
   levels(ESdata$Protein.IDs) <- c(levels(ESdata$Protein.IDs), group[grep('ups',group)])
@@ -32,10 +32,10 @@ for(Hpeak in Hpeaks) {
   lmodel         <- lm(UPS2abundances - UPS2peaks ~ 1)  #ES curve with fixed slope = 1
   intercept      <- lmodel[1]$coefficients[1]           #intercept
   iBAQH          <- iBAQdata[Hpeak]                     #iBAQ(H)
-  ISabundance    <- 10^(intercept + log10(iBAQH))       #L.T. for log(iBAQ(H)) [pg in sample]
+  ISabundance    <- 10^(log10(iBAQH) + intercept)       #L.T. for log(iBAQ(H)) [pg in sample]
   # Add abundances to dataset:
   new_name <- gsub('^.*?_','',Hpeak_name)
-  new_name <- paste0('Abundance.',new_name)     #name for abundance of sample
+  new_name <- paste0('Abundance.',new_name)             #name for abundance of IS
   iBAQdata[[new_name]] <- ISabundance
 }
 
@@ -52,12 +52,12 @@ getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
     root_name     <- tolower(gsub('^.*?_','',LHNratio_name))
     iBAQ_name     <- paste0(pattern,root_name)
     # Compute abundance for sample and rescale:
-    abundance <- SILACdata[,LHNratio]^-1           #Ratios are stored as H/L
-    abundance <- abundance*SILACdata[[iBAQ_name]]  #(L/H)*abundance [pg in sample]
-    abundance <- abundance/12*15                   #Rescale to new size [pg in sample]
+    abundance <- SILACdata[,LHNratio]^-1            #Ratios are stored as H/L
+    abundance <- abundance*SILACdata[[iBAQ_name]]   #(L/H)*abundance [pg in iBAQ sample]
+    abundance <- abundance/12*15                    #Rescale to new size [pg in SILAC sample]
     # Add abundances to dataset:
     new_name <- gsub('Ratio.H.L.normalized.','',LHNratio_name)
-    new_name <- paste0(pattern,new_name)     #name for abundance of sample
+    new_name <- paste0(pattern,new_name)            #name for abundance of sample
     SILACdata[[new_name]] <- abundance
   }
   return(SILACdata)

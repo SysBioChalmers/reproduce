@@ -10,7 +10,7 @@ swissprot <- read.csv(file = '../data/raw_external/swissprot.tab', sep = '\t', h
 ## @knitr loadUPS2
 UPS2 <- read.csv(file = '../data/raw_external/ups2.csv', sep = ',', header = TRUE)
 # Convert fmol/kit to fmol in sample:
-UPS2$amount.fmoles <- UPS2$amount.fmoles/10.6   #each kit has 10.6 ug of protein
+UPS2$amount.fmoles <- UPS2$amount.fmoles/10.6   #fmol/ug (each kit has 10.6 ug of protein)
 UPS2$amount.fmoles <- UPS2$amount.fmoles*2.2    #fmol in sample (only 2.2 ug were used)
 
 
