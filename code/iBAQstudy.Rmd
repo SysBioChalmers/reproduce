@@ -212,7 +212,7 @@ mean_sampleRescaled <- plotTotalProt(SILACdata,'AbundanceRescaled.R..1_')
 
 We get much more similar total detected protein amounts, showing that the choice of ES curve will have a major effect in the final abundances. Therefore, one should hopefully have more than just one ES curve, as results will be greatly biased by it.
 
-## 4. Comparing with and without rescaling results
+## 4. Comparing abundances with/without rescaling IS
 
 We now display the variability of the final abundance data between biological and technical replicates, and with Vs without rescaling. First we define a scatter plot helping function:
 
