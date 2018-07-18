@@ -201,11 +201,49 @@ mean_sampleRescaled <- protPlot(SILACdata,'AbundanceRescaled.R..1_')
 
 We get much more similar total detected protein amounts, showing that the choice of ES curve will have a major effect in the final abundances. Therefore, one should hopefully have more than just one ES curve, as results will be greatly biased by it.
 
+## 4. Comparing with and without rescaling results
+
+We now display the variability of the final abundance data between biological and technical replicates, and with Vs without rescaling. First we define a scatter plot helping function:
+
+```{r plotScatter}
+```
+
+We now define a function that plots all possible combinations between replicates. For instance, for biological replicates, the data in the variable's name regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be plotted against each other if the rest of the name matches (meaning it's the same technical replicate but 2 different biological replicates).
+
+```{r plotVariability}
+```
+
+Finally, we define a PCA function to see how the samples cluster:
+
+```{r plotPCA}
+```
+
+Let's now see the results of those plots:
+
+```{r fig.align="center"}
+par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
+# Top row: No rescaling
+abundance <- SILACdata[,grep('Abundance.R',names(SILACdata))]
+plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
+plotPCA(abundance,'PCA')
+# Bottom row: With rescaling
+abundance <- SILACdata[,grep('AbundanceRescaled.R',names(SILACdata))]
+plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
+plotPCA(abundance,'PCA')
+```
+
+<center>**Figure 8: Comparison of data variability with (bottom row) and without (top row) rescaling. In the variability plots (left and middle) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right), colors refer to technical replicates and shapes to biological replicates.**</center>
+<br>
+
+Even though the variability looks similar in both cases, we see a lower median fold change in the technical replicates + a slight separation of the "technical clusters" in the PCA when we use the rescaling. This means that by using rescaled data we achieve lower variability between technical replicates.
+
 In conclusion, by assuming that the iBAQ data should always adds up to a given protein amount, we can reproduce almost exactly the ES curves, and achieve much more consistent results accross samples. The ES curve achieved with UPS2 therefore is only useful to get an estimate of the percentage of detection in the IS data.
 
-## 4. Questions:
+## 5. Questions:
 
 1. Are the differences in figure 1 due to pipetting errors and/or MS detection issues? or something else?
-2. Is rescaling to the average total amount the best strategy? It requires then for any proteomic study to run several ES curves (in order to get an idea of the variability of the MS machine). Maybe the detection percentage could be estimated in another way? I think this might be the "purest" way of estimating it, as it relies only on the MS data and not in any external database (PaxDB, uniprot, etc)
-3. Are ES curves always constructed with a slope = 1? Also not sure if this was a given in the field or people actually fit both a and b in y=ax+b
-4. How relevant are these findings? Old news in the field or actually something interesting? Most times I've only seen a single ES curve...
+2. Is rescaling to the average total amount the best strategy? It requires then for any proteomic study to run several ES curves (in order to get an idea of the variability of the MS machine). Maybe the detection percentage could be estimated in another way? This is the "purest" way of estimating it I could think of, as it relies only on the MS data and not in any external database (PaxDB, uniprot, etc)
+3. Are ES curves always constructed with a slope = 1? Not sure if this was a given in the field or people actually fit both a and b in y=ax+b
+4. How relevant are these findings? Old news or actually something interesting? Most times I've only seen a single ES curve...
