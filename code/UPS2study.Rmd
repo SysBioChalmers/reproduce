@@ -92,7 +92,7 @@ Let's take a look at the total detected protein amount in each of the 6 samples:
 ```
 
 ```{r fig.align="center"}
-mean_totProt <- protPlot(iBAQdata,'Abundance.')
+mean_totProt <- plotTotalProt(iBAQdata,'Abundance.')
 ```
 
 <center>**Figure 1: Total detected protein amounts in all 6 IS**</center>
@@ -116,22 +116,33 @@ SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance.')
 Let's take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration:
 
 ```{r fig.align="center"}
-mean_sample <- protPlot(SILACdata,'Abundance.R..1_')
+mean_sample <- plotTotalProt(SILACdata,'Abundance.R..1_')
 ```
 
 <center>**Figure 2: Total detected protein amounts in all 18 samples**</center>
 <br>
 
-The total detected protein seems to vary quite a bit among samples depending on the ES, so let's take a look at the ES data + standard curves:
+The total detected protein seems to vary quite a bit among samples depending on the ES, so let's take a look at the ES data + standard curves. For that we need:
+
+* A function for plotting a linear fit:
 
 ```{r plotLM}
 ```
 
+* A function for plotting the external standard:
+
 ```{r plotES}
 ```
 
+* A function for plotting all 6 external standards (together or separate):
+
+```{r plotAllES}
+```
+
+Now we can take a look at all 6 ES curves:
+
 ```{r fig.align="center"}
-ESplots(ESdata,0,FALSE)
+plotAllES(ESdata,0,FALSE)
 ```
 
 <center>**Figure 3: ES curves for all 6 measurements of UPS2**</center>
@@ -154,7 +165,7 @@ iBAQdata <- rescaleIS(iBAQdata,mean_totProt)
 Let's check the total detected protein amount to see if we scaled correctly:
 
 ```{r fig.align="center"}
-mean_rescaled <- protPlot(iBAQdata,'AbundanceRescaled.')
+mean_rescaled <- plotTotalProt(iBAQdata,'AbundanceRescaled.')
 ```
 
 <center>**Figure 4: Total detected protein amounts in all 6 IS, rescaled**</center>
@@ -168,7 +179,7 @@ Now we can look at the new fits of the UPS2 data, as we have esentially created 
 
 ```{r fig.align="center"}
 Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
-ESplots(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
+plotAllES(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
 ```
 
 <center>**Figure 5: ES curves for all 6 measurements of UPS2, original (red) Vs rescaled (green)**</center>
@@ -177,7 +188,7 @@ ESplots(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
 The fits are almost the same, validating our approach. Let's see everything in the same plot:
 
 ```{r fig.align="center"}
-ESplots(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),TRUE)
+plotAllES(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),TRUE)
 ```
 
 <br>
@@ -193,7 +204,7 @@ SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceRescaled.')
 ```
 
 ```{r fig.align="center"}
-mean_sampleRescaled <- protPlot(SILACdata,'AbundanceRescaled.R..1_')
+mean_sampleRescaled <- plotTotalProt(SILACdata,'AbundanceRescaled.R..1_')
 ```
 
 <center>**Figure 7: Total detected protein amounts in all 18 samples, rescaled**</center>

@@ -40,6 +40,7 @@ for(Hpeak in Hpeaks) {
   iBAQdata[[new_name]] <- ISabundance
 }
 
+
 ## @knitr getSamplesAbundance
 getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
   # Merge abundance data from iBAQ into SILAC dataset:
@@ -80,5 +81,4 @@ rescaleIS <- function(iBAQdata,mean_totProt) {
   }
   return(iBAQdata)
 }
-
 

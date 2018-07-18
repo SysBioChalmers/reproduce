@@ -4,8 +4,7 @@
 
 
 ## @knitr plotLM
-# Linear model plotting function
-LMplot <- function(x,y,scaling,allInOne) {
+plotLM <- function(x,y,scaling,allInOne) {
   #Make linear model with fixed slope = 1
   lmodel    <- lm(y - x ~ 1)
   intercept <- lmodel$coefficients[1]
@@ -28,17 +27,15 @@ LMplot <- function(x,y,scaling,allInOne) {
   }
 }
 
+
 ## @knitr plotES
-# ES plotting function:
-ESplot <- function(ESdata,scaling,name,allInOne,first) {
+plotES <- function(ESdata,scaling,name,allInOne,first) {
   #Plot data:
   x    <- log10(ESdata[[paste0('iBAQ.L.T4h_',tolower(name))]])
   y    <- log10(ESdata$amount.pg)
   y    <- y[!is.na(x)]
   x    <- x[!is.na(x)]
-  if(length(scaling) > 1) {
-    scaling <- scaling[grep(name,names(scaling))]
-  }
+  if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
   if(allInOne) {
     if(first) {
       min_x <- floor(min(x, na.rm = TRUE))
@@ -59,27 +56,26 @@ ESplot <- function(ESdata,scaling,name,allInOne,first) {
     plot(x,y, col = 'blue', xaxt = 'n', yaxt = 'n', main = name)
   }
   #Get linear fits:
-  LMplot(x,y,0,allInOne)
-  LMplot(x,y,scaling,allInOne)
+  plotLM(x,y,0,allInOne)
+  plotLM(x,y,scaling,allInOne)
 }
-# plot all ES plots
-ESplots <- function(ESdata,scaling,allInOne) {
-  if(allInOne) {
-    par(mfrow = c(1,1), mar = c(4,4,1,1), pty = "s", cex = 1)
-  } else {
-    par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
-  }
-  ESplot(ESdata,scaling,'top5_batch1',allInOne,TRUE)
-  ESplot(ESdata,scaling,'top5_batch2',allInOne,FALSE)
-  ESplot(ESdata,scaling,'top5_batch3',allInOne,FALSE)
-  ESplot(ESdata,scaling,'top10_batch1',allInOne,FALSE)
-  ESplot(ESdata,scaling,'top10_batch2',allInOne,FALSE)
-  ESplot(ESdata,scaling,'top10_batch3',allInOne,FALSE)
+
+
+## @knitr plotAllES
+plotAllES <- function(ESdata,scaling,allInOne) {
+  if(allInOne) { par(mfrow = c(1,1), mar = c(4,4,1,1), pty = "s", cex = 1) }
+  else         { par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1) }
+  plotES(ESdata,scaling,'top5_batch1',allInOne,TRUE)
+  plotES(ESdata,scaling,'top5_batch2',allInOne,FALSE)
+  plotES(ESdata,scaling,'top5_batch3',allInOne,FALSE)
+  plotES(ESdata,scaling,'top10_batch1',allInOne,FALSE)
+  plotES(ESdata,scaling,'top10_batch2',allInOne,FALSE)
+  plotES(ESdata,scaling,'top10_batch3',allInOne,FALSE)
 }
 
 
 ## @knitr plotTotalProt
-protPlot <- function(data,pattern) {
+plotTotalProt <- function(data,pattern) {
   abundances <- data[,grep(pattern,names(data))]
   names(abundances) <- gsub(pattern,'',names(abundances))
   totProt <- colSums(abundances, na.rm = TRUE)/1e6  #ug in sample
@@ -164,25 +160,25 @@ plotPCA <- function(data,title){
   log_data[is.nan(log_data)]      <- NA
   log_data                        <- log_data[!is.na(rowSums(log_data)),]
   log_data                        <- t(log_data)
-  #Do PCA:
+  # Do PCA:
   pca  <- prcomp(log_data)
   var  <- pca$sdev/sum(pca$sdev)*100
   var1 <- round(var[1], digits = 1)
   var2 <- round(var[2], digits = 1)
-  #Plotting options:
+  # Plotting options:
   pch_opt <- NULL
   col_opt <- NULL
   for(i in 2:length(names(data))) {
-    #Shape by bio. rep.
+    # Shape by bio. rep.
     if(length(grep('R1.1',names(data)[i])) == 1)      { pch_opt[i] <- 1 } 
     else if(length(grep('R2.1',names(data)[i])) == 1) { pch_opt[i] <- 2 }
     else if(length(grep('R3.1',names(data)[i])) == 1) { pch_opt[i] <- 3 }
-    #Color by tech. rep.
+    # Color by tech. rep.
     if(length(grep('Batch1',names(data)[i])) == 1)      { col_opt[i] <- '#EB2426' }
     else if(length(grep('Batch2',names(data)[i])) == 1) { col_opt[i] <- '#3953A3' }
     else if(length(grep('Batch3',names(data)[i])) == 1) { col_opt[i] <- '#0F8141' }
   }
-  #Plot PCA:
+  # Plot PCA:
   deltax <- max(pca$x[,1]) - min(pca$x[,1])
   deltay <- max(pca$x[,2]) - min(pca$x[,2])
   xmin   <- min(pca$x[,1]) - deltax/8
