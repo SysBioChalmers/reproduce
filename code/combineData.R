@@ -36,7 +36,7 @@ for(Hpeak in Hpeaks) {
   ISabundance    <- 10^(log10(iBAQH) + intercept)       #L.T. for log(iBAQ(H)) [pg in sample]
   # Add abundances to dataset:
   new_name <- gsub('^.*?_','',Hpeak_name)
-  new_name <- paste0('Abundance.',new_name)             #name for abundance of IS
+  new_name <- paste0('AbundanceIS.',new_name)           #name for abundance of IS
   iBAQdata[[new_name]] <- ISabundance
 }
 
@@ -44,21 +44,24 @@ for(Hpeak in Hpeaks) {
 ## @knitr getSamplesAbundance
 getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
   # Merge abundance data from iBAQ into SILAC dataset:
-  abundances <- iBAQdata[,c(1,grep(pattern,names(iBAQdata)))]
-  SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = FALSE, all.y = FALSE)
+  if(length(iBAQdata) > 1) {
+    abundances <- iBAQdata[,c(1,grep(paste0(pattern,'IS.'),names(iBAQdata)))]
+    SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = FALSE, all.y = FALSE)
+  }
   # Compute sample abundances:
   LHNratios <- grep('Ratio.H.L.normalized.R',names(SILACdata))
   for(LHNratio in LHNratios) {
     # Define name of relevant variables:
     LHNratio_name <- names(SILACdata)[LHNratio]
-    root_name     <- tolower(gsub('^.*?_','',LHNratio_name))
-    iBAQ_name     <- paste0(pattern,root_name)
+    if(length(iBAQdata) > 1) { root_name <- tolower(gsub('^.*?_','',LHNratio_name)) }
+    else { root_name <- gsub('Ratio.H.L.normalized.','',LHNratio_name) }
+    IS_name <- paste0(pattern,'IS.',root_name)
     # Compute abundance for sample and rescale:
-    abundance <- SILACdata[,LHNratio]^-1            #Ratios are stored as H/L
-    abundance <- abundance*SILACdata[[iBAQ_name]]   #(L/H)*abundance [pg in iBAQ sample]
-    abundance <- abundance/12*15                    #Rescale to new size [pg in SILAC sample]
+    abundance <- SILACdata[,LHNratio]^-1          #Ratios are stored as H/L
+    abundance <- abundance*SILACdata[[IS_name]]   #(L/H)*abundance [pg in IS sample]
+    if(length(iBAQdata) > 1) { abundance <- abundance/12*15 } #Rescale to new size [pg in SILAC sample]
     # Add abundances to dataset:
-    new_name <- gsub('Ratio.H.L.normalized.','',LHNratio_name)
+    new_name <- gsub('Ratio.H.L.normalized','',LHNratio_name)
     new_name <- paste0(pattern,new_name)            #name for abundance of sample
     SILACdata[[new_name]] <- abundance
   }
@@ -67,18 +70,21 @@ getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
 
 
 ## @knitr rescaleIS
-rescaleIS <- function(iBAQdata,mean_totProt) {
-  Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
+rescaleIS <- function(data,pattern,mean_totProt) {
+  Hpeaks <- grep(pattern,names(data))   #Peaks in the IS (H fraction)
   for(Hpeak in Hpeaks) {
     # Compute new abundance:
-    abundance <- iBAQdata[,Hpeak]
+    abundance <- data[,Hpeak]
     abundance <- abundance/sum(abundance, na.rm = TRUE)   #g/g in sample
     abundance <- abundance*mean_totProt                   #pg in sample
     # Add abundances to dataset:
-    new_name <- gsub('^.*?_','',names(iBAQdata)[Hpeak])
-    new_name <- paste0('AbundanceRescaled.',new_name)     #name for abundance of sample
-    iBAQdata[[new_name]] <- abundance
+    if(pattern == 'iBAQ.H.T4h') {
+      new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpeak])
+    } else if(pattern == 'Intensity.H.R') {
+      new_name <- gsub('Intensity.H.','AbundanceRescaled2IS.',names(data)[Hpeak])
+    }
+    data[[new_name]] <- abundance
   }
-  return(iBAQdata)
+  return(data)
 }
 

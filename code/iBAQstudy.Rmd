@@ -96,7 +96,7 @@ Let's take a look at the total detected protein amount in each of the 6 samples:
 ```
 
 ```{r fig.align="center"}
-mean_totProt <- plotTotalProt(iBAQdata,'Abundance.')
+mean_totProt <- plotTotalProt(iBAQdata,'AbundanceIS.')
 ```
 
 <center>**Figure 1: Total detected protein amounts in all 6 IS**</center>
@@ -114,7 +114,7 @@ Note that the total mass of IS in the iBAQ sample was of 12 ug, whereas the tota
 ```
 
 ```{r}
-SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance.')
+SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance')
 ```
 
 Let's take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration:
@@ -162,14 +162,13 @@ The alternative: All H peaks added up together should result in the average tota
 ```
 
 ```{r}
-iBAQdata <- rescaleIS(iBAQdata,mean_totProt)
+iBAQdata <- rescaleIS(iBAQdata,'iBAQ.H.T4h',mean_totProt)
 ```
-
 
 Let's check the total detected protein amount to see if we scaled correctly:
 
 ```{r fig.align="center"}
-mean_rescaled <- plotTotalProt(iBAQdata,'AbundanceRescaled.')
+mean_rescaled <- plotTotalProt(iBAQdata,'AbundanceRescaledIS.')
 ```
 
 <center>**Figure 4: Total detected protein amounts in all 6 IS, rescaled**</center>
@@ -204,7 +203,7 @@ Note that the MS precision is quite poor: the same protein detection can vary al
 Looking now at the total detected protein amounts in the samples:
 
 ```{r}
-SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceRescaled.')
+SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceRescaled')
 ```
 
 ```{r fig.align="center"}
@@ -258,7 +257,54 @@ In conclusion, by assuming that the iBAQ data should always adds up to a given p
 
 ## 4. Rescaling abundances to the IS in SILAC
 
+We can go one step further and instead assume all H peaks in SILAC should add up to the average total detection from figure 1 (scaled to 15 ug):
 
+```{r}
+SILACdata <- rescaleIS(SILACdata,'Intensity.H.R',mean_totProt/12*15)  #There are 15 ug of IS in the SILAC data
+```
+
+Let's check the total detected protein amounts (all should be the same):
+
+```{r fig.align="center"}
+mean_rescaled2 <- plotTotalProt(SILACdata,'AbundanceRescaled2IS.R..1_')
+```
+
+<center>**Figure 9: Total detected protein amounts in all 18 IS in SILAC, rescaled**</center>
+<br>
+
+Now we compute the SILAC abundances based on these rescaled values:
+
+```{r}
+SILACdata <- getSampleAbundance(SILACdata,'','AbundanceRescaled2')
+```
+
+```{r fig.align="center"}
+mean_sampleRescaled2 <- plotTotalProt(SILACdata,'AbundanceRescaled2.R..1_')
+```
+
+<center>**Figure 10: Total detected protein amounts in all 18 samples, rescaled by the IS in SILAC**</center>
+<br>
+
+Let's look at the variability:
+
+```{r fig.align="center"}
+par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
+# Top row: No rescaling
+abundance <- SILACdata[,grep('Abundance.R',names(SILACdata))]
+plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
+plotPCA(abundance,'PCA')
+# Bottom row: With rescaling
+abundance <- SILACdata[,grep('AbundanceRescaled2.R',names(SILACdata))]
+plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
+plotPCA(abundance,'PCA')
+```
+
+<center>**Figure 11: Comparison of data variability with (bottom row) and without (top row) rescaling by the IS in SILAC. In the variability plots (left and middle) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right), colors refer to technical replicates and shapes to biological replicates.**</center>
+<br>
+
+Variability between technical replicates goes overall lower: median fold change between technical replicates drops, and PCA results are less clustered by technical replicate.
 
 ## 5. Questions
 
