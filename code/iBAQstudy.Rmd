@@ -1,7 +1,11 @@
 ---
 title: "iBAQ study"
 author: "Benjamin Sanchez"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    theme: united
 ---
 
 ```{r setup, include=FALSE}
@@ -22,14 +26,14 @@ read_chunk('combineData.R')
 read_chunk('plotData.R')
 ```
 
-#### Load UPS2:
+#### Load UPS2
 
 The commercial kit brings 10.6 ug of protein, however only 2.2 ug were used:
 
 ```{r loadUPS2}
 ```
 
-#### Load iBAQ data:
+#### Load iBAQ data
 
 In the iBAQ data (IS+ES) there are 6 samples: 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of them processed with 2 different MS methods `top5` & `top10`. We will have then 6 different ES curves:
 
@@ -43,7 +47,7 @@ In the iBAQ data (IS+ES) there are 6 samples: 3 technical replicates (`batch1`, 
 ```{r loadIBAQdata}
 ```
 
-#### Get ES data:
+#### Get ES data
 
 In each sample of the iBAQ data there are:
 
@@ -53,7 +57,7 @@ In each sample of the iBAQ data there are:
 ```{r getESdata}
 ```
 
-#### Load SILAC data:
+#### Load SILAC data
 
 There are 18 different samples:
 
@@ -71,7 +75,7 @@ Each sample consists of:
 
 ## 2. Computing absolute abundance of samples
 
-#### IS abundances from ES
+#### Getting IS abundances from ES
 
 Abundance of the IS can be computed by building a log-log standard curve for the ES and applying it to the H peaks in the iBAQ sample. Note that said ES curve MUST have slope = 1, as the underlying assumption is that iBAQ peaks are linearly proportional to the mass of the corresponding proteins, therefore:
 
@@ -98,7 +102,7 @@ mean_totProt <- plotTotalProt(iBAQdata,'Abundance.')
 <center>**Figure 1: Total detected protein amounts in all 6 IS**</center>
 <br>
 
-#### Sample abundances from IS
+#### Getting Sample abundances from IS
 
 We now use the absolute abundances from the IS (pg/sample) to infer absolute abundances in each sample of the SILAC data (pg/sample), by doing:
 
@@ -150,7 +154,7 @@ plotAllES(ESdata,0,FALSE)
 
 Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we assume that all proteins in the IS should add up to the average of the totals shown in figure 1? How would the new ES curves look like?
 
-## 3. Rescaling IS data
+## 3. Rescaling abundances to the IS in iBAQ
 
 The alternative: All H peaks added up together should result in the average total detection from figure 1:
 
@@ -212,7 +216,7 @@ mean_sampleRescaled <- plotTotalProt(SILACdata,'AbundanceRescaled.R..1_')
 
 We get much more similar total detected protein amounts, showing that the choice of ES curve will have a major effect in the final abundances. Therefore, one should hopefully have more than just one ES curve, as results will be greatly biased by it.
 
-## 4. Comparing abundances with/without rescaling IS
+#### Comparing abundances with/without rescaling
 
 We now display the variability of the final abundance data between biological and technical replicates, and with Vs without rescaling. First we define a scatter plot helping function:
 
@@ -252,7 +256,11 @@ Even though the variability looks similar in both cases, we see a lower median f
 
 In conclusion, by assuming that the iBAQ data should always adds up to a given protein amount, we can reproduce almost exactly the ES curves, and achieve much more consistent results accross samples. The ES curve achieved with UPS2 therefore is only useful to get an estimate of the percentage of detection in the IS data.
 
-## 5. Questions:
+## 4. Rescaling abundances to the IS in SILAC
+
+
+
+## 5. Questions
 
 1. Are the differences in figure 1 due to pipetting errors and/or MS detection issues? or something else?
 2. Is rescaling to the average total amount the best strategy? It requires then for any proteomic study to run several ES curves (in order to get an idea of the variability of the MS machine). Maybe the detection percentage could be estimated in another way? This is the "purest" way of estimating it I could think of, as it relies only on the MS data and not in any external database (PaxDB, uniprot, etc)
