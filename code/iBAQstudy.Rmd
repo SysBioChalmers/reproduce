@@ -225,7 +225,7 @@ plotAllES(ESdata,'iBAQ.L.T4h_',scaling,TRUE)
 ```
 
 <br>
-<center>**Figure 6: ES curves (abundance Vs iBAQ peaks of UPS2), original (red) Vs rescaled (green)**</center>
+<center>**Figure 6: ES curves (abundance Vs iBAQ peaks of UPS2), original (red) Vs rescaled (green). Average coefficient of variation (CVm) within each protein in the log space is shown in the upper left corner.**</center>
 <br>
 
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude. This supports the idea that an alternative linear fit could replace the original ES curve, as both would be an appoximation anyway.
@@ -287,7 +287,7 @@ plotPCA(abundance,'PCA')
 
 Even though the variability looks similar in both cases, we see a lower median fold change in the technical replicates + a slight separation of the "technical clusters" in the PCA when we use the rescaling. This means that by using rescaled data we achieve lower variability between technical replicates.
 
-In conclusion, by assuming that the iBAQ data should always adds up to a given protein amount, we can reproduce almost exactly the ES curves, and achieve more consistent results accross samples. The ES curve achieved with UPS2 therefore is only useful to get an estimate of the detected total protein amount of the IS by the iBAQ peaks.
+In conclusion, by assuming that the iBAQ data should always adds up to a given protein amount, we can reproduce almost exactly the ES curves, and achieve more consistent results accross samples. The ES curve achieved with UPS2 therefore is only useful in this strategy to get an estimate of the detected total protein amount of the IS by the iBAQ peaks.
 <br>
 
 ## 4. Rescaling abundances to the IS in SILAC
@@ -314,7 +314,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',0,FALSE)
 <center>**Figure 9: ES curves for all 6 measurements of UPS2, based on raw L peaks**</center>
 <br>
 
-The fits are actually better than in figure 3, suggesting that, at least for this dataset, protein abundance correlates better to raw MS peaks than iBAQ peaks. We will then proceed with only raw MS peaks in the analysis.
+The fits are actually better than in figure 3, suggesting that, at least for this dataset, protein abundances correlate better to raw MS peaks than iBAQ peaks. We will then proceed with only raw MS peaks in this section.
 <br>
 
 ### Steps 2-3: Getting IS abundances from ES
@@ -368,10 +368,10 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 ```
 
 <br>
-<center>**Figure 13: ES curves (abundance Vs raw H peaks of UPS2), original (red) Vs rescaled (green)**</center>
+<center>**Figure 13: ES curves (abundance Vs raw H peaks of UPS2), original (red) Vs rescaled (green). Average coefficient of variation (CVm) within each protein in the log space is shown in the upper left corner.**</center>
 <br>
 
-Again, comparing these fits to figure 6, we see how the variability for a single protein measurement is higher in iBAQ peaks than in simple raw MS peaks.
+Comparing these fits to figure 6, we see how the variability for a single protein measurement is higher in iBAQ peaks than in simple raw MS peaks (CVm goes down).
 <br>
 
 ### Step 5: Getting sample abundances from IS
@@ -410,12 +410,12 @@ plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variabilit
 plotPCA(abundance,'PCA')
 ```
 
-<center>**Figure 15: Comparison of data variability without rescaling (top row), rescaling to iBAQ (middle row) and rescaling to SILAC (bottom row). In the variability plots (left and middle) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right), colors refer to technical replicates and shapes to biological replicates.**</center>
+<center>**Figure 15: Comparison of data variability without rescaling (top row), rescaling to iBAQ (middle row) and rescaling to SILAC (bottom row). In the variability plots (left and middle columns) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
 <br>
 
 Note how we progressevely increase the quality of the data: median fold change between technical replicates slowly drops while maintaining the same difference between biological replicates, and the first component in the PCA analysis comprises less and less variability.
 
-In conclusion, we can skip entirely the iBAQ data and just assume a proportionality between SILAC peaks and abundance. This achieves even more reproducible results than the iBAQ alternative (section 3). The only way the iBAQ data is used here is for estimating the total detection fraction of protein, but this could be run as any other SILAC run as the iBAQ peaks are never used.
+In conclusion, we can skip entirely the iBAQ data and just assume a proportionality between SILAC peaks and abundance. This achieves even more reproducible results than the iBAQ alternative (section 3). The only way the iBAQ data is used here is for estimating the total detection fraction of protein, but this could be run as any other SILAC sample as the iBAQ peaks are never used.
 
 ## 5. Questions
 
@@ -423,4 +423,4 @@ In conclusion, we can skip entirely the iBAQ data and just assume a proportional
 2. Is rescaling to the average total amount the best strategy? It requires then for any proteomic study to run several ES curves (in order to get an idea of the detection variability of the MS machine). Maybe the detection percentage could be estimated in another way? This is the "purest" way of estimating it I could think of, as it relies only on the MS data and not in any external database (PaxDB, uniprot, etc)
 3. Are ES curves always constructed with a slope = 1? Not sure if this was a given in the field or people actually fit both a and b in y=ax+b
 4. Is it possible to assume that H peaks in SILAC are proportional to abundance? If not, how are iBAQ peaks different?
-5. How relevant are these findings? Old news or actually something interesting? Most times I've only seen a single ES curve and no technical replicates...
+5. How relevant are these findings? Old news or actually something interesting? Most times I've only seen a single ES curve and no technical replicates. Also not sure if someone has shown how the variability of iBAQ is > variability of SILAC.
