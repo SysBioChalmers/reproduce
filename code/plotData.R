@@ -29,9 +29,9 @@ plotLM <- function(x,y,scaling,allInOne) {
 
 
 ## @knitr plotES
-plotES <- function(ESdata,scaling,name,allInOne,first) {
+plotES <- function(ESdata,peaks,scaling,name,allInOne,first) {
   #Plot data:
-  x    <- log10(ESdata[[paste0('iBAQ.L.T4h_',tolower(name))]])
+  x    <- log10(ESdata[[paste0(peaks,tolower(name))]])
   y    <- log10(ESdata$amount.pg)
   y    <- y[!is.na(x)]
   x    <- x[!is.na(x)]
@@ -42,9 +42,10 @@ plotES <- function(ESdata,scaling,name,allInOne,first) {
       max_x <- ceiling(max(x, na.rm = TRUE))
       min_y <- floor(min(y, na.rm = TRUE))
       max_y <- ceiling(max(y, na.rm = TRUE))
+      x_lab <- paste0('log10(',gsub('.L.T4h_','',peaks),' peaks)')
       plot(x,y, col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
            xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
-           xlab = 'log10(iBAQ peaks)', ylab = 'log10(abundance)')
+           xlab = x_lab, ylab = 'log10(abundance)')
       axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
       axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
       axis(side=3, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
@@ -62,15 +63,15 @@ plotES <- function(ESdata,scaling,name,allInOne,first) {
 
 
 ## @knitr plotAllES
-plotAllES <- function(ESdata,scaling,allInOne) {
+plotAllES <- function(ESdata,peaks,scaling,allInOne) {
   if(allInOne) { par(mfrow = c(1,1), mar = c(4,4,1,1), pty = "s", cex = 1) }
   else         { par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1) }
-  plotES(ESdata,scaling,'top5_batch1',allInOne,TRUE)
-  plotES(ESdata,scaling,'top5_batch2',allInOne,FALSE)
-  plotES(ESdata,scaling,'top5_batch3',allInOne,FALSE)
-  plotES(ESdata,scaling,'top10_batch1',allInOne,FALSE)
-  plotES(ESdata,scaling,'top10_batch2',allInOne,FALSE)
-  plotES(ESdata,scaling,'top10_batch3',allInOne,FALSE)
+  plotES(ESdata,peaks,scaling,'top5_batch1',allInOne,TRUE)
+  plotES(ESdata,peaks,scaling,'top5_batch2',allInOne,FALSE)
+  plotES(ESdata,peaks,scaling,'top5_batch3',allInOne,FALSE)
+  plotES(ESdata,peaks,scaling,'top10_batch1',allInOne,FALSE)
+  plotES(ESdata,peaks,scaling,'top10_batch2',allInOne,FALSE)
+  plotES(ESdata,peaks,scaling,'top10_batch3',allInOne,FALSE)
 }
 
 

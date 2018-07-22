@@ -98,6 +98,10 @@ So if the fit is done in the log space, we fix the ES curve to always have slope
 ```{r getISabundance}
 ```
 
+```{r}
+iBAQdata <- getISabundance(iBAQdata,'iBAQ.H.T4h')
+```
+
 Let's take a look at the total detected protein amount in each of the 6 samples:
 
 ```{r plotTotalProt}
@@ -154,7 +158,7 @@ The total detected protein seems to vary quite a bit among samples depending on 
 Now we can take a look at all 6 ES curves:
 
 ```{r fig.align="center"}
-plotAllES(ESdata,0,FALSE)
+plotAllES(ESdata,'iBAQ.L.T4h_',0,FALSE)
 ```
 
 <center>**Figure 3: ES curves for all 6 measurements of UPS2**</center>
@@ -204,7 +208,8 @@ Now we can look at the new fits of the UPS2 data, as we have esentially created 
 
 ```{r fig.align="center"}
 Hpeaks <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ peaks from the IS (H fraction)
-plotAllES(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
+scaling <- mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE)
+plotAllES(ESdata,'iBAQ.L.T4h_',scaling,FALSE)
 ```
 
 <center>**Figure 5: ES curves for all 6 measurements of UPS2, original (red) Vs rescaled (green)**</center>
@@ -213,7 +218,7 @@ plotAllES(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),FALSE)
 The fits are almost the same, validating our approach. Let's see everything in the same plot:
 
 ```{r fig.align="center"}
-plotAllES(ESdata,mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE),TRUE)
+plotAllES(ESdata,'iBAQ.L.T4h_',scaling,TRUE)
 ```
 
 <br>
@@ -284,72 +289,132 @@ In conclusion, by assuming that the iBAQ data should always adds up to a given p
 
 #### Computing strategy
 
-We can go one step further and instead assume all H peaks in SILAC should add up to the average total detection from figure 1 (scaled to 15 ug).
+We can go one step further and instead discard all iBAQ scores, i.e. construct ES curves from the UPS2 raw MS peaks, compute the average detected protein amount for IS, and assume all H peaks in SILAC should add up to that (as in the previous approach).
 
-1. Create a standard curve abundances Vs. iBAQ peaks of ES (L fraction in the iBAQ data)
+1. Create a standard curve abundances Vs. raw peaks of ES (L fraction in the iBAQ data)
 2. Use the standard curve to infer abundances of IS in the iBAQ data (from the H fraction)
 3. Add up the total abundance of IS (close to 12 ug)
-4. Use this value scaled to 15 ug for computing the IS abundances in SILAC: IS abundance = SILAC.H peak * (total abundance)/(sum of all SILAC.H peaks)
+4. Use this value for computing the IS abundances in iBAQ: IS abundance = raw.H peak * (total abundance)/(sum of all raw.H peaks)
 5. Use those IS abundances together with the L/H ratios in the SILAC data to compute abundances of samples
 
-Again, steps 1-3 were already performed in section 2.
+
+#### Step 1: Getting ES curves
+
+Let's start by checking out how are the ES curves if we use raw intensity peaks instead of the iBAQ score:
+
+```{r fig.align="center"}
+plotAllES(ESdata,'Intensity.L.T4h_',0,FALSE)
+```
+
+<center>**Figure 9: ES curves for all 6 measurements of UPS2, based on raw L peaks**</center>
+<br>
+
+The fits are actually better than in figure 3, suggesting that, at least for this dataset, protein abundance correlates better to raw MS peaks than iBAQ scores. We will then proceed with only raw MS peaks in the analysis.
+<br>
+
+#### Steps 2-3: Getting IS abundances from ES
+
+We repeat the process of getting IS abundances but now using raw peaks instead of iBAQ peaks:
+
+```{r}
+iBAQdata <- getISabundance(iBAQdata,'Intensity.H.T4h')
+```
+
+```{r fig.align="center"}
+mean_totProt <- plotTotalProt(iBAQdata,'AbundanceRawIS.')
+```
+
+<center>**Figure 10: Total detected protein amounts in all 6 IS, based on raw H peaks**</center>
+<br>
+
+Again we see a lot of difference accross samples so we must rescale.
 
 #### Step 4: Rescaling data
 
 ```{r}
-SILACdata <- rescaleIS(SILACdata,'Intensity.H.R',mean_totProt/12*15)  #There are 15 ug of IS in the SILAC data
+iBAQdata <- rescaleIS(iBAQdata,'Intensity.H.T4h',mean_totProt)
 ```
 
 Let's check the total detected protein amounts (all should be the same):
 
 ```{r fig.align="center"}
-mean_rescaled2 <- plotTotalProt(SILACdata,'AbundanceRescaled2IS.R..1_')
+mean_rescaled2 <- plotTotalProt(iBAQdata,'AbundanceRawRescaledIS.')
 ```
 
-<center>**Figure 9: Total detected protein amounts in all 18 IS in SILAC, rescaled**</center>
+<center>**Figure 11: Total detected protein amounts in all 18 IS in iBAQ, rescaled**</center>
 <br>
+
+Let's now check that the new fits are not too far away to the ones in figure 9:
+
+```{r fig.align="center"}
+Hpeaks <- grep('Intensity.H.T4h',names(iBAQdata))   #All 6 absolute raw peaks from the IS (H fraction)
+scaling <- mean_totProt/colSums(iBAQdata[,Hpeaks], na.rm = TRUE)
+plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
+```
+
+<center>**Figure 12: ES curves for all 6 measurements of UPS2 based on raw peaks, original (red) Vs rescaled (green)**</center>
+<br>
+
+Now everything in the same plot:
+
+```{r fig.align="center"}
+plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
+```
+
+<br>
+<center>**Figure 13: ES curves for all 6 measurements of UPS2, original (red) Vs rescaled (green)**</center>
+<br>
+
+Again, comparing these fits to figure 6, we see how the variability for a single protein measurement is higher in iBAQ scores than in simple raw MS peaks.
 
 #### Step 5: Getting sample abundances from IS
 
 Now we compute the SILAC abundances based on these rescaled values:
 
 ```{r}
-SILACdata <- getSampleAbundance(SILACdata,'','AbundanceRescaled2')
+SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceRawRescaled')
 ```
 
 ```{r fig.align="center"}
-mean_sampleRescaled2 <- plotTotalProt(SILACdata,'AbundanceRescaled2.R..1_')
+mean_sampleRescaled2 <- plotTotalProt(SILACdata,'AbundanceRawRescaled.R..1_')
 ```
 
-<center>**Figure 10: Total detected protein amounts in all 18 samples, rescaled by the IS in SILAC**</center>
+<center>**Figure 14: Total detected protein amounts in all 18 samples, rescaled by the IS in SILAC**</center>
 <br>
 
-#### Comparing abundances with/without rescaling
-
-Let's look at the variability:
+Let's look at the variability with all 3 methods:
 
 ```{r fig.align="center"}
-par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
+par(mfrow = c(3,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
 # Top row: No rescaling
 abundance <- SILACdata[,grep('Abundance.R',names(SILACdata))]
 plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
 plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
 plotPCA(abundance,'PCA')
-# Bottom row: With rescaling
-abundance <- SILACdata[,grep('AbundanceRescaled2.R',names(SILACdata))]
+# Middle row: Rescaling to iBAQ values
+abundance <- SILACdata[,grep('AbundanceRescaled.R',names(SILACdata))]
+plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
+plotPCA(abundance,'PCA')
+# Bottom row: Rescaling to SILAC vakues
+abundance <- SILACdata[,grep('AbundanceRawRescaled.R',names(SILACdata))]
 plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
 plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
 plotPCA(abundance,'PCA')
 ```
 
-<center>**Figure 11: Comparison of data variability with (bottom row) and without (top row) rescaling by the IS in SILAC. In the variability plots (left and middle) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right), colors refer to technical replicates and shapes to biological replicates.**</center>
+<center>**Figure 15: Comparison of data variability without rescaling (top row), rescaling to iBAQ (middle row) and rescaling to SILAC (bottom row). In the variability plots (left and middle) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right), colors refer to technical replicates and shapes to biological replicates.**</center>
 <br>
 
-Variability between technical replicates overall decreases: median fold change between technical replicates drops, and PCA results are less clustered by technical replicate.
+Note how we progressevely increase the quality of the data: median fold change between technical replicates slowly drops while maintaining the same difference between biological replicates, and the first component in the PCA analysis comprises less and less variability.
+
+In conclusion, we can skip entirely the iBAQ data and just assume a proportionality between SILAC.H peaks and abundance. This achieves more reproducible results than the iBAQ alternative. The only way the iBAQ dat is used here is for estimating the total detection fraction of protein, but this could be run as any other SILAC run.
 
 ## 5. Questions
 
 1. Are the differences in figure 1 due to pipetting errors and/or MS detection issues? or something else?
-2. Is rescaling to the average total amount the best strategy? It requires then for any proteomic study to run several ES curves (in order to get an idea of the variability of the MS machine). Maybe the detection percentage could be estimated in another way? This is the "purest" way of estimating it I could think of, as it relies only on the MS data and not in any external database (PaxDB, uniprot, etc)
+2. Is rescaling to the average total amount the best strategy? It requires then for any proteomic study to run several ES curves (in order to get an idea of the detection variability of the MS machine). Maybe the detection percentage could be estimated in another way? This is the "purest" way of estimating it I could think of, as it relies only on the MS data and not in any external database (PaxDB, uniprot, etc)
 3. Are ES curves always constructed with a slope = 1? Not sure if this was a given in the field or people actually fit both a and b in y=ax+b
-4. How relevant are these findings? Old news or actually something interesting? Most times I've only seen a single ES curve...
+4. Is it possible to assume that H peaks in SILAC are proportional to abundance? If not, how are iBAQ peaks different?
+5. Are these findings supported by your datasets? In particular, do you also observe what I show in figure 9 VS figure 3?
+6. How relevant are these findings? Old news or actually something interesting? Most times I've only seen a single ES curve and no technical replicates...
