@@ -59,7 +59,7 @@ getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
     IS_name       <- paste0(pattern,'IS.',root_name)
     # Compute abundance for sample and rescale:
     abundance <- SILACdata[,LHNratio]^-1        #Ratios are stored as H/L
-    abundance <- abundance*SILACdata[[IS_name]] #(L/H)*abundance [pg in IS sample]
+    abundance <- abundance*SILACdata[[IS_name]] #(L/H)*abundance [pg in iBAQ sample]
     abundance <- abundance/12*15                #Rescale to new size [pg in SILAC sample]
     # Add abundances to dataset:
     new_name <- gsub('Ratio.H.L.normalized','',LHNratio_name)

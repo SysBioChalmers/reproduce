@@ -65,7 +65,7 @@ plotES <- function(ESdata,peaks,scaling,name,allInOne,first,CVm) {
 
 ## @knitr plotAllES
 plotAllES <- function(ESdata,peaks,scaling,allInOne) {
-  #Compute the median coefficient of variation:
+  #Compute the mean coefficient of variation:
   peakData <- ESdata[,grep(peaks,names(ESdata))]
   peakData[peakData == 0] <- NA
   peakData <- log10(peakData)
