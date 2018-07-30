@@ -175,7 +175,7 @@ Now we can take a look at all 6 ES curves:
 plotAllES(ESdata,'iBAQ.L.T4h_',0,FALSE)
 ```
 
-<center>**Figure 3: ES curves for all 6 measurements of UPS2**</center>
+<center>**Figure 3: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(iBAQ value) in x-axis) for all 6 measurements of UPS2**</center>
 <br>
 
 Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we assume that all proteins in the IS should add up to the average of the totals shown in figure 1? How would the new ES curves look like?
@@ -228,7 +228,7 @@ scaling <- mean_totProt/colSums(iBAQdata[,iBAQpos], na.rm = TRUE)
 plotAllES(ESdata,'iBAQ.L.T4h_',scaling,FALSE)
 ```
 
-<center>**Figure 5: ES curves (abundance Vs iBAQ values of UPS2), original (red) Vs rescaled (green)**</center>
+<center>**Figure 5: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(iBAQ value) in x-axis), original (red) Vs rescaled (green)**</center>
 <br>
 
 The fits are almost the same, validating our approach. Let's see everything in the same plot:
@@ -295,7 +295,7 @@ plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variabilit
 plotPCA(abundance,'PCA')
 ```
 
-<center>**Figure 8: Comparison of data variability with (bottom row) and without (top row) rescaling. In the variability plots (left and middle columns) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
+<center>**Figure 8: Comparison of data variability with (bottom row) and without (top row) rescaling. In the variability plots (left and middle columns, log10(abundance [pg/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
 <br>
 
 Even though the variability looks similar in both cases, we see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use the rescaling (PC1 represents less variability). This means that by using rescaled data we achieve lower variability between technical replicates.
@@ -326,7 +326,7 @@ Let's start by checking out how are the ES curves if we use MS intensities inste
 plotAllES(ESdata,'Intensity.L.T4h_',0,FALSE)
 ```
 
-<center>**Figure 9: ES curves for all 6 measurements of UPS2, based on L intensities**</center>
+<center>**Figure 9: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(L intensities) in x-axis) for all 6 measurements of UPS2**</center>
 <br>
 
 The fits are actually better than in figure 3, suggesting that, at least for this dataset, protein abundances correlate better to MS intensities than iBAQ values. We will then proceed with only MS intensities in this section.
@@ -359,7 +359,7 @@ iBAQdata <- rescaleIS(iBAQdata,'Intensity.H.T4h',mean_totProt)
 Let's check the total detected protein amounts (all should be the same):
 
 ```{r fig.align="center"}
-mean_rescaled2 <- plotTotalProt(iBAQdata,'Abundance2RescaledIS.')
+mean_rescaled2 <- plotTotalProt(iBAQdata,'AbundanceRescaled2IS.')
 ```
 
 <center>**Figure 11: Total detected protein amounts in all 6 IS in iBAQ, rescaled based on H intensities**</center>
@@ -373,7 +373,7 @@ scaling <- mean_totProt/colSums(iBAQdata[,Hpos], na.rm = TRUE)
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
 ```
 
-<center>**Figure 12: ES curves (abundance Vs H intensities of UPS2), original (red) Vs rescaled (green)**</center>
+<center>**Figure 12: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(L intensities) in x-axis), original (red) Vs rescaled (green)**</center>
 <br>
 
 Now everything in the same plot:
@@ -383,7 +383,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 ```
 
 <br>
-<center>**Figure 13: ES curves (abundance Vs H intensities of UPS2), original (red) Vs rescaled (green). Average coefficient of variation (CVm) within each protein in the log space is shown in the upper left corner.**</center>
+<center>**Figure 13: ES curves (abundance Vs L intensities of UPS2), original (red) Vs rescaled (green). Average coefficient of variation (CVm) within each protein in the log space is shown in the upper left corner.**</center>
 <br>
 
 Comparing these fits to figure 6, we see how the variability for a single protein measurement is higher in iBAQ values than in simple MS intensities (CVm goes down).
@@ -394,11 +394,11 @@ Comparing these fits to figure 6, we see how the variability for a single protei
 Now we compute the SILAC abundances based on these new rescaled values:
 
 ```{r}
-SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance2Rescaled')
+SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceRescaled2')
 ```
 
 ```{r fig.align="center"}
-mean_sampleRescaled2 <- plotTotalProt(SILACdata,'Abundance2Rescaled.R..1_')
+mean_sampleRescaled2 <- plotTotalProt(SILACdata,'AbundanceRescaled2.R..1_')
 ```
 
 <center>**Figure 14: Total detected protein amounts in all 18 samples, rescaled by the IS in SILAC**</center>
@@ -419,13 +419,13 @@ plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
 plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
 plotPCA(abundance,'PCA')
 # Bottom row: Rescaling to MS intensities
-abundance <- SILACdata[,grep('Abundance2Rescaled.R',names(SILACdata))]
+abundance <- SILACdata[,grep('AbundanceRescaled2.R',names(SILACdata))]
 plotVariability(abundance,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
 plotVariability(abundance,c('_Batch1','_Batch2','_Batch3'),'Technical Variability')
 plotPCA(abundance,'PCA')
 ```
 
-<center>**Figure 15: Comparison of data variability without rescaling (top row), rescaling to iBAQ values (middle row) and rescaling to MS intensities (bottom row). In the variability plots (left and middle columns) green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
+<center>**Figure 15: Comparison of data variability without rescaling (top row), rescaling to iBAQ values (middle row) and rescaling to MS intensities (bottom row). In the variability plots (left and middle columns, log10(abundance [pg/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
 <br>
 
 Note how we progressively increase the quality of the data: median fold change between technical replicates slowly drops while maintaining the same difference between biological replicates, and the first component in the PCA analysis comprises less and less variability.

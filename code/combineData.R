@@ -82,7 +82,7 @@ rescaleIS <- function(data,pattern,mean_totProt) {
     if(pattern == 'iBAQ.H.T4h') {
       new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpos])
     } else if(pattern == 'Intensity.H.T4h') {
-      new_name <- gsub('^.*?_','Abundance2RescaledIS.',names(data)[Hpos])
+      new_name <- gsub('^.*?_','AbundanceRescaled2IS.',names(data)[Hpos])
     }
     data[[new_name]] <- abundance
   }

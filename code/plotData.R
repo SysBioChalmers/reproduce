@@ -151,9 +151,9 @@ plotVariability <- function(data,groupNames,title) {
   # Create data with all possible combinations:
   data1 <- NULL
   data2 <- NULL
-  for(i in 2:(length(names(data))-1)) {
-    for(j in (i+1):length(names(data))) {
-      if(names(data)[i] == names(data)[j]) {
+  for(i in 2:length(names(data))) {
+    for(j in 2:length(names(data))) {
+      if((names(data)[i] == names(data)[j]) && (i!=j)) {
         data1 <- c(data1,data[,i])
         data2 <- c(data2,data[,j])
       }
