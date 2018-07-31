@@ -92,7 +92,7 @@ Each sample consists of:
 
 This is the traditional strategy, i.e.:
 
-1. Create a standard curve abundances Vs. iBAQ values of ES (L fraction in the iBAQ data)
+1. Create a standard curve abundances (fmol/sample) Vs. iBAQ values of ES (L fraction in the iBAQ data)
 2. Use the standard curve to infer abundances of IS in the iBAQ data (from the H fraction of the iBAQ values)
 3. Use those IS abundances together with the L/H ratios in the SILAC data to compute abundances of samples
 <br>
@@ -101,11 +101,11 @@ This is the traditional strategy, i.e.:
 
 Abundance of the IS can be computed by building a log-log standard curve for the ES and applying it to the iBAQ values from the IS (H fraction). Note that said ES curve MUST have slope = 1, as the underlying assumption is that iBAQ values are linearly proportional to the mass of the corresponding proteins, therefore:
 
-`mass = m*iBAQ`
+`moles = m*iBAQ`
 
-`log10(mass) = log10(m*iBAQ)`
+`log10(moles) = log10(m*iBAQ)`
 
-`log10(mass) = log10(iBAQ) + log10(m)`
+`log10(moles) = log10(iBAQ) + log10(m)`
 
 So if the fit is done in the log space, we fix the ES curve to always have slope = 1, and find the corresponding fit for the intercept:
 
@@ -175,10 +175,10 @@ Now we can take a look at all 6 ES curves:
 plotAllES(ESdata,'iBAQ.L.T4h_',0,FALSE)
 ```
 
-<center>**Figure 3: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(iBAQ value) in x-axis) for all 6 measurements of UPS2**</center>
+<center>**Figure 3: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(iBAQ value) in x-axis) for all 6 measurements of UPS2**</center>
 <br>
 
-Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (pg/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we assume that all proteins in the IS should add up to the average of the totals shown in figure 1? How would the new ES curves look like?
+Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 proteins to abundance (fmol/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we assume that all proteins in the IS should add up to the average of the totals shown in figure 1? How would the new ES curves look like?
 <br>
 
 ## 3. Rescaling abundances to total iBAQ value
@@ -187,10 +187,10 @@ Those fits give us the transformation from light (L) iBAQ intensity of the UPS2 
 
 The alternative: All iBAQ values of the H fraction added up together should be proportional the average total detection from figure 1.
 
-1. Create a standard curve abundances Vs. iBAQ values of ES (L fraction in the iBAQ data)
+1. Create a standard curve abundances (fmol/sample) Vs. iBAQ values of ES (L fraction in the iBAQ data)
 2. Use the standard curve to infer abundances of IS in the iBAQ data (from the H fraction of the iBAQ values)
 3. Compute the average total detected protein amount of IS
-4. Use this value for rescaling the IS abundances in iBAQ: `IS abundance = iBAQ.H value * (average total IS abundance)/(sum of all iBAQ.H values)`
+4. Use this value for rescaling the IS abundances in iBAQ: `IS abundance = MW*iBAQ.H value * (average total IS abundance)/(sum of all iBAQ.H*MW values)`
 5. Use those IS abundances together with the L/H ratios in the SILAC data to compute abundances of samples
 
 Note that everything in steps 1-3 was already performed in section 2.
@@ -224,7 +224,8 @@ Now we can look at the new fits of the UPS2 data, as we have essentially created
 
 ```{r fig.align="center"}
 iBAQpos <- grep('iBAQ.H.T4h',names(iBAQdata))   #All 6 absolute iBAQ values from the IS (H fraction)
-scaling <- mean_totProt/colSums(iBAQdata[,iBAQpos], na.rm = TRUE)
+Hdata   <- iBAQdata[,iBAQpos]*iBAQdata$Mol..weight..kDa.
+scaling <- mean_totProt/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'iBAQ.L.T4h_',scaling,FALSE)
 ```
 
@@ -329,7 +330,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',0,FALSE)
 <center>**Figure 9: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(L intensities) in x-axis) for all 6 measurements of UPS2**</center>
 <br>
 
-The fits are actually better than in figure 3, suggesting that, at least for this dataset, protein abundances correlate better to MS intensities than iBAQ values. We will then proceed with only MS intensities in this section.
+The fits are similar to figure 3, suggesting that, at least for this dataset, protein abundances correlate as well to MS intensities than iBAQ values. We will then proceed with only MS intensities in this section.
 <br>
 
 ### Steps 2-3: Getting IS abundances from ES

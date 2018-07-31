@@ -28,17 +28,20 @@ getISabundance <- function(iBAQdata,pattern) {
     # Define name of relevant variables:
     Hname <- names(iBAQdata)[Hpos]
     Lname <- gsub('.H.','.L.',Hname)  #name of ES intensity
-    # Build linear model and apply to iBAQ(H) to get abundance of H:
-    UPS2abundances <- log10(ESdata$amount.pg)                 
-    UPS2values     <- log10(ESdata[[Lname]])
-    lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
-    intercept      <- lmodel[1]$coefficients[1]           #intercept
-    iBAQH          <- iBAQdata[Hpos]                      #iBAQ(H)
-    ISabundance    <- 10^(log10(iBAQH) + intercept)       #L.T. for log(iBAQ(H)) [pg in sample]
+    # Build linear model and apply to get abundance of H:
+    if(grepl('iBAQ',pattern)) { UPS2abundances <- log10(ESdata$amount.fmoles) }
+    else                      { UPS2abundances <- log10(ESdata$amount.pg)     }
+    UPS2values  <- log10(ESdata[[Lname]])
+    lmodel      <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
+    intercept   <- lmodel[1]$coefficients[1]           #intercept
+    Hdata       <- iBAQdata[Hpos]                      #H value (iBAQ or MS intensity)
+    ISabundance <- 10^(log10(Hdata) + intercept)       #L.T. for log(Hdata) [pg in sample]
+    # If the values are iBAQ, convert to mass:
+    if(grepl('iBAQ',pattern)) { ISabundance <- ISabundance*iBAQdata$Mol..weight..kDa. }
     # Add abundances to dataset:
     new_name <- gsub('^.*?_','',Hname)
-    if(pattern == 'iBAQ.H.T4h') { new_name <- paste0('AbundanceIS.',new_name) }
-    else if(pattern == 'Intensity.H.T4h') { new_name <- paste0('Abundance2IS.',new_name) }
+    if(grepl('iBAQ',pattern)) { new_name <- paste0('AbundanceIS.',new_name) }
+    else                      { new_name <- paste0('Abundance2IS.',new_name) }
     iBAQdata[[new_name]] <- ISabundance
   }
   return(iBAQdata)
@@ -75,15 +78,13 @@ rescaleIS <- function(data,pattern,mean_totProt) {
   Hposs <- grep(pattern,names(data))   #Values in the IS (H fraction)
   for(Hpos in Hposs) {
     # Compute new abundance:
-    abundance <- data[,Hpos]
+    if(grepl('iBAQ',pattern)) { abundance <- data[,Hpos]*data$Mol..weight..kDa. }
+    else                      { abundance <- data[,Hpos]                        }
     abundance <- abundance/sum(abundance, na.rm = TRUE)   #g/g in sample
     abundance <- abundance*mean_totProt                   #pg in sample
     # Add abundances to dataset:
-    if(pattern == 'iBAQ.H.T4h') {
-      new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpos])
-    } else if(pattern == 'Intensity.H.T4h') {
-      new_name <- gsub('^.*?_','AbundanceRescaled2IS.',names(data)[Hpos])
-    }
+    if(grepl('iBAQ',pattern)) { new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpos])  }
+    else                      { new_name <- gsub('^.*?_','AbundanceRescaled2IS.',names(data)[Hpos]) }
     data[[new_name]] <- abundance
   }
   return(data)

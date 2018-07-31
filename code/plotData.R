@@ -29,10 +29,11 @@ plotLM <- function(x,y,scaling,allInOne) {
 
 
 ## @knitr plotES
-plotES <- function(ESdata,vars,scaling,name,allInOne,first,CVm) {
+plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   #Plot data:
-  x    <- log10(ESdata[[paste0(vars,tolower(name))]])
-  y    <- log10(ESdata$amount.pg)
+  x    <- log10(ESdata[[paste0(pattern,tolower(name))]])
+  if(grepl('iBAQ',pattern)) { y <- log10(ESdata$amount.fmoles) }
+  else                      { y <- log10(ESdata$amount.pg)     }
   y    <- y[!is.na(x)]
   x    <- x[!is.na(x)]
   if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
@@ -42,7 +43,7 @@ plotES <- function(ESdata,vars,scaling,name,allInOne,first,CVm) {
       max_x <- ceiling(max(x, na.rm = TRUE))
       min_y <- floor(min(y, na.rm = TRUE))
       max_y <- ceiling(max(y, na.rm = TRUE))
-      x_lab <- paste0('log10(',gsub('.L.T4h_','',vars),' values)')
+      x_lab <- paste0('log10(',gsub('.L.T4h_','',pattern),' values)')
       plot(x,y, col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
            xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
            xlab = x_lab, ylab = 'log10(abundance)')
@@ -64,9 +65,9 @@ plotES <- function(ESdata,vars,scaling,name,allInOne,first,CVm) {
 
 
 ## @knitr plotAllES
-plotAllES <- function(ESdata,vars,scaling,allInOne) {
+plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   #Compute the mean coefficient of variation:
-  data <- ESdata[,grep(vars,names(ESdata))]
+  data <- ESdata[,grep(pattern,names(ESdata))]
   data[data == 0] <- NA
   data <- log10(data)
   SD   <- apply(data, 1, sd, na.rm = TRUE)    #Standard deviation for each protein
@@ -77,12 +78,12 @@ plotAllES <- function(ESdata,vars,scaling,allInOne) {
   #Plot data:
   if(allInOne) { par(mfrow = c(1,1), mar = c(4,4,1,1), pty = "s", cex = 1) }
   else         { par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1) }
-  plotES(ESdata,vars,scaling,'top5_batch1',allInOne,TRUE,CVm)
-  plotES(ESdata,vars,scaling,'top5_batch2',allInOne,FALSE,CVm)
-  plotES(ESdata,vars,scaling,'top5_batch3',allInOne,FALSE,CVm)
-  plotES(ESdata,vars,scaling,'top10_batch1',allInOne,FALSE,CVm)
-  plotES(ESdata,vars,scaling,'top10_batch2',allInOne,FALSE,CVm)
-  plotES(ESdata,vars,scaling,'top10_batch3',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top5_batch1',allInOne,TRUE,CVm)
+  plotES(ESdata,pattern,scaling,'top5_batch2',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top5_batch3',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top10_batch1',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top10_batch2',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top10_batch3',allInOne,FALSE,CVm)
 }
 
 
