@@ -33,3 +33,6 @@ var/
 *.Rproj.user
 *.Rhistory
 *.RData
+
+# html reports in the code section
+code/*.html
