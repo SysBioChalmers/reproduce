@@ -463,7 +463,7 @@ par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
 plotSplines(SILACdata,ESdata)
 ```
 
-<center>**Figure 17: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 15). The detection window of UPS2 is highlighted in yellow.**</center>
+<center>**Figure 17: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 16). The detection window of UPS2 is highlighted in yellow.**</center>
 <br>
 
 We now see that our proposed method of rescaling by MS intensities has less overall variability than the other 2 methods, both for lowly and highly abundant proteins.
