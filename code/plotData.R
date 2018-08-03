@@ -204,3 +204,80 @@ plotPCA <- function(data,title){
   mtext(bquote('PC2 = ' ~ .(var2) ~ '%'), side = 2, line = -1)
 }
 
+
+## @knitr plotFCvsAbundance
+plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
+  # Options depending on type of plot:
+  if(pattern == 'Abundance.R') {
+    ESdata_pattern <- 'iBAQ.L.T4h_'
+    color_data     <- rgb(red = 1, green = 0, blue = 0, alpha = 0.01)
+  } else if(pattern == 'AbundanceRescaled.R') {
+    ESdata_pattern <- 'iBAQ.L.T4h_'
+    color_data     <- rgb(red = 0, green = 1, blue = 0, alpha = 0.01)
+  } else if(pattern == 'AbundanceRescaled2.R') {
+    ESdata_pattern <- 'Intensity.L.T4h_'
+    color_data     <- rgb(red = 0, green = 0, blue = 1, alpha = 0.01)
+  }
+  if(allInOne) {
+    color_data <- rgb(red = 0, green = 0, blue = 0, alpha = 0.01)
+  }
+  # Get FC values for sample data:
+  abundance  <- sampleData[,grep(pattern,names(sampleData))]
+  sampleData <- getFCvsAbundance(abundance,abundance)
+  # Get FC values for ES data:
+  abundance <- ESdata$amount.pg
+  intensity <- ESdata[,grep(ESdata_pattern,names(ESdata))]
+  ESdata    <- getFCvsAbundance(abundance,intensity)
+  # Plot FC of abundanceData
+  min_x <- floor(min(sampleData[,1])) + 1
+  max_x <- ceiling(max(sampleData[,1]))
+  min_y <- 0
+  max_y <- ceiling(max(sampleData[,2])) - 1
+  if(!allInOne || pattern == 'Abundance.R') {
+    plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
+         xaxt = 'n', yaxt = 'n', col = color_data, xlim = c(min_x, max_x),
+         ylim = c(min_y, max_y), xlab = 'log10(abundance [pg/sample])', ylab = '')
+    title(ylab='abs(log10(FC))', line=2.5)
+    axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
+    axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
+    axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
+  } else {
+    points(sampleData[,1],sampleData[,2], col = color_data)
+  }
+  # Plot UPS2 window:
+  if(!allInOne || pattern == 'AbundanceRescaled2.R') {
+    min_x <- min(ESdata[,1])
+    max_x <- max(ESdata[,1])
+    polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),
+            col = rgb(red = 1, green = 1, blue = 0, alpha = 0.3), border = NA)
+  }
+  # Plot UPS2 points:
+  if(!allInOne) {
+    title(main = substr(pattern,1,nchar(pattern)-2))
+    points(ESdata[,1],ESdata[,2], pch = 16, col = 'yellow')
+    # Compute fraction in window:
+    in_window <- (sampleData[,1] > min_x)*(sampleData[,1] < max_x)
+    fraction  <- sum(in_window)/length(in_window)*100
+    fraction  <- round(fraction, digits = 1)
+    text(min_x, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
+  }
+  return(sampleData)
+}
+
+
+## @knitr plotSplines
+plotSplines <- function(SILACdata,ESdata){
+  #Plot all data:
+  sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.R',TRUE)
+  sample2 <- plotFCvsAbundance(SILACdata,ESdata,'AbundanceRescaled.R',TRUE)
+  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'AbundanceRescaled2.R',TRUE)
+  # Create smoothing splines:
+  ss1 <- smooth.spline(sample1[,1], sample1[,2], df = 10)
+  ss2 <- smooth.spline(sample2[,1], sample2[,2], df = 10)
+  ss3 <- smooth.spline(sample3[,1], sample3[,2], df = 10)
+  lines(ss1, lwd = 2, col = 'red')
+  lines(ss2, lwd = 2, col = 'green')
+  lines(ss3, lwd = 2, col = 'blue')
+}
+

@@ -90,3 +90,29 @@ rescaleIS <- function(data,pattern,mean_totProt) {
   return(data)
 }
 
+
+## @knitr getFCvsAbundance
+getFCvsAbundance <- function(abundanceData,intensityData){
+  x  <- NULL
+  FC <- NULL
+  # Go through the dataset and compute all combinations abundance-FC:
+  for(i in 1:length(names(intensityData))) {
+    for(j in 1:length(names(intensityData))) {
+      if(i!=j) {
+        if(length(dim(abundanceData)) == 2) { x <- c(x,log10(abundanceData[,i])) }
+        else { x <- c(x,log10(abundanceData)) }
+        FC <- c(FC,abs(log10(intensityData[,j]/intensityData[,i])))
+      }
+    }
+  }
+  # Remove NA, NaN or Inf:
+  x[is.infinite(x)]   <- NA
+  FC[is.infinite(FC)] <- NA
+  FC   <- FC[!is.na(x)]
+  x    <- x[!is.na(x)]
+  x    <- x[!is.na(FC)]
+  FC   <- FC[!is.na(FC)]
+  data <- cbind(x,FC)
+  return(data)
+}
+
