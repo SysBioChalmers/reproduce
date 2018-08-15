@@ -17,9 +17,14 @@ for(i in 1:length(ESdata$Protein.IDs)) {
 ESdata <- merge(UPS2, ESdata, by = 'Protein.IDs', all.x = FALSE, all.y = FALSE)
 # Take out zero values:
 ESdata[ESdata == 0] <- NA
-# Get mass abundances (pg/sample) from molar abundance (fmol/sample) and molecular weight (kDA = g/mmol)
-ESdata$amount.pg <- ESdata$amount.fmoles*ESdata$Mol..weight..kDa.
 
+
+## @knitr normalizeIntensities
+normalizeIntensities <- function(data) {
+  MSpos <- grep('Intensity',names(data))
+  data[,MSpos] <- data[,MSpos]/data$Sequence.length
+  return(data)
+}
 
 ## @knitr getISabundance
 getISabundance <- function(iBAQdata,pattern) {
@@ -29,19 +34,15 @@ getISabundance <- function(iBAQdata,pattern) {
     Hname <- names(iBAQdata)[Hpos]
     Lname <- gsub('.H.','.L.',Hname)  #name of ES intensity
     # Build linear model and apply to get abundance of H:
-    if(grepl('iBAQ',pattern)) { UPS2abundances <- log10(ESdata$amount.fmoles) }
-    else                      { UPS2abundances <- log10(ESdata$amount.pg)     }
-    UPS2values  <- log10(ESdata[[Lname]])
-    lmodel      <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
-    intercept   <- lmodel[1]$coefficients[1]           #intercept
-    Hdata       <- iBAQdata[Hpos]                      #H value (iBAQ or MS intensity)
-    ISabundance <- 10^(log10(Hdata) + intercept)       #L.T. for log(Hdata) [pg in sample]
-    # If the values are iBAQ, convert to mass:
-    if(grepl('iBAQ',pattern)) { ISabundance <- ISabundance*iBAQdata$Mol..weight..kDa. }
+    UPS2abundances <- log10(ESdata$amount.fmoles)
+    UPS2values     <- log10(ESdata[[Lname]])
+    lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
+    intercept      <- lmodel[1]$coefficients[1]           #intercept
+    Hdata          <- iBAQdata[Hpos]                      #H value (iBAQ or MS intensity)
+    ISabundance    <- 10^(log10(Hdata) + intercept)       #L.T. for log(Hdata) [fmol in sample]
     # Add abundances to dataset:
     new_name <- gsub('^.*?_','',Hname)
-    if(grepl('iBAQ',pattern)) { new_name <- paste0('AbundanceIS.',new_name) }
-    else                      { new_name <- paste0('Abundance2IS.',new_name) }
+    new_name <- paste0('AbundanceIS.',new_name)
     iBAQdata[[new_name]] <- ISabundance
   }
   return(iBAQdata)
@@ -62,8 +63,7 @@ getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
     IS_name       <- paste0(pattern,'IS.',root_name)
     # Compute abundance for sample and rescale:
     abundance <- SILACdata[,LHNratio]^-1        #Ratios are stored as H/L
-    abundance <- abundance*SILACdata[[IS_name]] #(L/H)*abundance [pg in iBAQ sample]
-    abundance <- abundance/12*15                #Rescale to new size [pg in SILAC sample]
+    abundance <- abundance*SILACdata[[IS_name]] #(L/H)*abundance [fmol in iBAQ sample]
     # Add abundances to dataset:
     new_name <- gsub('Ratio.H.L.normalized','',LHNratio_name)
     new_name <- paste0(pattern,new_name)            #name for abundance of sample
@@ -78,13 +78,12 @@ rescaleIS <- function(data,pattern,mean_totProt) {
   Hposs <- grep(pattern,names(data))   #Values in the IS (H fraction)
   for(Hpos in Hposs) {
     # Compute new abundance:
-    if(grepl('iBAQ',pattern)) { abundance <- data[,Hpos]*data$Mol..weight..kDa. }
-    else                      { abundance <- data[,Hpos]                        }
+    abundance <- data[,Hpos]*data$Mol..weight..kDa.
     abundance <- abundance/sum(abundance, na.rm = TRUE)   #g/g in sample
     abundance <- abundance*mean_totProt                   #pg in sample
+    abundance <- abundance/data$Mol..weight..kDa.      #fmol in sample
     # Add abundances to dataset:
-    if(grepl('iBAQ',pattern)) { new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpos])  }
-    else                      { new_name <- gsub('^.*?_','AbundanceRescaled2IS.',names(data)[Hpos]) }
+    new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpos])
     data[[new_name]] <- abundance
   }
   return(data)

@@ -31,11 +31,10 @@ plotLM <- function(x,y,scaling,allInOne) {
 ## @knitr plotES
 plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   #Plot data:
-  x    <- log10(ESdata[[paste0(pattern,tolower(name))]])
-  if(grepl('iBAQ',pattern)) { y <- log10(ESdata$amount.fmoles) }
-  else                      { y <- log10(ESdata$amount.pg)     }
-  y    <- y[!is.na(x)]
-  x    <- x[!is.na(x)]
+  x <- log10(ESdata[[paste0(pattern,tolower(name))]])
+  y <- log10(ESdata$amount.fmoles) 
+  y <- y[!is.na(x)]
+  x <- x[!is.na(x)]
   if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
   if(allInOne) {
     if(first) {
@@ -90,15 +89,16 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
 ## @knitr plotTotalProt
 plotTotalProt <- function(data,pattern) {
   abundances <- data[,grep(pattern,names(data))]
+  abundances[,] <- abundances[,]*data$Mol..weight..kDa.   #fmol/sample*kDa = pg/sample
   names(abundances) <- gsub(pattern,'',names(abundances))
-  totProt <- colSums(abundances, na.rm = TRUE)/1e6  #ug in sample
+  totProt <- colSums(abundances, na.rm = TRUE)/1e6  #ug/sample
   if(length(totProt) > 6) {
     show_label <- 'n'
     margins    <- c(1,2.5,1,1)
-    } else {
+  } else {
     show_label <- 's'
     margins    <- c(2.5,2.5,1,1)
-    }
+  }
   par(mfcol = c(1,1), mar = margins, cex = 1)
   barplot(totProt, col = factor(names(abundances)), cex.names = 0.8, mgp = c(1.5, 0.5, 0),
           ylab = 'Total detected protein in sample [ug]', xaxt = show_label)
@@ -212,9 +212,6 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     ESdata_pattern <- 'iBAQ.L.T4h_'
     color_data     <- rgb(red = 1, green = 0, blue = 0, alpha = 0.01)
   } else if(pattern == 'AbundanceRescaled.R') {
-    ESdata_pattern <- 'iBAQ.L.T4h_'
-    color_data     <- rgb(red = 0, green = 1, blue = 0, alpha = 0.01)
-  } else if(pattern == 'AbundanceRescaled2.R') {
     ESdata_pattern <- 'Intensity.L.T4h_'
     color_data     <- rgb(red = 0, green = 0, blue = 1, alpha = 0.01)
   }
@@ -225,18 +222,18 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   abundance  <- sampleData[,grep(pattern,names(sampleData))]
   sampleData <- getFCvsAbundance(abundance,abundance)
   # Get FC values for ES data:
-  abundance <- ESdata$amount.pg
+  abundance <- ESdata$amount.fmoles
   intensity <- ESdata[,grep(ESdata_pattern,names(ESdata))]
   ESdata    <- getFCvsAbundance(abundance,intensity)
   # Plot FC of abundanceData
-  min_x <- floor(min(sampleData[,1])) + 1
-  max_x <- ceiling(max(sampleData[,1]))
+  min_x <- round(min(sampleData[,1])) + 1
+  max_x <- round(max(sampleData[,1]))
   min_y <- 0
   max_y <- ceiling(max(sampleData[,2])) - 1
   if(!allInOne || pattern == 'Abundance.R') {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data, xlim = c(min_x, max_x),
-         ylim = c(min_y, max_y), xlab = 'log10(abundance [pg/sample])', ylab = '')
+         ylim = c(min_y, max_y), xlab = 'log10(abundance [fmol/sample])', ylab = '')
     title(ylab='abs(log10(FC))', line=2.5)
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
     axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
@@ -246,7 +243,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     points(sampleData[,1],sampleData[,2], col = color_data)
   }
   # Plot UPS2 window:
-  if(!allInOne || pattern == 'AbundanceRescaled2.R') {
+  if(!allInOne || pattern == 'AbundanceRescaled.R') {
     min_x <- min(ESdata[,1])
     max_x <- max(ESdata[,1])
     polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),
@@ -271,13 +268,10 @@ plotSplines <- function(SILACdata,ESdata){
   #Plot all data:
   sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.R',TRUE)
   sample2 <- plotFCvsAbundance(SILACdata,ESdata,'AbundanceRescaled.R',TRUE)
-  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'AbundanceRescaled2.R',TRUE)
   # Create smoothing splines:
   ss1 <- smooth.spline(sample1[,1], sample1[,2], df = 10)
   ss2 <- smooth.spline(sample2[,1], sample2[,2], df = 10)
-  ss3 <- smooth.spline(sample3[,1], sample3[,2], df = 10)
   lines(ss1, lwd = 2, col = 'red')
-  lines(ss2, lwd = 2, col = 'green')
-  lines(ss3, lwd = 2, col = 'blue')
+  lines(ss2, lwd = 2, col = 'blue')
 }
 
