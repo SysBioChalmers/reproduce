@@ -74,14 +74,14 @@ getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
 
 
 ## @knitr rescaleIS
-rescaleIS <- function(data,pattern,mean_totProt) {
+rescaleIS <- function(data,pattern,totProt) {
   Hposs <- grep(pattern,names(data))   #Values in the IS (H fraction)
   for(Hpos in Hposs) {
     # Compute new abundance:
     abundance <- data[,Hpos]*data$Mol..weight..kDa.
-    abundance <- abundance/sum(abundance, na.rm = TRUE)   #g/g in sample
-    abundance <- abundance*mean_totProt                   #pg in sample
-    abundance <- abundance/data$Mol..weight..kDa.      #fmol in sample
+    abundance <- abundance/sum(abundance, na.rm = TRUE) #g/g in sample
+    abundance <- abundance*totProt                      #pg in sample
+    abundance <- abundance/data$Mol..weight..kDa.       #fmol in sample
     # Add abundances to dataset:
     new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpos])
     data[[new_name]] <- abundance

@@ -102,7 +102,6 @@ plotTotalProt <- function(data,pattern) {
   par(mfcol = c(1,1), mar = margins, cex = 1)
   barplot(totProt, col = factor(names(abundances)), cex.names = 0.8, mgp = c(1.5, 0.5, 0),
           ylab = 'Total detected protein in sample [ug]', xaxt = show_label)
-  return(mean(totProt)*1e6) #average total pg in sample
 }
 
 

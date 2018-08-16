@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Summary
 
-Here we will go through the typical way of deducing protein abundances [fmol/sample] from SILAC/iBAQ data (sections 1-2), and compare it to rescaling values to a fix total protein abundance based on MS intensities, to asses the usefulness of the external standard curve (section 3). The main observation that come from this is as MS measurements are so variable, it's impossible to find a unique ES curve, hence normalizing to a fix total protein abundance is as good as using the "optimal" fit from the ES curve.
+Here we will go through the typical way of deducing protein abundances [fmol/sample] from SILAC/iBAQ data, and compare it to rescaling values to a fix total protein abundance based on MS intensities, to asses the usefulness of the external standard curve and iBAQ data. The main observation that comes from this is that as MS measurements are so variable, it's impossible to find a unique ES curve, hence normalizing to a fix total protein abundance is as good as using the "optimal" fit from the ES curve. We can then use the MS intensity directly and skip both the ES curve and the iBAQ values.
 <br>
 
 ## 1. Loading and pre-processing data
@@ -80,7 +80,7 @@ Each injected sample consisted of:
 
 ### Normalizing MS values
 
-For all MS intensitiy values in both iBAQ and SILAC, we need to normalize by the number of theoretical peptides for each protein:
+For all MS intensitiy values in both iBAQ and SILAC, we need to normalize by the number of theoretical peptides for each protein. We will use sequence length as proxy for number of theoretical peptides:
 
 ```{r normalizeIntensities}
 ```
@@ -93,6 +93,10 @@ SILACdata <- normalizeIntensities(SILACdata)
 
 
 ## 2. Computing absolute abundance of samples
+plotTotalProt(iBAQdata,'iBAQ.H.T4h_')
+```
+
+## Method 2: Using an ES curve
 
 ### Computing strategy
 
@@ -101,6 +105,9 @@ This is the traditional strategy, i.e.:
 1. Create a standard curve abundances (fmol/sample) Vs. normalized MS intensities (L fraction in the iBAQ data).
 2. Use the standard curve to infer abundances of IS (from the H fraction in the iBAQ values).
 3. Use those IS abundances together with the L/H ratios in the SILAC data to compute abundance of samples.
+<br>
+
+This method is almost the same as MaxQuant, with the difference that we do not use 
 <br>
 
 ### Steps 1-2: Getting IS abundances from ES
@@ -124,11 +131,8 @@ iBAQdata <- getISabundance(iBAQdata,'Intensity.H.T4h')
 
 Let's take a look at the total detected protein amount in each of the 6 samples:
 
-```{r plotTotalProt}
-```
-
 ```{r fig.align="center"}
-mean_totProt <- plotTotalProt(iBAQdata,'AbundanceIS.')
+plotTotalProt(iBAQdata,'AbundanceIS.')
 ```
 
 <center>**Figure 1: Total detected protein amounts in all 6 IS**</center>
@@ -151,7 +155,7 @@ SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'Abundance')
 Let's take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration:
 
 ```{r fig.align="center"}
-mean_sample <- plotTotalProt(SILACdata,'Abundance.R..1_')
+plotTotalProt(SILACdata,'Abundance.R..1_')
 ```
 
 <center>**Figure 2: Total detected protein amounts in all 18 samples**</center>
@@ -183,38 +187,32 @@ plotAllES(ESdata,'Intensity.L.T4h_',0,FALSE)
 <center>**Figure 3: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(iBAQ value) in x-axis) for all 6 measurements of UPS2**</center>
 <br>
 
-Those fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we assume that all proteins in the IS should add up to the average of the totals shown in figure 1? How would the new ES curves look like?
+Those fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample). But they don't look the best (consider they are in log), many other curves could almost equally well fit that data. What if instead we assume that all proteins in the IS should add up to the total amount injected, i.e. 6 ug? How would the new ES curves look like?
 <br>
 
 ## 3. Rescaling abundances to total iBAQ value
 
 ### Computing strategy
 
-The alternative: All normalized MS intensities of the H fraction added up together should be proportional to the average total detection from figure 1.
+The alternative: All normalized MS intensities of the H fraction added up together (mass-wise) should be proportional to 6 ug (TPA approach):
 
-1. Create a standard curve abundances (fmol/sample) Vs. MS intensities of ES (L fraction in the iBAQ data)
-2. Use the standard curve to infer abundances of IS in the iBAQ data (from the H fraction of the MS intensities)
-3. Compute the average total detected protein amount of IS (pg/sample)
-4. Use this value for computing the IS abundances (fmol/sample) in iBAQ: `IS abundance = H intensity * (average total IS abundance)/(sum of all H intensities*MW values)`
-5. Use those IS abundances together with the L/H ratios in the SILAC data to compute abundances of samples
+1. Compute IS abundances (fmol/sample) in iBAQ: `IS abundance = H intensity * (6 ug)/(sum of all H intensities*MW values)`
+2. Use those IS abundances together with the L/H ratios in the SILAC data to compute abundances of samples
 <br>
 
-Note that everything in steps 1-3 was already performed in section 2.
-<br>
-
-### Step 4: Rescaling data
+### Step 1: Rescaling data
 
 ```{r rescaleIS}
 ```
 
 ```{r}
-iBAQdata <- rescaleIS(iBAQdata,'Intensity.H.T4h',mean_totProt)
+iBAQdata <- rescaleIS(iBAQdata,'Intensity.H.T4h',6e6)   #6 ug = 6*10^6 pg
 ```
 
 Let's check the new total detected protein amounts:
 
 ```{r fig.align="center"}
-mean_rescaled <- plotTotalProt(iBAQdata,'AbundanceRescaledIS.')
+plotTotalProt(iBAQdata,'AbundanceRescaledIS.')
 ```
 
 <center>**Figure 4: Total detected protein amounts in all 6 IS, rescaled**</center>
@@ -224,14 +222,14 @@ mean_rescaled <- plotTotalProt(iBAQdata,'AbundanceRescaledIS.')
 
 Now we can look at the new fits of the UPS2 data, as we have essentially created an alternative linear model:
 
-`abundance = m*iBAQvalue`, where `m = (average total IS abundance)/(sum of all iBAQvalues)`
+`abundance = m*MSintensity`, where `m = (6 ug)/(sum of all MSintensities*MWs)`
 
-`log(abundance) = log(iBAQvalue) + log(m)` -> linear model with a = 1 and b = log(m)
+`log(abundance) = log(MSintensity) + log(m)` -> linear model with a = 1 and b = log(m)
 
 ```{r fig.align="center"}
 iBAQpos <- grep('Intensity.H.T4h',names(iBAQdata))   #All 6 MS intensity values from the IS (H fraction)
 Hdata   <- iBAQdata[,iBAQpos]*iBAQdata$Mol..weight..kDa.
-scaling <- mean_totProt/colSums(Hdata, na.rm = TRUE)
+scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
 ```
 
@@ -260,7 +258,7 @@ SILACdata <- getSampleAbundance(SILACdata,iBAQdata,'AbundanceRescaled')
 ```
 
 ```{r fig.align="center"}
-mean_sampleRescaled <- plotTotalProt(SILACdata,'AbundanceRescaled.R..1_')
+plotTotalProt(SILACdata,'AbundanceRescaled.R..1_')
 ```
 
 <center>**Figure 7: Total detected protein amounts in all 18 samples, rescaled**</center>
@@ -351,9 +349,8 @@ In conclusion, we can skip entirely the iBAQ data and just assume that the MS in
 ## 5. To-do's
 
 1. Compare to actual iBAQ abundances
-2. Rescale to fixed value = 6 ug/sample (first we need total protein content)
-3. Is the order in ES data always the same?
-4. show only technical variability in abundance plots
-5. Validation to stoichiometry of ribosomal proteins
-6. ES curves relax slope = 1?
+2. Is the order in ES data always the same?
+3. show only technical variability in abundance plots
+4. Validation to stoichiometry of ribosomal proteins
+5. ES curves relax slope = 1?
 
