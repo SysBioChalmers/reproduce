@@ -26,44 +26,42 @@ normalizeIntensities <- function(data) {
   return(data)
 }
 
-## @knitr getISabundance
-getISabundance <- function(iBAQdata,pattern) {
-  Hposs <- grep(pattern,names(iBAQdata))   #All 6 values from the IS (H fraction)
-  for(Hpos in Hposs) {
+## @knitr interpolateAbundance
+interpolateAbundance <- function(data,pattern,abundance_pattern) {
+  pos <- grep(pattern,names(data))   #All values to interpolate
+  for(i in pos) {
     # Define name of relevant variables:
-    Hname <- names(iBAQdata)[Hpos]
-    Lname <- gsub('.H.','.L.',Hname)  #name of ES intensity
+    name_i <- names(data)[i]
+    Lname  <- gsub('.H.','.L.',name_i)  #name of ES intensity
     # Build linear model and apply to get abundance of H:
     UPS2abundances <- log10(ESdata$amount.fmoles)
     UPS2values     <- log10(ESdata[[Lname]])
     lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
     intercept      <- lmodel[1]$coefficients[1]           #intercept
-    Hdata          <- iBAQdata[Hpos]                      #H value (iBAQ or MS intensity)
-    ISabundance    <- 10^(log10(Hdata) + intercept)       #L.T. for log(Hdata) [fmol in sample]
+    abundance      <- 10^(log10(data[,i]) + intercept)    #L.T. for log(data) [fmol/sample]
     # Add abundances to dataset:
-    new_name <- gsub('^.*?_','',Hname)
-    new_name <- paste0('AbundanceIS.',new_name)
-    iBAQdata[[new_name]] <- ISabundance
+    name_i         <- gsub(pattern,abundance_pattern,name_i)
+    data[[name_i]] <- abundance
   }
-  return(iBAQdata)
+  return(data)
 }
 
 
 ## @knitr getSamplesAbundance
 getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
   # Merge abundance data from iBAQ into SILAC dataset:
-  abundances <- iBAQdata[,c(1,grep(paste0(pattern,'IS.'),names(iBAQdata)))]
-  SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = FALSE, all.y = FALSE)
+  abundances <- iBAQdata[,c(1,grep(paste0(pattern,'.IS.'),names(iBAQdata)))]
+  SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = TRUE, all.y = FALSE)
   # Compute sample abundances:
   LHNratios <- grep('Ratio.H.L.normalized.R',names(SILACdata))
   for(LHNratio in LHNratios) {
     # Define name of relevant variables:
     LHNratio_name <- names(SILACdata)[LHNratio]
     root_name     <- tolower(gsub('^.*?_','',LHNratio_name))
-    IS_name       <- paste0(pattern,'IS.',root_name)
+    IS_name       <- paste0(pattern,'.IS.',root_name)
     # Compute abundance for sample and rescale:
     abundance <- SILACdata[,LHNratio]^-1        #Ratios are stored as H/L
-    abundance <- abundance*SILACdata[[IS_name]] #(L/H)*abundance [fmol in iBAQ sample]
+    abundance <- abundance*SILACdata[[IS_name]] #(L/H)*abundance [fmol/sample]
     # Add abundances to dataset:
     new_name <- gsub('Ratio.H.L.normalized','',LHNratio_name)
     new_name <- paste0(pattern,new_name)            #name for abundance of sample
@@ -73,17 +71,17 @@ getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
 }
 
 
-## @knitr rescaleIS
-rescaleIS <- function(data,pattern,totProt) {
-  Hposs <- grep(pattern,names(data))   #Values in the IS (H fraction)
-  for(Hpos in Hposs) {
+## @knitr rescaleData
+rescaleData <- function(data,pattern,name,totProt) {
+  pos <- grep(pattern,names(data))   #Values in the data to rescale
+  for(i in pos) {
     # Compute new abundance:
-    abundance <- data[,Hpos]*data$Mol..weight..kDa.
+    abundance <- data[,i]*data$Mol..weight..kDa.
     abundance <- abundance/sum(abundance, na.rm = TRUE) #g/g in sample
     abundance <- abundance*totProt                      #pg in sample
     abundance <- abundance/data$Mol..weight..kDa.       #fmol in sample
     # Add abundances to dataset:
-    new_name <- gsub('^.*?_','AbundanceRescaledIS.',names(data)[Hpos])
+    new_name <- gsub(pattern,paste0('Abundance.Rescaled.',name),names(data)[i])
     data[[new_name]] <- abundance
   }
   return(data)
@@ -91,16 +89,15 @@ rescaleIS <- function(data,pattern,totProt) {
 
 
 ## @knitr getFCvsAbundance
-getFCvsAbundance <- function(abundanceData,intensityData){
+getFCvsAbundance <- function(abundanceData){
   x  <- NULL
   FC <- NULL
   # Go through the dataset and compute all combinations abundance-FC:
-  for(i in 1:length(names(intensityData))) {
-    for(j in 1:length(names(intensityData))) {
+  for(i in 1:length(names(abundanceData))) {
+    for(j in 1:length(names(abundanceData))) {
       if(i!=j) {
-        if(length(dim(abundanceData)) == 2) { x <- c(x,log10(abundanceData[,i])) }
-        else { x <- c(x,log10(abundanceData)) }
-        FC <- c(FC,abs(log10(intensityData[,j]/intensityData[,i])))
+        x  <- c(x,log10(abundanceData[,i]))
+        FC <- c(FC,abs(log10(abundanceData[,j]/abundanceData[,i])))
       }
     }
   }

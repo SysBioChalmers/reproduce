@@ -17,7 +17,8 @@ UPS2$amount.fmoles <- UPS2$amount.fmoles*1.1    #fmol in sample (only 1.1 ug are
 ## @knitr loadIBAQdata
 iBAQdata <- read.csv(file = '../data/raw_internal/mq14_int_std_peaklength-2-points_proteinGroups.txt', sep = '\t', header = TRUE)
 iBAQdata$Protein.IDs <- gsub(';P99999ups','',iBAQdata$Protein.IDs)  #P00044 was erroneously match as P99999 (the human homolog)
-
+names(iBAQdata) <- gsub('iBAQ.L.T4h_','Abundance.MaxQuant.ES.',names(iBAQdata))
+names(iBAQdata) <- gsub('iBAQ.H.T4h_','Abundance.MaxQuant.IS.',names(iBAQdata))
 
 ## @knitr loadSILACdata
 SILACdata <- read.csv(file = '../data/raw_internal/1710_mq14_sample_default_settings_proteinGroups.txt', sep = '\t', header = TRUE)
