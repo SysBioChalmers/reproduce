@@ -79,8 +79,6 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
 plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   #Compute the mean coefficient of variation:
   data <- ESdata[,grep(pattern,names(ESdata))]
-  data[data == 0] <- NA
-  data <- log10(data)
   SD   <- apply(data, 1, sd, na.rm = TRUE)    #Standard deviation for each protein
   mu   <- apply(data, 1, mean, na.rm = TRUE)  #Mean for each protein
   CV   <- SD/mu                               #Coefficient of variation for each protein

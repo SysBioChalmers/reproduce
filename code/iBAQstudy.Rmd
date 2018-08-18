@@ -231,7 +231,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 ```
 
 <br>
-<center>**Figure 4: ES curves (abundance Vs MS intensities of UPS2), from method 2 (red) Vs method 4 (green). Average coefficient of variation (CVm) within each protein in the log space is shown in the upper left corner.**</center>
+<center>**Figure 4: ES curves (abundance Vs MS intensities of UPS2), from method 2 (red) Vs method 4 (green). Average coefficient of variation (CVm) within each protein is shown in the upper left corner.**</center>
 <br>
 
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
