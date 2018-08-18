@@ -3,10 +3,10 @@
 # Benjamin Sanchez
 
 
-## @knitr getESdata
+## @knitr splitIBAQdata
 # ES data is inside the iBAQ data (among other measurements)
-ESdata   <- iBAQdata[grep('ups', iBAQdata$Protein.IDs),]
-iBAQdata <- iBAQdata[grep('ups', iBAQdata$Protein.IDs, invert = TRUE),]
+ESdata <- iBAQdata[grep('ups', iBAQdata$Protein.IDs),]
+ISdata <- iBAQdata[grep('ups', iBAQdata$Protein.IDs, invert = TRUE),]
 # Leave only the proteins from UPS2 (ends in "ups")
 for(i in 1:length(ESdata$Protein.IDs)) {
   group <- strsplit(as.character(ESdata$Protein.IDs[i]),';')[[1]]
@@ -40,7 +40,7 @@ interpolateAbundance <- function(data,pattern,abundance_pattern) {
     intercept      <- lmodel[1]$coefficients[1]           #intercept
     abundance      <- 10^(log10(data[,i]) + intercept)    #L.T. for log(data) [fmol/sample]
     # Add abundances to dataset:
-    name_i         <- gsub(pattern,abundance_pattern,name_i)
+    name_i         <- gsub(pattern,paste0('Abundance.',abundance_pattern),name_i)
     data[[name_i]] <- abundance
   }
   return(data)
@@ -48,9 +48,10 @@ interpolateAbundance <- function(data,pattern,abundance_pattern) {
 
 
 ## @knitr getSamplesAbundance
-getSampleAbundance <- function(SILACdata,iBAQdata,pattern) {
-  # Merge abundance data from iBAQ into SILAC dataset:
-  abundances <- iBAQdata[,c(1,grep(paste0(pattern,'.IS.'),names(iBAQdata)))]
+getSampleAbundance <- function(SILACdata,ISdata,pattern) {
+  # Merge abundance data from IS into SILAC dataset:
+  pattern    <- paste0('Abundance.',pattern)
+  abundances <- ISdata[,c(1,grep(paste0(pattern,'.IS.'),names(ISdata)))]
   SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = TRUE, all.y = FALSE)
   # Compute sample abundances:
   LHNratios <- grep('Ratio.H.L.normalized.R',names(SILACdata))

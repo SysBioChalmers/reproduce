@@ -3,6 +3,18 @@
 # Benjamin Sanchez
 
 
+## @knitr plotTotalProt
+plotTotalProt <- function(data,pattern) {
+  pos            <- grep(pattern,names(data))
+  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
+  totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
+  names(totProt) <- gsub(pattern,'',names(totProt))
+  barplot(totProt, col = factor(names(totProt)), mgp = c(1.5, 0.5, 0), cex.names = 0.8,
+          ylab = 'Total detected protein in sample [ug]', xaxt = 'n')
+  title(main = gsub('^([^.]*.[^.]*).*$','\\1',pattern))
+}
+
+
 ## @knitr plotLM
 plotLM <- function(x,y,scaling,allInOne) {
   #Make linear model with fixed slope = 1
@@ -83,18 +95,6 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   plotES(ESdata,pattern,scaling,'top10_batch1',allInOne,FALSE,CVm)
   plotES(ESdata,pattern,scaling,'top10_batch2',allInOne,FALSE,CVm)
   plotES(ESdata,pattern,scaling,'top10_batch3',allInOne,FALSE,CVm)
-}
-
-
-## @knitr plotTotalProt
-plotTotalProt <- function(data,pattern) {
-  pos            <- grep(pattern,names(data))
-  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
-  totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
-  names(totProt) <- gsub(pattern,'',names(totProt))
-  barplot(totProt, col = factor(names(totProt)), mgp = c(1.5, 0.5, 0), cex.names = 0.8,
-          ylab = 'Total detected protein in sample [ug]', xaxt = 'n')
-  title(main = gsub('^([^.]*.[^.]*).*$','\\1',pattern))
 }
 
 
