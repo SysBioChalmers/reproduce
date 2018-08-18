@@ -237,17 +237,18 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
 <br>
 
-We now display the variability of the final abundance data between biological and technical replicates, for methods 1, 3 and 4. First we define a scatter plot helping function:
+We now display the variability of the final abundance data between biological and technical replicates, for methods 1, 3 and 4. First we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates).
+
+```{r getReplicateData}
+```
+
+We now define a couple of plotting functions:
 
 ```{r plotScatter}
 ```
 
-We now define a function that plots all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be plotted against each other if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates).
-
 ```{r plotVariability}
 ```
-
-Finally, we define a PCA function to see how the samples cluster:
 
 ```{r plotPCA}
 ```
@@ -278,12 +279,7 @@ plotPCA(abundance,'PCA')
 
 We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use rescale the original MS abundancies (PC1 represents less variability). This means that by using rescaled MS data we achieve lower variability between technical replicates than the other 2 methods.
 
-Let's look further into the reduction of variability by plotting all possible FC (i.e. both between biological and technical replicates). For that we define the following function:
-
-```{r getFCvsAbundance}
-```
-
-And the following plotting function that will plot each FC to the basal abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
+Let's look further into the reduction of variability by plotting all possible FC (i.e. both between biological and technical replicates). For that we define the following plotting function that will plot each FC to the basal abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
 
 ```{r plotFCvsAbundance}
 ```
@@ -325,5 +321,6 @@ In conclusion, we can skip entirely the UPS2 data and just assume that the MS in
 
 * Plot comparing to real UPS2 values
 * Is the order in ES data always the same?
+* cumulative distributions for tech variability?
 * Validation to stoichiometry of ribosomal proteins
 

@@ -89,32 +89,37 @@ rescaleData <- function(data,pattern,name,totProt) {
 }
 
 
-## @knitr getFCvsAbundance
-getFCvsAbundance <- function(data,groupNames){
+## @knitr getReplicateData
+getReplicateData <- function(data,groupNames,option){
   # Erase distinction from name:
   for(i in 1:length(groupNames)) {
     names(data) <- gsub(groupNames[i],'',names(data))
   }
-  
-  x  <- NULL
-  FC <- NULL
+  data1 <- NULL
+  data2 <- NULL
   # Go through the dataset and compute all combinations abundance-FC:
   for(i in 1:length(names(data))) {
     for(j in 1:length(names(data))) {
       if((names(data)[i] == names(data)[j]) && (i!=j)) {
-        x  <- c(x,log10(data[,i]))
-        FC <- c(FC,abs(log10(data[,j]/data[,i])))
+        data1 <- c(data1,data[,i])
+        data2 <- c(data2,data[,j])
       }
     }
   }
-  # Remove NA, NaN or Inf:
-  x[is.infinite(x)]   <- NA
-  FC[is.infinite(FC)] <- NA
-  FC   <- FC[!is.na(x)]
-  x    <- x[!is.na(x)]
-  x    <- x[!is.na(FC)]
-  FC   <- FC[!is.na(FC)]
-  data <- cbind(x,FC)
+  if(option == 1) {
+    data <- cbind(data1,data2)
+  } else if(option == 2) {
+    # Remove NA, NaN or Inf:
+    x  <- log10(data1)
+    FC <- abs(log10(data2/data1))
+    x[is.infinite(x)]   <- NA
+    FC[is.infinite(FC)] <- NA
+    FC   <- FC[!is.na(x)]
+    x    <- x[!is.na(x)]
+    x    <- x[!is.na(FC)]
+    FC   <- FC[!is.na(FC)]
+    data <- cbind(x,FC)
+  }
   return(data)
 }
 

@@ -135,23 +135,10 @@ plotScatter <- function(data1,data2,title) {
 
 ## @knitr plotVariability
 plotVariability <- function(data,groupNames,title) {
-  # Erase distinction from name:
-  for(i in 1:length(groupNames)) {
-    names(data) <- gsub(groupNames[i],'',names(data))
-  }
-  # Create data with all possible combinations:
-  data1 <- NULL
-  data2 <- NULL
-  for(i in 2:length(names(data))) {
-    for(j in 2:length(names(data))) {
-      if((names(data)[i] == names(data)[j]) && (i!=j)) {
-        data1 <- c(data1,data[,i])
-        data2 <- c(data2,data[,j])
-      }
-    }
-  }
+  # Get data:
+  data <- getReplicateData(data,groupNames,1)
   # Plot all combinations:
-  plotScatter(data1,data2,title)
+  plotScatter(data[,1],data[,2],title)
 }
 
 
@@ -210,11 +197,11 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   }
   # Get FC values for sample data:
   abundance  <- sampleData[,grep(pattern,names(sampleData))]
-  sampleData <- getFCvsAbundance(abundance,c('_batch1','_batch2','_batch3'))
+  sampleData <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
   # Get FC values for ES data:
   ESdata_pattern <- gsub('.R..1_','.ES',pattern)
   abundance      <- ESdata[,grep(ESdata_pattern,names(ESdata))]
-  ESdata         <- getFCvsAbundance(abundance,c('_batch1','_batch2','_batch3'))
+  ESdata         <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
   # Plot FC of abundanceData
   min_x <- round(min(sampleData[,1])) + 1
   max_x <- round(max(sampleData[,1]))
