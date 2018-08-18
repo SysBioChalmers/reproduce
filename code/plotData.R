@@ -3,6 +3,58 @@
 # Benjamin Sanchez
 
 
+## @knitr plotScatter
+plotScatter <- function(data1,data2,title,labelx,labely) {
+  # Remove NA values - zeros - Infs:
+  no_na  <- is.na(data1) + is.na(data2) == 0
+  data1  <- data1[no_na]
+  data2  <- data2[no_na]
+  check1 <- (data1 > 0)*(!is.infinite((data1))) == 1
+  check2 <- (data2 > 0)*(!is.infinite((data2))) == 1
+  data1  <- data1[check1*check2 == 1]
+  data2  <- data2[check1*check2 == 1]
+  # Define colors:
+  FC         <- data2/data1
+  FCm        <- round(median(10^abs(log10(FC))), digits = 2)
+  col_scheme <- ifelse(abs(log10(FC))>log10(2),
+                       ifelse(abs(log10(FC))>1, '#EB2426', '#F3B70D'), '#0F8141')
+  # Plot data:
+  data1   <- log10(data1)
+  data2   <- log10(data2)
+  min_val <- round(min(c(data1,data2)))-1
+  max_val <- round(max(c(data1,data2)))
+  plot(data1, data2, pch = 1, col = col_scheme, xlab = '', ylab = '',
+       xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', main = title,
+       xlim = c(min_val,max_val), ylim = c(min_val,max_val))
+  axis(side=1, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  axis(side=2, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  abline(0,1,col='black')
+  # Show fit to a linear model:
+  lmodel <- lm(data2 ~ data1)
+  lsum   <- summary(lmodel)
+  R2     <- round(lsum$adj.r.squared,2)
+  text(min_val,max_val-0.5, bquote('R'^2 ~ '=' ~ .(R2)), pos = 4)
+  text(min_val,max_val-1.5, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 4)
+}
+
+
+## @knitr plotESdata
+plotESdata <- function(ESdata,method) {
+  pattern  <- paste0('Abundance.',method,'.ES')
+  dataExp  <- NULL
+  dataPred <- NULL
+  for(i in 1:length(names(ESdata))) {
+    if(grepl(pattern,names(ESdata)[i])) {
+      dataExp  <- c(dataExp,ESdata$amount.fmoles)
+      dataPred <- c(dataPred,ESdata[,i])
+    }
+  }
+  plotScatter(dataExp,dataPred,method,'Measured Abundance','Predicted Abundance')
+}
+
+
 ## @knitr plotTotalProt
 plotTotalProt <- function(data,pattern) {
   pos            <- grep(pattern,names(data))
@@ -96,49 +148,12 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
 }
 
 
-## @knitr plotScatter
-plotScatter <- function(data1,data2,title) {
-  # Remove NA values - zeros - Infs:
-  no_na  <- is.na(data1) + is.na(data2) == 0
-  data1  <- data1[no_na]
-  data2  <- data2[no_na]
-  check1 <- (data1 > 0)*(!is.infinite((data1))) == 1
-  check2 <- (data2 > 0)*(!is.infinite((data2))) == 1
-  data1  <- data1[check1*check2 == 1]
-  data2  <- data2[check1*check2 == 1]
-  # Define colors:
-  FC         <- data2/data1
-  FCm        <- round(median(10^abs(log10(FC))), digits = 2)
-  col_scheme <- ifelse(abs(log10(FC))>log10(2),
-                       ifelse(abs(log10(FC))>1, '#EB2426', '#F3B70D'), '#0F8141')
-  # Plot data:
-  data1   <- log10(data1)
-  data2   <- log10(data2)
-  min_val <- round(min(c(data1,data2)))-1
-  max_val <- round(max(c(data1,data2)))
-  plot(data1, data2, pch = 1, col = col_scheme, xlab = '', ylab = '',
-       xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', main = title,
-       xlim = c(min_val,max_val), ylim = c(min_val,max_val))
-  axis(side=1, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  axis(side=2, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  abline(0,1,col='black')
-  # Show fit to a linear model:
-  lmodel <- lm(data2 ~ data1)
-  lsum   <- summary(lmodel)
-  R2     <- round(lsum$adj.r.squared,2)
-  text(min_val,max_val-0.5, bquote('R'^2 ~ '=' ~ .(R2)), pos = 4)
-  text(min_val,max_val-1.5, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 4)
-}
-
-
 ## @knitr plotVariability
 plotVariability <- function(data,groupNames,title) {
   # Get data:
   data <- getReplicateData(data,groupNames,1)
   # Plot all combinations:
-  plotScatter(data[,1],data[,2],title)
+  plotScatter(data[,1],data[,2],title,'','')
 }
 
 
@@ -185,11 +200,11 @@ plotPCA <- function(data,title){
 ## @knitr plotFCvsAbundance
 plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   # Options depending on type of plot:
-  if(pattern == 'Abundance.MaxQuant.R..1_') {
+  if(grepl('MaxQuant',pattern)) {
     color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.03)
-  } else if(pattern == 'Abundance.MQrescaled.R..1_') {
+  } else if(grepl('MQrescaled',pattern)) {
     color_data <- rgb(red = 0, green = 1, blue = 0, alpha = 0.02)
-  } else if(pattern == 'Abundance.MSrescaled.R..1_') {
+  } else if(grepl('MSrescaled',pattern)) {
     color_data <- rgb(red = 0, green = 0, blue = 1, alpha = 0.02)
   }
   if(allInOne) {
@@ -207,7 +222,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   max_x <- round(max(sampleData[,1]))
   min_y <- 0
   max_y <- round(max(sampleData[,2])) - 1
-  if(!allInOne || pattern == 'Abundance.MaxQuant.R..1_') {
+  if(!allInOne || grepl('MaxQuant',pattern)) {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data, xlim = c(min_x, max_x),
          ylim = c(min_y, max_y), xlab = 'log10(abundance [fmol/sample])', ylab = '')
@@ -220,7 +235,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     points(sampleData[,1],sampleData[,2], col = color_data)
   }
   # Plot UPS2 window:
-  if(!allInOne || pattern == 'Abundance.MSrescaled.R..1_') {
+  if(!allInOne || grepl('MSrescaled',pattern)) {
     min_x <- min(ESdata[,1])
     max_x <- max(ESdata[,1])
     polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),

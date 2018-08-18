@@ -48,9 +48,9 @@ interpolateAbundance <- function(data,pattern,abundance_pattern) {
 
 
 ## @knitr getSamplesAbundance
-getSampleAbundance <- function(SILACdata,ISdata,pattern) {
+getSampleAbundance <- function(SILACdata,ISdata,method) {
   # Merge abundance data from IS into SILAC dataset:
-  pattern    <- paste0('Abundance.',pattern)
+  pattern    <- paste0('Abundance.',method)
   abundances <- ISdata[,c(1,grep(paste0(pattern,'.IS.'),names(ISdata)))]
   SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = TRUE, all.y = FALSE)
   # Compute sample abundances:

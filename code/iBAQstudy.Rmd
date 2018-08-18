@@ -131,7 +131,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'Interp')
 
 ## Method 3: Rescaling MaxQuant values
 
-As MaxQuant values don't add up always to the same values (see later figure 1), we should also asses the benefits of rescaling all of those values to add up to the injected amounts:
+As MaxQuant values don't add up always to the same values (see later figure 2), we should also asses the benefits of rescaling all of those values to add up to the injected amounts:
 
 `abundance = (MaxQuant abundance)*(injected amount)/(sum of all MaxQuant abundances*MW values)`
 
@@ -158,7 +158,30 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'MSrescaled')
 
 ## Method comparison
 
-Let's take a look at the total detected protein amount in each of the 6 samples of IS, for all 3 methods:
+Let's start by comparing the ES values predicted by each method to the actual UPS2 values. For that we need a couple of plotting functions:
+
+```{r plotScatter}
+```
+
+```{r plotESdata}
+```
+
+We now plot the comparison for all 4 methods:
+
+```{r fig.height = 3, fig.width = 10, fig.align="center"}
+par(mfcol = c(1,4), mar = c(1,1,2,1), cex = 1)
+plotESdata(ESdata,'MaxQuant')
+plotESdata(ESdata,'Interp')
+plotESdata(ESdata,'MQrescaled')
+plotESdata(ESdata,'MSrescaled')
+```
+
+<center>**Figure 1: Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all 4 methods. Green is a FC < 2, yellow between 2 and 10, and red > 10.**</center>
+<br>
+
+We see that all predictions are very similar; by using ES curves (methods 1-3) we don't gain significant prediction power than if we just rescale the data (method 4).
+
+Let's now take a look at the total detected protein amount in each of the 6 samples of IS, for all 3 methods:
 
 ```{r plotTotalProt}
 ```
@@ -171,10 +194,10 @@ plotTotalProt(ISdata,'Abundance.MQrescaled.IS')
 plotTotalProt(ISdata,'Abundance.MSrescaled.IS')
 ```
 
-<center>**Figure 1: Total detected protein amounts in all 6 IS, according to all 4 methods.**</center>
+<center>**Figure 2: Total detected protein amounts in all 6 IS, according to all 4 methods.**</center>
 <br>
 
-Let's take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (figure 1):
+Let's take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (figure 2):
 
 ```{r fig.height = 4, fig.width = 10, fig.align="center"}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
@@ -184,7 +207,7 @@ plotTotalProt(SILACdata,'Abundance.MQrescaled.R..1_')
 plotTotalProt(SILACdata,'Abundance.MSrescaled.R..1_')
 ```
 
-<center>**Figure 2: Total detected protein amounts in all 18 samples, according to all 4 methods.**</center>
+<center>**Figure 3: Total detected protein amounts in all 18 samples, according to all 4 methods.**</center>
 <br>
 
 The total detected protein seems to vary quite a bit among samples depending on the ES for any method with an ES curve, and as expected this reduces if we rescale the IS abundances.
@@ -221,7 +244,7 @@ scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
 ```
 
-<center>**Figure 3: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(MS intensity) in x-axis), from method 2 (red) Vs method 4 (green)**</center>
+<center>**Figure 4: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(MS intensity) in x-axis), from method 2 (red) Vs method 4 (green)**</center>
 <br>
 
 The red fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional method. But they don't look the best (consider they are in log), many other curves (as the green fits) can almost equally well fit that data. Let's see everything in the same plot:
@@ -231,7 +254,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 ```
 
 <br>
-<center>**Figure 4: ES curves (abundance Vs MS intensities of UPS2), from method 2 (red) Vs method 4 (green). Average coefficient of variation (CVm) within each protein is shown in the upper left corner.**</center>
+<center>**Figure 5: ES curves (abundance Vs MS intensities of UPS2), from method 2 (red) Vs method 4 (green). Average coefficient of variation (CVm) within each protein is shown in the upper left corner.**</center>
 <br>
 
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
@@ -243,9 +266,6 @@ We now display the variability of the final abundance data between biological an
 ```
 
 We now define a couple of plotting functions:
-
-```{r plotScatter}
-```
 
 ```{r plotVariability}
 ```
@@ -274,7 +294,7 @@ plotVariability(abundance,c('_batch1','_batch2','_batch3'),'Technical Variabilit
 plotPCA(abundance,'PCA')
 ```
 
-<center>**Figure 5: Comparison of data variability from MaxQuant (top row), rescaling MaxQuant (middle row) and rescaling the original MS intensities (bottom row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
+<center>**Figure 6: Comparison of data variability from MaxQuant (top row), rescaling MaxQuant (middle row) and rescaling the original MS intensities (bottom row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
 <br>
 
 We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use rescale the original MS abundancies (PC1 represents less variability). This means that by using rescaled MS data we achieve lower variability between technical replicates than the other 2 methods.
@@ -293,7 +313,7 @@ sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MQrescaled.R..1_',FALSE
 sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MSrescaled.R..1_',FALSE)
 ```
 
-<center>**Figure 6: Fold change Vs abundances for all 3 methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in yellow.**</center>
+<center>**Figure 7: Fold change Vs abundances for all 3 methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in yellow.**</center>
 <br>
 
 We see that in all 3 cases more than 80% of the data falls within the detection range of UPS2, which is good. However, all 3 datasets look similar in shape, so instead let's look at the trend of the data with the help of smooth splines:
@@ -308,7 +328,7 @@ par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
 plotSplines(SILACdata,ESdata)
 ```
 
-<center>**Figure 7: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 6). The detection window of UPS2 is highlighted in yellow.**</center>
+<center>**Figure 8: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 6). The detection window of UPS2 is highlighted in yellow.**</center>
 <br>
 
 We now see that our proposed method of rescaling by MS intensities has less overall variability than the both MaxQuant and rescaled MaxQuant, both for lowly and highly abundant proteins.
@@ -319,8 +339,7 @@ In conclusion, we can skip entirely the UPS2 data and just assume that the MS in
 
 ## To-do's
 
-* Plot comparing to real UPS2 values
 * Is the order in ES data always the same?
-* cumulative distributions for tech variability?
+* Cumulative distributions for tech variability?
 * Validation to stoichiometry of ribosomal proteins
 
