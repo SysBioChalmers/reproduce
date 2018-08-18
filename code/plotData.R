@@ -94,6 +94,7 @@ plotTotalProt <- function(data,pattern) {
   names(totProt) <- gsub(pattern,'',names(totProt))
   barplot(totProt, col = factor(names(totProt)), mgp = c(1.5, 0.5, 0), cex.names = 0.8,
           ylab = 'Total detected protein in sample [ug]', xaxt = 'n')
+  title(main = gsub('^([^.]*.[^.]*).*$','\\1',pattern))
 }
 
 
@@ -201,9 +202,9 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   # Options depending on type of plot:
   if(pattern == 'Abundance.MaxQuant.R..1_') {
     color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.01)
-  } else if(pattern == 'Abundance.Interp.R..1_') {
-    color_data <- rgb(red = 0, green = 1, blue = 1, alpha = 0.01)
-  } else if(pattern == 'Abundance.Rescaled.R..1_') {
+  } else if(pattern == 'Abundance.MQrescaled.R..1_') {
+    color_data <- rgb(red = 0, green = 1, blue = 0, alpha = 0.01)
+  } else if(pattern == 'Abundance.MSrescaled.R..1_') {
     color_data <- rgb(red = 0, green = 0, blue = 1, alpha = 0.01)
   }
   if(allInOne) {
@@ -234,7 +235,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     points(sampleData[,1],sampleData[,2], col = color_data)
   }
   # Plot UPS2 window:
-  if(!allInOne || pattern == 'Abundance.Rescaled.R..1_') {
+  if(!allInOne || pattern == 'Abundance.MSrescaled.R..1_') {
     min_x <- min(ESdata[,1])
     max_x <- max(ESdata[,1])
     polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),
@@ -242,8 +243,8 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   }
   # Plot UPS2 points:
   if(!allInOne) {
-    title(main = substr(pattern,1,nchar(pattern)-2))
-    points(ESdata[,1],ESdata[,2], pch = 16, col = 'yellow')
+    title(main = gsub('^([^.]*.[^.]*).*$','\\1',pattern))
+    points(ESdata[,1],ESdata[,2], col = 'yellow')
     # Compute fraction in window:
     in_window <- (sampleData[,1] > min_x)*(sampleData[,1] < max_x)
     fraction  <- sum(in_window)/length(in_window)*100
@@ -258,8 +259,8 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
 plotSplines <- function(SILACdata,ESdata){
   #Plot all data:
   sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MaxQuant.R..1_',TRUE)
-  sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.Interp.R..1_',TRUE)
-  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.Rescaled.R..1_',TRUE)
+  sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MQrescaled.R..1_',TRUE)
+  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MSrescaled.R..1_',TRUE)
   # Create smoothing splines:
   ss1 <- smooth.spline(sample1[,1], sample1[,2], df = 10)
   ss2 <- smooth.spline(sample2[,1], sample2[,2], df = 10)

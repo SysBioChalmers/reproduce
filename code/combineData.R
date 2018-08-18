@@ -81,7 +81,7 @@ rescaleData <- function(data,pattern,name,totProt) {
     abundance <- abundance*totProt                      #pg in sample
     abundance <- abundance/data$Mol..weight..kDa.       #fmol in sample
     # Add abundances to dataset:
-    new_name <- gsub(pattern,paste0('Abundance.Rescaled.',name),names(data)[i])
+    new_name <- gsub(pattern,paste0('Abundance.',name),names(data)[i])
     data[[new_name]] <- abundance
   }
   return(data)
