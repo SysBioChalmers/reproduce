@@ -19,6 +19,8 @@ iBAQdata <- read.csv(file = '../data/raw_internal/mq14_int_std_peaklength-2-poin
 iBAQdata$Protein.IDs <- gsub(';P99999ups','',iBAQdata$Protein.IDs)  #P00044 was erroneously match as P99999 (the human homolog)
 names(iBAQdata) <- gsub('iBAQ.L.T4h_','Abundance.MaxQuant.ES.',names(iBAQdata))
 names(iBAQdata) <- gsub('iBAQ.H.T4h_','Abundance.MaxQuant.IS.',names(iBAQdata))
+names(iBAQdata) <- gsub('_Batch','_batch',names(iBAQdata))
 
 ## @knitr loadSILACdata
 SILACdata <- read.csv(file = '../data/raw_internal/1710_mq14_sample_default_settings_proteinGroups.txt', sep = '\t', header = TRUE)
+names(SILACdata) <- gsub('_Batch','_batch',names(SILACdata))

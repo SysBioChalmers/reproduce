@@ -179,9 +179,9 @@ plotPCA <- function(data,title){
     else if(length(grep('R2.1',names(data)[i])) == 1) { pch_opt[i] <- 2 }
     else if(length(grep('R3.1',names(data)[i])) == 1) { pch_opt[i] <- 3 }
     # Color by tech. rep.
-    if(length(grep('Batch1',names(data)[i])) == 1)      { col_opt[i] <- '#EB2426' }
-    else if(length(grep('Batch2',names(data)[i])) == 1) { col_opt[i] <- '#3953A3' }
-    else if(length(grep('Batch3',names(data)[i])) == 1) { col_opt[i] <- '#0F8141' }
+    if(length(grep('batch1',names(data)[i])) == 1)      { col_opt[i] <- '#EB2426' }
+    else if(length(grep('batch2',names(data)[i])) == 1) { col_opt[i] <- '#3953A3' }
+    else if(length(grep('batch3',names(data)[i])) == 1) { col_opt[i] <- '#0F8141' }
   }
   # Plot PCA:
   deltax <- max(pca$x[,1]) - min(pca$x[,1])
@@ -201,27 +201,27 @@ plotPCA <- function(data,title){
 plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   # Options depending on type of plot:
   if(pattern == 'Abundance.MaxQuant.R..1_') {
-    color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.01)
+    color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.03)
   } else if(pattern == 'Abundance.MQrescaled.R..1_') {
-    color_data <- rgb(red = 0, green = 1, blue = 0, alpha = 0.01)
+    color_data <- rgb(red = 0, green = 1, blue = 0, alpha = 0.02)
   } else if(pattern == 'Abundance.MSrescaled.R..1_') {
-    color_data <- rgb(red = 0, green = 0, blue = 1, alpha = 0.01)
+    color_data <- rgb(red = 0, green = 0, blue = 1, alpha = 0.02)
   }
   if(allInOne) {
-    color_data <- rgb(red = 0, green = 0, blue = 0, alpha = 0.01)
+    color_data <- rgb(red = 0, green = 0, blue = 0, alpha = 0.02)
   }
   # Get FC values for sample data:
   abundance  <- sampleData[,grep(pattern,names(sampleData))]
-  sampleData <- getFCvsAbundance(abundance)
+  sampleData <- getFCvsAbundance(abundance,c('_batch1','_batch2','_batch3'))
   # Get FC values for ES data:
   ESdata_pattern <- gsub('.R..1_','.ES',pattern)
   abundance      <- ESdata[,grep(ESdata_pattern,names(ESdata))]
-  ESdata         <- getFCvsAbundance(abundance)
+  ESdata         <- getFCvsAbundance(abundance,c('_batch1','_batch2','_batch3'))
   # Plot FC of abundanceData
   min_x <- round(min(sampleData[,1])) + 1
   max_x <- round(max(sampleData[,1]))
   min_y <- 0
-  max_y <- ceiling(max(sampleData[,2])) - 1
+  max_y <- round(max(sampleData[,2])) - 1
   if(!allInOne || pattern == 'Abundance.MaxQuant.R..1_') {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data, xlim = c(min_x, max_x),

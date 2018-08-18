@@ -90,15 +90,20 @@ rescaleData <- function(data,pattern,name,totProt) {
 
 
 ## @knitr getFCvsAbundance
-getFCvsAbundance <- function(abundanceData){
+getFCvsAbundance <- function(data,groupNames){
+  # Erase distinction from name:
+  for(i in 1:length(groupNames)) {
+    names(data) <- gsub(groupNames[i],'',names(data))
+  }
+  
   x  <- NULL
   FC <- NULL
   # Go through the dataset and compute all combinations abundance-FC:
-  for(i in 1:length(names(abundanceData))) {
-    for(j in 1:length(names(abundanceData))) {
-      if(i!=j) {
-        x  <- c(x,log10(abundanceData[,i]))
-        FC <- c(FC,abs(log10(abundanceData[,j]/abundanceData[,i])))
+  for(i in 1:length(names(data))) {
+    for(j in 1:length(names(data))) {
+      if((names(data)[i] == names(data)[j]) && (i!=j)) {
+        x  <- c(x,log10(data[,i]))
+        FC <- c(FC,abs(log10(data[,j]/data[,i])))
       }
     }
   }
