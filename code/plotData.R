@@ -31,10 +31,8 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
   axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
   abline(0,1,col='black')
-  # Show fit to a linear model:
-  lmodel <- lm(data2 ~ data1)
-  lsum   <- summary(lmodel)
-  R2     <- round(lsum$adj.r.squared,2)
+  # Show fit to y = x:
+  R2 <- round(1 - (sum((data1 - data2)^2)/sum((data1 - mean(data1))^2)),2)
   text(min_val,max_val-0.5, bquote('R'^2 ~ '=' ~ .(R2)), pos = 4)
   text(min_val,max_val-1.5, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 4)
 }
@@ -80,14 +78,12 @@ plotLM <- function(x,y,scaling,allInOne) {
   }
   col_opt <- ifelse(scaling == 0,'red','green')
   abline(a = intercept, b = 1, col = col_opt)
-  #Compute and display adjusted R2:
-  n       <- length(x)
-  yp      <- x + intercept
-  R2      <- 1 - (sum((y - yp)^2)/sum((y - mean(y))^2))
-  R2adj   <- round(1-((1-R2)*(n-1)/(n-1-1)),2)
+  #Compute and display R2:
+  yp <- x + intercept
+  R2 <- round(1 - (sum((y - yp)^2)/sum((y - mean(y))^2)),2)
   if(!allInOne) {
     text(min(x, na.rm = TRUE),max(y, na.rm = TRUE)-pos-0.5,
-         bquote('R'^2 ~ '=' ~ .(R2adj)), pos = 4, col = col_opt)
+         bquote('R'^2 ~ '=' ~ .(R2)), pos = 4, col = col_opt)
   }
 }
 
