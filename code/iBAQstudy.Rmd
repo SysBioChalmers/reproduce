@@ -325,7 +325,5 @@ In conclusion, we can skip entirely the UPS2 data and just assume that the MS in
 
 * Plot comparing to real UPS2 values
 * Is the order in ES data always the same?
-* make all axes the same levels
-* change log10 axes to log2 axes
 * Validation to stoichiometry of ribosomal proteins
 

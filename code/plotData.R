@@ -114,8 +114,8 @@ plotScatter <- function(data1,data2,title) {
   # Plot data:
   data1   <- log10(data1)
   data2   <- log10(data2)
-  min_val <- floor(min(c(data1,data2)))
-  max_val <- ceiling(max(c(data1,data2)))
+  min_val <- round(min(c(data1,data2)))-1
+  max_val <- round(max(c(data1,data2)))
   plot(data1, data2, pch = 1, col = col_scheme, xlab = '', ylab = '',
        xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', main = title,
        xlim = c(min_val,max_val), ylim = c(min_val,max_val))
