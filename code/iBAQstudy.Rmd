@@ -196,7 +196,7 @@ Let's now take a look at the total detected protein amount in each of the 6 samp
 ```{r plotTotalProt}
 ```
 
-```{r fig.height = 4, fig.width = 10, fig.align="center"}
+```{r fig.height = 3, fig.width = 10, fig.align="center"}
 par(mfcol = c(1,3), mar = c(1,2.5,2,1), cex = 1)
 plotTotalProt(ISdata,'Abundance.iBAQ.IS')
 plotTotalProt(ISdata,'Abundance.iBAQrescaled.IS')
@@ -208,7 +208,7 @@ plotTotalProt(ISdata,'Abundance.MSrescaled.IS')
 
 Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (figure 2):
 
-```{r fig.height = 4, fig.width = 10, fig.align="center"}
+```{r fig.height = 3, fig.width = 10, fig.align="center"}
 par(mfcol = c(1,3), mar = c(1,2.5,2,1), cex = 1)
 plotTotalProt(SILACdata,'Abundance.iBAQ.R..1_')
 plotTotalProt(SILACdata,'Abundance.iBAQrescaled.R..1_')
@@ -248,7 +248,7 @@ scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
 ```
 
-<center>**Figure 4: ES curves (log10(abundance [pg/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling.**</center>
+<center>**Figure 4: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein.**</center>
 <br>
 
 The red fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (consider they are in log), many other curves (as the green fits) can almost equally well fit that data. Let's see everything in the same plot:
@@ -258,7 +258,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 ```
 
 <br>
-<center>**Figure 5: ES curves (abundance Vs MS intensities of UPS2), with (green) and without (red) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner.**</center>
+<center>**Figure 5: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner.**</center>
 <br>
 
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
@@ -347,7 +347,6 @@ In conclusion, we can skip entirely the UPS2 data and just assume that the MS in
 
 ## To-do's
 
-* Is the order in ES data always the same?
-* Cumulative distributions for tech variability?
+* Cumulative distributions for tech variability
 * Validation to stoichiometry of ribosomal proteins
 

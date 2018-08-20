@@ -63,9 +63,10 @@ plotTotalProt <- function(data,pattern) {
   pos            <- grep(pattern,names(data))
   data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
   totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
+  meanProt       <- round(mean(totProt))+1
   names(totProt) <- gsub(pattern,'',names(totProt))
   barplot(totProt, col = factor(names(totProt)), mgp = c(1.5, 0.5, 0), cex.names = 0.8,
-          ylab = 'Total detected protein in sample [ug]', xaxt = 'n')
+          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt))
   title(main = gsub('^([^.]*.[^.]*).*$','\\1',pattern))
 }
 
@@ -87,7 +88,7 @@ plotLM <- function(x,y,scaling,allInOne) {
   yp <- x + intercept
   R2 <- round(1 - (sum((y - yp)^2)/sum((y - mean(y))^2)),2)
   if(!allInOne) {
-    text(min(x, na.rm = TRUE),max(y, na.rm = TRUE)-pos-0.5,
+    text(round(min(x, na.rm = TRUE))-1,max(y, na.rm = TRUE)-pos,
          bquote('R'^2 ~ '=' ~ .(R2)), pos = 4, col = col_opt)
   }
 }
@@ -97,16 +98,18 @@ plotLM <- function(x,y,scaling,allInOne) {
 plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   #Plot data:
   x <- log10(ESdata[[paste0(pattern,name)]])
-  y <- log10(ESdata$amount.fmoles) 
+  y <- log10(ESdata$amount.fmoles)
+  s <- rep(0:18,length.out = length(x))
   y <- y[!is.na(x)]
+  s <- s[!is.na(x)]
   x <- x[!is.na(x)]
+  min_x <- round(min(x, na.rm = TRUE))-1
+  max_x <- ceiling(max(x, na.rm = TRUE))
+  min_y <- floor(min(y, na.rm = TRUE))
+  max_y <- ceiling(max(y, na.rm = TRUE))
   if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
   if(allInOne) {
     if(first) {
-      min_x <- floor(min(x, na.rm = TRUE))
-      max_x <- ceiling(max(x, na.rm = TRUE))
-      min_y <- floor(min(y, na.rm = TRUE))
-      max_y <- ceiling(max(y, na.rm = TRUE))
       x_lab <- paste0('log10(',gsub('.L.T4h_','',pattern),' values)')
       plot(x,y, col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
            xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
@@ -120,7 +123,12 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
       points(x,y, col = 'blue')
     }
   } else {
-    plot(x,y, col = 'blue', xaxt = 'n', yaxt = 'n', main = name)
+    plot(x,y, pch = s,col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
+         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name)
+    axis(side=1, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=2, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
   }
   #Get linear fits:
   plotLM(x,y,0,allInOne)
@@ -140,6 +148,7 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   #Plot data:
   if(allInOne) { par(mfrow = c(1,1), mar = c(4,4,1,1), pty = "s", cex = 1) }
   else         { par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1) }
+  ESdata <- ESdata[order(ESdata$amount.fmoles),]
   plotES(ESdata,pattern,scaling,'top5_batch1',allInOne,TRUE,CVm)
   plotES(ESdata,pattern,scaling,'top5_batch2',allInOne,FALSE,CVm)
   plotES(ESdata,pattern,scaling,'top5_batch3',allInOne,FALSE,CVm)
