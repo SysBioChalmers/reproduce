@@ -47,25 +47,25 @@ interpolateAbundance <- function(data,pattern,abundance_pattern) {
 }
 
 
-## @knitr getSamplesAbundance
+## @knitr getSampleAbundance
 getSampleAbundance <- function(SILACdata,ISdata,method) {
   # Merge abundance data from IS into SILAC dataset:
-  pattern    <- paste0('Abundance.',method)
-  abundances <- ISdata[,c(1,grep(paste0(pattern,'.IS.'),names(ISdata)))]
+  ISpattern  <- paste0('Abundance.',method,'.IS.')
+  abundances <- ISdata[,c(1,grep(ISpattern,names(ISdata)))]
   SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = TRUE, all.y = FALSE)
   # Compute sample abundances:
   LHNratios <- grep('Ratio.H.L.normalized.R',names(SILACdata))
   for(LHNratio in LHNratios) {
     # Define name of relevant variables:
     LHNratio_name <- names(SILACdata)[LHNratio]
-    root_name     <- tolower(gsub('^.*?_','',LHNratio_name))
-    IS_name       <- paste0(pattern,'.IS.',root_name)
+    root_name     <- gsub('^.*?_','',LHNratio_name)
+    IS_name       <- paste0(ISpattern,root_name)
     # Compute abundance for sample and rescale:
     abundance <- SILACdata[,LHNratio]^-1        #Ratios are stored as H/L
     abundance <- abundance*SILACdata[[IS_name]] #(L/H)*abundance [fmol/sample]
     # Add abundances to dataset:
     new_name <- gsub('Ratio.H.L.normalized','',LHNratio_name)
-    new_name <- paste0(pattern,new_name)            #name for abundance of sample
+    new_name <- paste0('Abundance.',method,new_name)  #name for abundance of sample
     SILACdata[[new_name]] <- abundance
   }
   return(SILACdata)

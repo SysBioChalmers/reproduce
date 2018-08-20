@@ -23,13 +23,17 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   data2   <- log10(data2)
   min_val <- round(min(c(data1,data2)))-1
   max_val <- round(max(c(data1,data2)))
-  plot(data1, data2, pch = 1, col = col_scheme, xlab = '', ylab = '',
-       xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', main = title,
-       xlim = c(min_val,max_val), ylim = c(min_val,max_val))
-  axis(side=1, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  axis(side=2, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  if(labelx == '') {
+    plot(data1, data2, col = col_scheme, main = title, xaxt = 'n', yaxt = 'n', 
+         xaxs = 'i', yaxs = 'i', xlim = c(min_val,max_val), ylim = c(min_val,max_val))
+    axis(side=1, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=2, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  } else {
+    plot(data1, data2, col = col_scheme, main = title, xlab = labelx, ylab = labely, 
+         xlim = c(min_val,max_val), ylim = c(min_val,max_val))
+  }
   abline(0,1,col='black')
   # Show fit to y = x:
   R2 <- round(1 - (sum((data1 - data2)^2)/sum((data1 - mean(data1))^2)),2)
@@ -40,7 +44,8 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
 
 ## @knitr plotESdata
 plotESdata <- function(ESdata,method) {
-  pattern  <- paste0('Abundance.',method,'.ES')
+  method   <- paste0('Abundance.',method)
+  pattern  <- paste0(method,'.ES')
   dataExp  <- NULL
   dataPred <- NULL
   for(i in 1:length(names(ESdata))) {
@@ -49,7 +54,7 @@ plotESdata <- function(ESdata,method) {
       dataPred <- c(dataPred,ESdata[,i])
     }
   }
-  plotScatter(dataExp,dataPred,method,'Measured Abundance','Predicted Abundance')
+  plotScatter(dataExp,dataPred,method,'log10(measured)','log10(predicted)')
 }
 
 
@@ -91,7 +96,7 @@ plotLM <- function(x,y,scaling,allInOne) {
 ## @knitr plotES
 plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   #Plot data:
-  x <- log10(ESdata[[paste0(pattern,tolower(name))]])
+  x <- log10(ESdata[[paste0(pattern,name)]])
   y <- log10(ESdata$amount.fmoles) 
   y <- y[!is.na(x)]
   x <- x[!is.na(x)]
@@ -196,11 +201,11 @@ plotPCA <- function(data,title){
 ## @knitr plotFCvsAbundance
 plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   # Options depending on type of plot:
-  if(grepl('MaxQuant',pattern)) {
+  if(grepl('iBAQ.R',pattern)) {
     color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.03)
-  } else if(grepl('MQrescaled',pattern)) {
+  } else if(grepl('iBAQrescaled.R',pattern)) {
     color_data <- rgb(red = 0, green = 1, blue = 0, alpha = 0.02)
-  } else if(grepl('MSrescaled',pattern)) {
+  } else if(grepl('MSrescaled.R',pattern)) {
     color_data <- rgb(red = 0, green = 0, blue = 1, alpha = 0.02)
   }
   if(allInOne) {
@@ -218,7 +223,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   max_x <- round(max(sampleData[,1]))
   min_y <- 0
   max_y <- round(max(sampleData[,2])) - 1
-  if(!allInOne || grepl('MaxQuant',pattern)) {
+  if(!allInOne || grepl('iBAQ.R',pattern)) {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data, xlim = c(min_x, max_x),
          ylim = c(min_y, max_y), xlab = 'log10(abundance [fmol/sample])', ylab = '')
@@ -231,7 +236,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     points(sampleData[,1],sampleData[,2], col = color_data)
   }
   # Plot UPS2 window:
-  if(!allInOne || grepl('MSrescaled',pattern)) {
+  if(!allInOne || grepl('MSrescaled.R',pattern)) {
     min_x <- min(ESdata[,1])
     max_x <- max(ESdata[,1])
     polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),
@@ -254,8 +259,8 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
 ## @knitr plotSplines
 plotSplines <- function(SILACdata,ESdata){
   #Plot all data:
-  sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MaxQuant.R..1_',TRUE)
-  sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MQrescaled.R..1_',TRUE)
+  sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQ.R..1_',TRUE)
+  sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQrescaled.R..1_',TRUE)
   sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MSrescaled.R..1_',TRUE)
   # Create smoothing splines:
   ss1 <- smooth.spline(sample1[,1], sample1[,2], df = 10)
