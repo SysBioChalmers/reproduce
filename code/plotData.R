@@ -207,6 +207,32 @@ plotPCA <- function(data,title){
 }
 
 
+## @knitr plotCumulativeDistrib
+plotCumulativeDistrib <- function(data,groupNames,color,first){
+  data <- getReplicateData(data,groupNames,2,FALSE)
+  FC   <- sort(data[,2])
+  step <- 1/(length(FC)-1)
+  cdf  <- seq(0, 1, by = step)
+  if(first) {
+    min_x <- 0
+    max_x <- 1
+    plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
+         xlim = c(min_x, max_x), ylim = c(0, 1), xlab = '', ylab = '')
+    axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
+    axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015)
+    axis(side=3, at = seq(min_x, max_x, by = 0.2), labels = FALSE, tck = 0.015)
+    axis(side=4, at = seq(0, 1, by = 0.2),         labels = FALSE, tck = 0.015)
+    title(xlab='abs(log10(FC))', line=2.5)
+    title(ylab='Cumulative Distribution', line=2.5)
+    lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
+  }
+  lines(FC,cdf, col = color, lwd = 2)
+  pos <- which(abs(FC - log10(2)) < 1e-4)
+  points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = color)
+  return(FC)
+}
+
+
 ## @knitr plotFCvsAbundance
 plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   # Options depending on type of plot:

@@ -317,7 +317,31 @@ We see a lower median fold change in the technical replicates + a better separat
 
 ### Assesing technical variability
 
-Let's look further into the reduction of variability by plotting all possible fold changes between technical replicates. For that we define the following plotting function that will plot each FC to the basal abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
+Let's look further into the reduction of variability by plotting all possible fold changes between technical replicates. For that we define the following plotting function that will plot 
+
+```{r plotCumulativeDistrib}
+```
+
+```{r fig.width = 4, fig.align="center"}
+par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
+FCiBAQ <- plotCumulativeDistrib(abundanceIBAQ,c('_batch1','_batch2','_batch3'),'red',TRUE)
+FCiBAQres <- plotCumulativeDistrib(abundanceIR,c('_batch1','_batch2','_batch3'),'green',FALSE)
+FCMSres <- plotCumulativeDistrib(abundanceMSR,c('_batch1','_batch2','_batch3'),'blue',FALSE)
+```
+
+<center>**Figure 8: Fold change cumulative distributions for all 3 methods. A fold change of 2 is indicated with a vertical segmented line.**</center>
+<br>
+
+These 3 distributions are significantly different between them:
+
+```{r}
+htest <- ks.test(FCiBAQ, FCiBAQres, alternative = 'less')
+print(htest$p.value)
+htest <- ks.test(FCiBAQres, FCMSres, alternative = 'less')
+print(htest$p.value)
+```
+
+We can also look at technical variability by plotting each FC to the basal abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
 
 ```{r plotFCvsAbundance}
 ```
@@ -331,7 +355,7 @@ sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQrescaled.R..1_',FAL
 sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MSrescaled.R..1_',FALSE)
 ```
 
-<center>**Figure 8: Fold change Vs abundances for all 3 methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in yellow.**</center>
+<center>**Figure 9: Fold change Vs abundances for all 3 methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in yellow.**</center>
 <br>
 
 We see that in all 3 cases more than 80% of the data falls within the detection range of UPS2, which is good. However, all 3 datasets look similar in shape, so instead let's look at the trend of the data with the help of smooth splines:
@@ -346,7 +370,7 @@ par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
 plotSplines(SILACdata,ESdata)
 ```
 
-<center>**Figure 9: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 6). The detection window of UPS2 is highlighted in yellow.**</center>
+<center>**Figure 10: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 6). The detection window of UPS2 is highlighted in yellow.**</center>
 <br>
 
 We now see that our proposed method of rescaling by MS intensities has less overall variability than the both iBAQ and rescaled iBAQ, both for lowly and highly abundant proteins.
@@ -357,6 +381,5 @@ In conclusion, we can skip entirely the UPS2 data and just assume that the MS in
 
 ## To-do's
 
-* Cumulative distributions for tech variability
 * Validation to stoichiometry of ribosomal proteins
 
