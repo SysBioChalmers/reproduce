@@ -90,16 +90,21 @@ rescaleData <- function(data,pattern,name,totProt) {
 
 
 ## @knitr getReplicateData
-getReplicateData <- function(data,groupNames,option){
+getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
   # Erase distinction from name:
   for(i in 1:length(groupNames)) {
     names(data) <- gsub(groupNames[i],'',names(data))
   }
   data1 <- NULL
   data2 <- NULL
+  # Define if data will or will not be repeated:
+  if(repeatData) { iend <- length(names(data))   }
+  else           { iend <- length(names(data))-1 }
   # Go through the dataset and compute all combinations abundance-FC:
-  for(i in 1:length(names(data))) {
-    for(j in 1:length(names(data))) {
+  for(i in 1:iend) {
+    if(repeatData) { j1 <- 1   }
+    else           { j1 <- i+1 }
+    for(j in j1:length(names(data))) {
       if((names(data)[i] == names(data)[j]) && (i!=j)) {
         data1 <- c(data1,data[,i])
         data2 <- c(data2,data[,j])

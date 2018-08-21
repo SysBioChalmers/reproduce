@@ -58,6 +58,15 @@ plotESdata <- function(ESdata,method) {
 }
 
 
+## @knitr plotVariability
+plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE) {
+  # Get data:
+  data <- getReplicateData(data,groupNames,1,repeatData)
+  # Plot all combinations:
+  plotScatter(data[,1],data[,2],title,labelx,labely)
+}
+
+
 ## @knitr plotTotalProt
 plotTotalProt <- function(data,pattern) {
   pos            <- grep(pattern,names(data))
@@ -155,15 +164,6 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   plotES(ESdata,pattern,scaling,'top10_batch1',allInOne,FALSE,CVm)
   plotES(ESdata,pattern,scaling,'top10_batch2',allInOne,FALSE,CVm)
   plotES(ESdata,pattern,scaling,'top10_batch3',allInOne,FALSE,CVm)
-}
-
-
-## @knitr plotVariability
-plotVariability <- function(data,groupNames,title) {
-  # Get data:
-  data <- getReplicateData(data,groupNames,1)
-  # Plot all combinations:
-  plotScatter(data[,1],data[,2],title,'','')
 }
 
 
