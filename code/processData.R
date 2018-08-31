@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Functions for combining different datasets used in this study
+# Functions for processing different datasets used in this study
 # Benjamin Sanchez
 
 

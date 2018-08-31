@@ -27,7 +27,7 @@ library(knitr)
 
 ```{r echo=FALSE}
 read_chunk('loadData.R')
-read_chunk('combineData.R')
+read_chunk('processData.R')
 read_chunk('plotData.R')
 ```
 
