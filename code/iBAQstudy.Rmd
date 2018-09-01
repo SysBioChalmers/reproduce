@@ -22,7 +22,9 @@ Here we will go through the typical way of deducing protein abundances [fmol/sam
 ### Loading packages
 
 ```{r warning = FALSE, message = FALSE, results = FALSE}
+library(plyr)
 library(knitr)
+library(biomaRt)
 ```
 
 ```{r echo=FALSE}
@@ -78,6 +80,14 @@ Each injected sample consisted of:
 ```{r loadSILACdata}
 ```
 
+### Loading ribosomal proteins
+
+We use a list of ribosomal genes based on Jenner et al. (2012):  http://dx.doi.org/10.1016/j.sbi.2012.07.013
+
+
+```{r loadRibProteins}
+```
+
 
 ## Method 1: iBAQ
 
@@ -94,7 +104,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQ')
 
 ## Method 2: Rescaling iBAQ values
 
-As iBAQ values don't add up always to the same totals (see later figure 3), we should also asses the benefits of rescaling all of these values to add up to the injected amounts:
+As iBAQ values don't add up always to the same totals (see later figure 4), we should also asses the benefits of rescaling all of these values to add up to the injected amounts:
 
 `abundance = (iBAQ abundance)*(injected amount)/(sum of all iBAQ abundances*MW values)`
 
@@ -198,18 +208,44 @@ We can also see this if we plot the data between methods: For that we define a f
 ```
 
 ```{r fig.height = 4, fig.width = 10, fig.align="center"}
-abundanceIBAQ <- SILACdata[,grep('Abundance.iBAQ.R',names(SILACdata))]
-abundanceIR   <- SILACdata[,grep('Abundance.iBAQrescaled.R',names(SILACdata))]
-abundanceMSR  <- SILACdata[,grep('Abundance.MSrescaled.R',names(SILACdata))]
-IRvsIBAQ  <- cbind(abundanceIBAQ,abundanceIR)
-MSRvsIBAQ <- cbind(abundanceIBAQ,abundanceMSR)
+abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
+abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
+abundanceMSR  <- SILACdata[,c(1,grep('Abundance.MSrescaled.R',names(SILACdata)))]
+IRvsIBAQ  <- cbind(abundanceIBAQ[,-1],abundanceIR[,-1])
+MSRvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceMSR[,-1])
 par(mfrow = c(1,2), mar = c(4,4,2,1), cex = 1)
 plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', 'iBAQ [fmol/sample]', 'iBAQ rescaled [fmol/sample]', FALSE)
 plotVariability(MSRvsIBAQ, c('iBAQ.R','MSrescaled.R'), '', 'iBAQ [fmol/sample]', 'MS rescaled [fmol/sample]', FALSE)
-
 ```
 
 <center>**Figure 2: Comparison of predictions [fmol/sample] between all 3 methods. Green is a FC < 2, yellow between 2 and 10, and red > 10.**</center>
+<br>
+
+Finally, let's see how are the predictions of ribosomal subunits stoichiometry. For that first we create dataframes with only ribosomal proteins:
+
+```{r getRPdata}
+```
+
+```{r}
+rpIBAQ <- getRPdata(abundanceIBAQ,RP)
+rpIR   <- getRPdata(abundanceIR,RP)
+rpMSR  <- getRPdata(abundanceMSR,RP)
+```
+
+Now we can plot for each method the corresponding data
+
+```{r plotRPdata}
+```
+
+
+```{r fig.height = 10, fig.width = 8, fig.align="center"}
+par(mfrow = c(3,1), mar = c(4,4,2,1), cex = 1)
+plotRPdata(rpIBAQ,'iBAQ')
+plotRPdata(rpIR,'iBAQrescaled')
+plotRPdata(rpMSR,'MSrescaled')
+```
+
+<center>**Figure 3: Comparison of predicted ribosomal subunit abundances [fmol/sample], according to all 3 methods. Colors correspond to different technical replicates. The average value is display with a segmented line, and the average error to that line for all data is displayed.**</center>
 <br>
 
 ### Protein totals
@@ -226,10 +262,10 @@ plotTotalProt(ISdata,'Abundance.iBAQrescaled.IS')
 plotTotalProt(ISdata,'Abundance.MSrescaled.IS')
 ```
 
-<center>**Figure 3: Total detected protein amounts in all 6 IS, according to all 3 methods.**</center>
+<center>**Figure 4: Total detected protein amounts in all 6 IS, according to all 3 methods.**</center>
 <br>
 
-Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (figure 3):
+Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (figure 4):
 
 ```{r fig.height = 3, fig.width = 10, fig.align="center"}
 par(mfcol = c(1,3), mar = c(1,2.5,2,1), cex = 1)
@@ -238,7 +274,7 @@ plotTotalProt(SILACdata,'Abundance.iBAQrescaled.R..1_')
 plotTotalProt(SILACdata,'Abundance.MSrescaled.R..1_')
 ```
 
-<center>**Figure 4: Total detected protein amounts in all 18 samples, according to all 3 methods.**</center>
+<center>**Figure 5: Total detected protein amounts in all 18 samples, according to all 3 methods.**</center>
 <br>
 
 The total detected protein seems to vary quite a bit among samples calculated with the conventional method, and as expected this reduces if we rescale the IS abundances.
@@ -271,7 +307,7 @@ scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
 ```
 
-<center>**Figure 5: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein.**</center>
+<center>**Figure 6: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein.**</center>
 <br>
 
 The red fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (consider they are in log), many other curves (as the green fits) can almost equally well fit that data. Let's see everything in the same plot:
@@ -281,7 +317,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 ```
 
 <br>
-<center>**Figure 6: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner.**</center>
+<center>**Figure 7: ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner.**</center>
 <br>
 
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
@@ -297,20 +333,20 @@ We now display the variability of the final abundance data between biological an
 ```{r fig.height = 8, fig.width = 10, fig.align="center"}
 par(mfrow = c(3,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
 # Top row: MaxQuant
-plotVariability(abundanceIBAQ,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-plotVariability(abundanceIBAQ,c('_batch1','_batch2','_batch3'),'Technical Variability')
-plotPCA(abundanceIBAQ,'PCA')
+plotVariability(abundanceIBAQ[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundanceIBAQ[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
+plotPCA(abundanceIBAQ[,-1],'PCA')
 # Middle row: Interpolating with ES curve
-plotVariability(abundanceIR,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-plotVariability(abundanceIR,c('_batch1','_batch2','_batch3'),'Technical Variability')
-plotPCA(abundanceIR,'PCA')
+plotVariability(abundanceIR[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundanceIR[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
+plotPCA(abundanceIR[,-1],'PCA')
 # Bottom row: Rescaling
-plotVariability(abundanceMSR,c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-plotVariability(abundanceMSR,c('_batch1','_batch2','_batch3'),'Technical Variability')
-plotPCA(abundanceMSR,'PCA')
+plotVariability(abundanceMSR[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+plotVariability(abundanceMSR[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
+plotPCA(abundanceMSR[,-1],'PCA')
 ```
 
-<center>**Figure 7: Comparison of data variability from iBAQ (top row), rescaling iBAQ (middle row) and rescaling the normalized MS intensities (bottom row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
+<center>**Figure 8: Comparison of data variability from iBAQ (top row), rescaling iBAQ (middle row) and rescaling the normalized MS intensities (bottom row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates.**</center>
 <br>
 
 We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use rescale the normalized MS abundancies (PC1 represents less variability). This means that by using rescaled MS data we achieve lower variability between technical replicates than the other 2 methods.
@@ -324,12 +360,12 @@ Let's look further into the reduction of variability by plotting all possible fo
 
 ```{r fig.width = 4, fig.align="center"}
 par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
-FCiBAQ <- plotCumulativeDistrib(abundanceIBAQ,c('_batch1','_batch2','_batch3'),'red',TRUE)
-FCiBAQres <- plotCumulativeDistrib(abundanceIR,c('_batch1','_batch2','_batch3'),'green',FALSE)
-FCMSres <- plotCumulativeDistrib(abundanceMSR,c('_batch1','_batch2','_batch3'),'blue',FALSE)
+FCiBAQ <- plotCumulativeDistrib(abundanceIBAQ[,-1],c('_batch1','_batch2','_batch3'),'red',TRUE)
+FCiBAQres <- plotCumulativeDistrib(abundanceIR[,-1],c('_batch1','_batch2','_batch3'),'green',FALSE)
+FCMSres <- plotCumulativeDistrib(abundanceMSR[,-1],c('_batch1','_batch2','_batch3'),'blue',FALSE)
 ```
 
-<center>**Figure 8: Fold change cumulative distributions for all 3 methods. A fold change of 2 is indicated with a vertical segmented line.**</center>
+<center>**Figure 9: Fold change cumulative distributions for all 3 methods. A fold change of 2 is indicated with a vertical segmented line.**</center>
 <br>
 
 These 3 distributions are significantly different between them:
@@ -355,7 +391,7 @@ sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQrescaled.R..1_',FAL
 sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MSrescaled.R..1_',FALSE)
 ```
 
-<center>**Figure 9: Fold change Vs abundances for all 3 methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in yellow.**</center>
+<center>**Figure 10: Fold change Vs abundances for all 3 methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in yellow.**</center>
 <br>
 
 We see that in all 3 cases more than 80% of the data falls within the detection range of UPS2, which is good. However, all 3 datasets look similar in shape, so instead let's look at the trend of the data with the help of smooth splines:
@@ -370,16 +406,10 @@ par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
 plotSplines(SILACdata,ESdata)
 ```
 
-<center>**Figure 10: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 6). The detection window of UPS2 is highlighted in yellow.**</center>
+<center>**Figure 11: Fold change Vs abundances for all 3 methods + smoothing splines (colors corresponding to the colors in figure 6). The detection window of UPS2 is highlighted in yellow.**</center>
 <br>
 
 We now see that our proposed method of rescaling by MS intensities has less overall variability than the both iBAQ and rescaled iBAQ, both for lowly and highly abundant proteins.
 
 In conclusion, we can skip entirely the UPS2 data and just assume that the MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples. In this approach, the iBAQ run is only used to do the rescaling, but this could be equally performed with any SILAC run.
 <br>
-
-
-## To-do's
-
-* Validation to stoichiometry of ribosomal proteins
-

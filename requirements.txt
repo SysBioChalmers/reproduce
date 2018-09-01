@@ -1,2 +1,7 @@
-This is the template file, no requirement list has been generated.
+Requires the following packages:
 
+```
+install.packages('plyr','knitr')
+source('http://www.bioconductor.org/biocLite.R')
+biocLite('biomaRt')
+```

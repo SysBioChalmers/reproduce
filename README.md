@@ -5,6 +5,12 @@ Assesing the quality and reproducibility of absolute proteomic data
 
 This repository is administered by Benjamín J. Sánchez ([@BenjaSanchez](https://github.com/benjasanchez)), Division of Systems and Synthetic Biology, Department of Biology and Biological Engineering, Chalmers University of Technology.
 
+Contributors
+------------
+
+* [Kate Campbell](https://www.chalmers.se/en/staff/Pages/katec.aspx) ([@KateCampbell87](https://github.com/KateCampbell87)), Chalmers University of Technology, Sweden
+* [Benjamín J. Sánchez](https://www.chalmers.se/en/staff/Pages/bensan.aspx) ([@BenjaSanchez](https://github.com/benjasanchez)), Chalmers University of Technology, Sweden
+
 Acknowledgements
 ----------------
 

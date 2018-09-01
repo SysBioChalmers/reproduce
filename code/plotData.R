@@ -67,6 +67,33 @@ plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData
 }
 
 
+## @knitr plotRPdata
+plotRPdata <- function(RPdata,method) {
+  # Remove zeros, compute median and error, and then take log:
+  data <- as.matrix(RPdata[,-1])
+  data[data == 0] <- NA
+  mead_val <- median(data, na.rm = TRUE)
+  error    <- round(mean(abs(data - mead_val)/mead_val,na.rm = TRUE)*100,1)
+  data     <- log10(data)
+  mead_val <- log10(mead_val)
+  # Color by tech. rep:
+  col_opt <- NULL
+  for(i in 2:length(names(RPdata))) {
+    if(length(grep('batch1',names(RPdata)[i])) == 1)      { col_opt[i] <- '#EB2426' }
+    else if(length(grep('batch2',names(RPdata)[i])) == 1) { col_opt[i] <- '#3953A3' }
+    else if(length(grep('batch3',names(RPdata)[i])) == 1) { col_opt[i] <- '#0F8141' }
+  }
+  #Plot data:
+  matplot(data, pch = 1, xaxt = 'n', col = col_opt, main = method,
+          ylab = 'log10(abundance [fmol/sample])')
+  axis(side=1, at = 1:length(RPdata[,1]), labels = RPdata[,1], las=2, cex.axis = 0.7)
+  #Plot mean value and average error:
+  max_x <- length(RPdata[,1])
+  lines(c(1,max_x),c(mead_val,mead_val), col = 'black', lwd = 2, lty = 2)
+  text(max_x, mead_val-1, bquote('Average error = ' ~ .(error) ~ '%'), pos = 2)
+}
+
+
 ## @knitr plotTotalProt
 plotTotalProt <- function(data,pattern) {
   pos            <- grep(pattern,names(data))
@@ -183,7 +210,7 @@ plotPCA <- function(data,title){
   # Plotting options:
   pch_opt <- NULL
   col_opt <- NULL
-  for(i in 2:length(names(data))) {
+  for(i in 1:length(names(data))) {
     # Shape by bio. rep.
     if(length(grep('R1.1',names(data)[i])) == 1)      { pch_opt[i] <- 1 } 
     else if(length(grep('R2.1',names(data)[i])) == 1) { pch_opt[i] <- 2 }

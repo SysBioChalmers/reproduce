@@ -16,8 +16,21 @@ iBAQdata$Protein.IDs <- gsub(';P99999ups','',iBAQdata$Protein.IDs)  #P00044 was 
 names(iBAQdata) <- gsub('iBAQ.L.T4h_','Abundance.iBAQ.ES.',names(iBAQdata))
 names(iBAQdata) <- gsub('iBAQ.H.T4h_','Abundance.iBAQ.IS.',names(iBAQdata))
 names(iBAQdata) <- gsub('_Batch','_batch',names(iBAQdata))
-iBAQdata[,grep('T8h_',names(iBAQdata))] <- NULL  #This setting is not used in this study
+iBAQdata[,grep('T8h_',names(iBAQdata))] <- NULL  #This setting (8 hour gradient) will not be used in this study
+
 
 ## @knitr loadSILACdata
 SILACdata <- read.csv(file = '../data/raw_internal/1710_mq14_sample_default_settings_proteinGroups.txt', sep = '\t', header = TRUE)
 names(SILACdata) <- gsub('_Batch','_batch',names(SILACdata))
+
+
+## @knitr loadRibProteins
+RP <- read.csv('../data/raw_external/RP-list.csv')
+# Add uniprot IDs:
+ensembl <- useMart('ENSEMBL_MART_ENSEMBL', dataset='scerevisiae_gene_ensembl',host='www.ensembl.org')
+RP      <- getBM(attributes=c('wikigene_name','uniprotswissprot'), filters = 'wikigene_name',
+                 values = RP$wikigene_name, mart = ensembl)
+# Remove duplicated protein entries:
+RP <- RP[!duplicated(RP$uniprotswissprot),]
+# Change variable name:
+names(RP) <- gsub('uniprotswissprot','Protein.IDs',names(RP))

@@ -89,6 +89,21 @@ rescaleData <- function(data,pattern,name,totProt) {
 }
 
 
+## @knitr getRPdata
+getRPdata <- function(data,RP) {
+  data <- merge(RP,data, by = 'Protein.IDs', all.x = FALSE, all.y = FALSE)
+  data$Protein.IDs <- NULL
+  # Remove ending "A" or "B" of paralogs:
+  data$wikigene_name <- gsub('[AB]$','',data$wikigene_name)
+  # Add up paralogs:
+  data <- ddply(data, .(wikigene_name), numcolwise(sum))
+  # Sort dataframe:
+  letters <- substr(data$wikigene_name, 0, 3)
+  numbers <- as.numeric(substr(data$wikigene_name, 4, nchar(data$wikigene_name)))
+  data    <- data[order(letters,numbers),]
+}
+
+
 ## @knitr getReplicateData
 getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
   # Erase distinction from name:
