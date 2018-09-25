@@ -14,10 +14,9 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   data1  <- data1[check1*check2 == 1]
   data2  <- data2[check1*check2 == 1]
   # Define colors:
-  FC         <- data2/data1
-  FCm        <- round(median(10^abs(log10(FC))), digits = 2)
-  col_scheme <- ifelse(abs(log10(FC))>log10(2),
-                       ifelse(abs(log10(FC))>1, '#EB2426', '#F3B70D'), '#0F8141')
+  FC         <- abs(log10(data2/data1))
+  FCm        <- round(median(10^FC), digits = 2)
+  col_scheme <- ifelse(10^FC>2, ifelse(10^FC>10, '#EB2426', '#F3B70D'), '#0F8141')
   # Plot data:
   data1   <- log10(data1)
   data2   <- log10(data2)
@@ -39,6 +38,7 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   R2 <- round(1 - (sum((data1 - data2)^2)/sum((data1 - mean(data1))^2)),2)
   text(min_val,max_val-0.5, bquote('R'^2 ~ '=' ~ .(R2)), pos = 4)
   text(min_val,max_val-1.5, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 4)
+  return(FC)
 }
 
 
@@ -54,7 +54,8 @@ plotESdata <- function(ESdata,method) {
       dataPred <- c(dataPred,ESdata[,i])
     }
   }
-  plotScatter(dataExp,dataPred,method,'log10(measured)','log10(predicted)')
+  FC <- plotScatter(dataExp,dataPred,method,'log10(measured)','log10(predicted)')
+  return(FC)
 }
 
 
@@ -63,7 +64,7 @@ plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData
   # Get data:
   data <- getReplicateData(data,groupNames,1,repeatData)
   # Plot all combinations:
-  plotScatter(data[,1],data[,2],title,labelx,labely)
+  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely)
 }
 
 
@@ -73,7 +74,9 @@ plotRPdata <- function(RPdata,method) {
   data <- as.matrix(RPdata[,-1])
   data[data == 0] <- NA
   mead_val <- median(data, na.rm = TRUE)
-  error    <- round(mean(abs(data - mead_val)/mead_val,na.rm = TRUE)*100,1)
+  FC       <- as.vector(abs(log10(data/mead_val)))
+  FC       <- FC[!is.na(FC)]
+  FCm      <- round(median(10^FC),2)
   data     <- log10(data)
   mead_val <- log10(mead_val)
   # Color by tech. rep:
@@ -83,14 +86,57 @@ plotRPdata <- function(RPdata,method) {
     else if(length(grep('batch2',names(RPdata)[i])) == 1) { col_opt[i] <- '#3953A3' }
     else if(length(grep('batch3',names(RPdata)[i])) == 1) { col_opt[i] <- '#0F8141' }
   }
-  #Plot data:
+  # Plot data:
   matplot(data, pch = 1, xaxt = 'n', col = col_opt, main = method,
           ylab = 'log10(abundance [fmol/sample])')
   axis(side=1, at = 1:length(RPdata[,1]), labels = RPdata[,1], las=2, cex.axis = 0.7)
-  #Plot mean value and average error:
   max_x <- length(RPdata[,1])
   lines(c(1,max_x),c(mead_val,mead_val), col = 'black', lwd = 2, lty = 2)
-  text(max_x, mead_val-1, bquote('Average error = ' ~ .(error) ~ '%'), pos = 2)
+  text(max_x, mead_val-1, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 2)
+  return(FC)
+}
+
+
+## @knitr plotCumulativeDistrib
+plotCumulativeDistrib <- function(FCs,title){
+  # Assign names to dataframe:
+  colnames(FCs) <- c('iBAQ','iBAQrescaled','MSrescaled')
+  # Compute differences between distributions:
+  htest1 <- ks.test(FCs$iBAQ, FCs$iBAQrescaled)
+  htest2 <- ks.test(FCs$iBAQ, FCs$MSrescaled)
+  htest3 <- ks.test(FCs$iBAQrescaled, FCs$MSrescaled)
+  print(paste(title, '- number of FC compared =',length(FCs$iBAQ)))
+  print(paste(title, '- number of FC compared =',length(FCs$iBAQrescaled)))
+  print(paste(title, '- number of FC compared =',length(FCs$MSrescaled)))
+  print(paste(title, 'between iBAQ and iBAQrescaled is the same with a p-val =',round(htest1$p.value,4)))
+  print(paste(title, 'between iBAQ and MSrescaled is the same with a p-val =',round(htest2$p.value,4)))
+  print(paste(title, 'between iBAQrescaled and MSrescaled is the same with a p-val =',round(htest3$p.value,4)))
+  # Plot data:
+  min_x <- 0
+  max_x <- 1
+  plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
+       xlim = c(min_x, max_x), ylim = c(0, 1), main = title, xlab = '', ylab = '')
+  axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
+  axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015)
+  axis(side=3, at = seq(min_x, max_x, by = 0.2), labels = FALSE, tck = 0.015)
+  axis(side=4, at = seq(0, 1, by = 0.2),         labels = FALSE, tck = 0.015)
+  title(xlab='abs(log10(FC))', line=2.5)
+  title(ylab='Cumulative Distribution', line=2.5)
+  lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
+  # Plot fold changes as a cdf:
+  color = c('red','green','blue')
+  for(i in 1:length(names(FCs))) {
+    FC   <- sort(FCs[,i])
+    step <- 1/(length(FC)-1)
+    cdf  <- seq(0, 1, by = step)
+    lines(FC,cdf, col = color[i], lwd = 2)
+  }
+  # Plot values for 2-fold position:
+  for(i in 1:length(names(FCs))) {
+    FC  <- sort(FCs[,i])
+    pos <- which.min(abs(FC - log10(2)))
+    points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = color[i])
+  }
 }
 
 
@@ -231,32 +277,6 @@ plotPCA <- function(data,title){
        xlim = c(xmin, xmax), ylim = c(ymin, ymax), main = title)
   mtext(bquote('PC1 = ' ~ .(var1) ~ '%'), side = 1, line = -1)
   mtext(bquote('PC2 = ' ~ .(var2) ~ '%'), side = 2, line = -1)
-}
-
-
-## @knitr plotCumulativeDistrib
-plotCumulativeDistrib <- function(data,groupNames,color,first){
-  data <- getReplicateData(data,groupNames,2,FALSE)
-  FC   <- sort(data[,2])
-  step <- 1/(length(FC)-1)
-  cdf  <- seq(0, 1, by = step)
-  if(first) {
-    min_x <- 0
-    max_x <- 1
-    plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
-         xlim = c(min_x, max_x), ylim = c(0, 1), xlab = '', ylab = '')
-    axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
-    axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015)
-    axis(side=3, at = seq(min_x, max_x, by = 0.2), labels = FALSE, tck = 0.015)
-    axis(side=4, at = seq(0, 1, by = 0.2),         labels = FALSE, tck = 0.015)
-    title(xlab='abs(log10(FC))', line=2.5)
-    title(ylab='Cumulative Distribution', line=2.5)
-    lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
-  }
-  lines(FC,cdf, col = color, lwd = 2)
-  pos <- which(abs(FC - log10(2)) < 1e-4)
-  points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = color)
-  return(FC)
 }
 
 
