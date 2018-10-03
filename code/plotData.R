@@ -22,22 +22,22 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   data2   <- log10(data2)
   min_val <- round(min(c(data1,data2)))-1
   max_val <- round(max(c(data1,data2)))
-  if(labelx == '') {
-    plot(data1, data2, col = col_scheme, main = title, xaxt = 'n', yaxt = 'n', 
-         xaxs = 'i', yaxs = 'i', xlim = c(min_val,max_val), ylim = c(min_val,max_val))
-    axis(side=1, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-    axis(side=2, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-    axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-    axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  } else {
-    plot(data1, data2, col = col_scheme, main = title, xlab = labelx, ylab = labely, 
-         xlim = c(min_val,max_val), ylim = c(min_val,max_val))
+  plot(data1, data2, col = col_scheme, xaxt = 'n', yaxt = 'n', xaxs = 'i', yaxs = 'i',
+       main = title,  xlab = '', ylab = '', xlim = c(min_val,max_val), ylim = c(min_val,max_val))
+  show_labels <- ifelse(labelx == '', FALSE, TRUE)
+  axis(side=1, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015)
+  axis(side=2, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015)
+  axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  if(labelx != '') {
+    title(xlab=labelx, line=2.5)
+    title(ylab=labely, line=2.5)
   }
   abline(0,1,col='black')
   # Show fit to y = x:
   R2 <- round(1 - (sum((data1 - data2)^2)/sum((data1 - mean(data1))^2)),2)
-  text(min_val,max_val-0.5, bquote('R'^2 ~ '=' ~ .(R2)), pos = 4)
-  text(min_val,max_val-1.5, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 4)
+  text(max_val, min_val+1.5, bquote('R'^2 ~ '=' ~ .(R2)), pos = 2)
+  text(max_val, min_val+0.5, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 2)
   return(FC)
 }
 
@@ -54,7 +54,7 @@ plotESdata <- function(ESdata,method) {
       dataPred <- c(dataPred,ESdata[,i])
     }
   }
-  FC <- plotScatter(dataExp,dataPred,method,'log10(measured)','log10(predicted)')
+  FC <- plotScatter(dataExp,dataPred,method,bquote('log'['10'] ~ '(measured)'),bquote('log'['10'] ~ '(predicted)'))
   return(FC)
 }
 
@@ -88,7 +88,7 @@ plotRPdata <- function(RPdata,method) {
   }
   # Plot data:
   matplot(data, pch = 1, xaxt = 'n', col = col_opt, main = method,
-          ylab = 'log10(abundance [fmol/sample])')
+          ylab = bquote('log'['10'] ~ '(abundance)'))
   axis(side=1, at = 1:length(RPdata[,1]), labels = RPdata[,1], las=2, cex.axis = 0.7)
   max_x <- length(RPdata[,1])
   lines(c(1,max_x),c(mead_val,mead_val), col = 'black', lwd = 2, lty = 2)
@@ -120,7 +120,7 @@ plotCumulativeDistrib <- function(FCs,title){
   axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015)
   axis(side=3, at = seq(min_x, max_x, by = 0.2), labels = FALSE, tck = 0.015)
   axis(side=4, at = seq(0, 1, by = 0.2),         labels = FALSE, tck = 0.015)
-  title(xlab='abs(log10(FC))', line=2.5)
+  title(xlab=bquote('abs(log'['10'] ~ '(FC))'), line=2.5)
   title(ylab='Cumulative Distribution', line=2.5)
   lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
   # Plot fold changes as a cdf:
@@ -192,10 +192,10 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
   if(allInOne) {
     if(first) {
-      x_lab <- paste0('log10(',gsub('.L.T4h_','',pattern),' values)')
       plot(x,y, col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
            xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
-           xlab = x_lab, ylab = 'log10(abundance)')
+           xlab = bquote('log'['10'] ~ '(intensity value)'),
+           ylab = bquote('log'['10'] ~ '(abundance)'))
       text(min_x, max_y-0.5, bquote('CV'['m'] ~ '=' ~ .(CVm) ~ '%'), pos = 4)
       axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
       axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
@@ -241,7 +241,7 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
 
 
 ## @knitr plotPCA
-plotPCA <- function(data,title){
+plotPCA <- function(data,title,outside = FALSE){
   # Take log from data:
   log_data                        <- log10(as.matrix(data))
   log_data[is.infinite(log_data)] <- NA
@@ -273,10 +273,20 @@ plotPCA <- function(data,title){
   xmax   <- max(pca$x[,1]) + deltax/8
   ymin   <- min(pca$x[,2]) - deltay/8
   ymax   <- max(pca$x[,2]) + deltay/8
-  plot(pca$x, col = col_opt, pch = pch_opt, cex = 1.5, xaxt = 'n', yaxt = 'n',
-       xlim = c(xmin, xmax), ylim = c(ymin, ymax), main = title)
-  mtext(bquote('PC1 = ' ~ .(var1) ~ '%'), side = 1, line = -1)
-  mtext(bquote('PC2 = ' ~ .(var2) ~ '%'), side = 2, line = -1)
+  plot(pca$x, col = col_opt, pch = pch_opt, cex = 1.5, xaxs = 'i', yaxs = 'i',
+       xaxt = 'n', yaxt = 'n', xlab = '', main = title, ylab = '',
+       xlim = c(xmin, xmax), ylim = c(ymin, ymax))
+  if(outside) {
+    linePos <- 1.5
+    axis(side=1, at = seq(xmin, xmax, by = deltax/8), labels = FALSE, tck = 0.015)
+    axis(side=2, at = seq(ymin, ymax, by = deltay/8), labels = FALSE, tck = 0.015)
+    axis(side=3, at = seq(xmin, xmax, by = deltax/8), labels = FALSE, tck = 0.015)
+    axis(side=4, at = seq(ymin, ymax, by = deltay/8), labels = FALSE, tck = 0.015)
+  } else {
+    linePos <- -1
+  }
+  mtext(bquote('PC'['1'] ~ ' = ' ~ .(var1) ~ '%'), side = 1, line = linePos)
+  mtext(bquote('PC'['2'] ~ ' = ' ~ .(var2) ~ '%'), side = 2, line = linePos)
 }
 
 
@@ -308,8 +318,8 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   if(!allInOne || grepl('iBAQ.R',pattern)) {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data, xlim = c(min_x, max_x),
-         ylim = c(min_y, max_y), xlab = 'log10(abundance [fmol/sample])', ylab = '')
-    title(ylab='abs(log10(FC))', line=2.5)
+         ylim = c(min_y, max_y), xlab = bquote('log'['10'] ~ '(abundance [fmol/sample])'), ylab = '')
+    title(ylab = bquote('abs(log'['10'] ~ '(FC))'), line=2.5)
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
     axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
     axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
