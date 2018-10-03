@@ -27,7 +27,7 @@ names(SILACdata) <- gsub('_Batch','_batch',names(SILACdata))
 ## @knitr loadRibProteins
 RP <- read.csv('../data/raw_external/RP-list.csv')
 # Add uniprot IDs:
-ensembl <- useMart('ENSEMBL_MART_ENSEMBL', dataset='scerevisiae_gene_ensembl',host='www.ensembl.org')
+ensembl <- useMart('ENSEMBL_MART_ENSEMBL', dataset='scerevisiae_gene_ensembl',host='http://Jul2018.archive.ensembl.org')
 RP      <- getBM(attributes=c('wikigene_name','uniprotswissprot'), filters = 'wikigene_name',
                  values = RP$wikigene_name, mart = ensembl)
 # Remove duplicated protein entries:
