@@ -100,17 +100,24 @@ plotRPdata <- function(RPdata,method) {
 ## @knitr plotCumulativeDistrib
 plotCumulativeDistrib <- function(FCs,title){
   # Assign names to dataframe:
-  colnames(FCs) <- c('iBAQ','iBAQrescaled','MSrescaled')
+  colnames(FCs) <- c('iBAQ','iBAQrescaled','TPA','TPAnorm')
   # Compute differences between distributions:
   htest1 <- ks.test(FCs$iBAQ, FCs$iBAQrescaled)
-  htest2 <- ks.test(FCs$iBAQ, FCs$MSrescaled)
-  htest3 <- ks.test(FCs$iBAQrescaled, FCs$MSrescaled)
+  htest2 <- ks.test(FCs$iBAQ, FCs$TPA)
+  htest3 <- ks.test(FCs$iBAQ, FCs$TPAnorm)
+  htest4 <- ks.test(FCs$iBAQrescaled, FCs$TPA)
+  htest5 <- ks.test(FCs$iBAQrescaled, FCs$TPAnorm)
+  htest6 <- ks.test(FCs$TPA, FCs$TPAnorm,)
   print(paste(title, '- number of FC compared =',length(FCs$iBAQ)))
   print(paste(title, '- number of FC compared =',length(FCs$iBAQrescaled)))
-  print(paste(title, '- number of FC compared =',length(FCs$MSrescaled)))
+  print(paste(title, '- number of FC compared =',length(FCs$TPA)))
+  print(paste(title, '- number of FC compared =',length(FCs$TPAnorm)))
   print(paste(title, 'between iBAQ and iBAQrescaled is the same with a p-val =',round(htest1$p.value,4)))
-  print(paste(title, 'between iBAQ and MSrescaled is the same with a p-val =',round(htest2$p.value,4)))
-  print(paste(title, 'between iBAQrescaled and MSrescaled is the same with a p-val =',round(htest3$p.value,4)))
+  print(paste(title, 'between iBAQ and TPA is the same with a p-val =',round(htest2$p.value,4)))
+  print(paste(title, 'between iBAQ and TPAnorm is the same with a p-val =',round(htest3$p.value,4)))
+  print(paste(title, 'between iBAQrescaled and TPA is the same with a p-val =',round(htest4$p.value,4)))
+  print(paste(title, 'between iBAQrescaled and TPAnorm is the same with a p-val =',round(htest5$p.value,4)))
+  print(paste(title, 'between TPA and TPAnorm is the same with a p-val =',round(htest6$p.value,4)))
   # Plot data:
   min_x <- 0
   max_x <- 1
@@ -124,7 +131,7 @@ plotCumulativeDistrib <- function(FCs,title){
   title(ylab='Cumulative Distribution', line=2.5)
   lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
   # Plot fold changes as a cdf:
-  color = c('red','green','blue')
+  color = c('red','green','blue','cyan')
   for(i in 1:length(names(FCs))) {
     FC   <- sort(FCs[,i])
     step <- 1/(length(FC)-1)
@@ -297,8 +304,10 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.03)
   } else if(grepl('iBAQrescaled.R',pattern)) {
     color_data <- rgb(red = 0, green = 1, blue = 0, alpha = 0.02)
-  } else if(grepl('MSrescaled.R',pattern)) {
+  } else if(grepl('TPA.R',pattern)) {
     color_data <- rgb(red = 0, green = 0, blue = 1, alpha = 0.02)
+  } else if(grepl('TPAnorm.R',pattern)) {
+    color_data <- rgb(red = 0, green = 1, blue = 1, alpha = 0.02)
   }
   if(allInOne) {
     color_data <- rgb(red = 0, green = 0, blue = 0, alpha = 0.02)
@@ -328,7 +337,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     points(sampleData[,1],sampleData[,2], col = color_data)
   }
   # Plot UPS2 window:
-  if(!allInOne || grepl('MSrescaled.R',pattern)) {
+  if(!allInOne || grepl('TPAnorm.R',pattern)) {
     min_x <- min(ESdata[,1])
     max_x <- max(ESdata[,1])
     polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),
@@ -353,13 +362,16 @@ plotSplines <- function(SILACdata,ESdata){
   #Plot all data:
   sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQ.R..1_',TRUE)
   sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQrescaled.R..1_',TRUE)
-  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.MSrescaled.R..1_',TRUE)
+  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPA.R..1_',TRUE)
+  sample4 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPAnorm.R..1_',TRUE)
   # Create smoothing splines:
   ss1 <- smooth.spline(sample1[,1], sample1[,2], df = 10)
   ss2 <- smooth.spline(sample2[,1], sample2[,2], df = 10)
   ss3 <- smooth.spline(sample3[,1], sample3[,2], df = 10)
+  ss4 <- smooth.spline(sample4[,1], sample4[,2], df = 10)
   lines(ss1, lwd = 2, col = 'red')
   lines(ss2, lwd = 2, col = 'green')
   lines(ss3, lwd = 2, col = 'blue')
+  lines(ss4, lwd = 2, col = 'cyan')
 }
 
