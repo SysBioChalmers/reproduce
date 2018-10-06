@@ -42,6 +42,40 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
 }
 
 
+## @knitr plotVariability
+plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE) {
+  # Get data:
+  data <- getReplicateData(data,groupNames,1,repeatData)
+  # Plot all combinations:
+  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely)
+}
+
+
+## @knitr plotAbundancesVsLength
+plotAbundancesVsLength <- function(data,AbundanceNames) {
+  for(name in AbundanceNames) {
+    data_i  <- data[,grep(name,names(data))]
+    x <- NULL
+    y <- NULL
+    for(j in 1:length(names(data_i))) {
+      x <- c(x,data$Sequence.length)
+      y <- c(y,log10(data_i[,j]))
+    }
+    y[is.infinite(y)] <- NA
+    x <- x[!is.na(y)]
+    y <- y[!is.na(y)]
+    title <- gsub('Abundance.','',name)
+    title <- gsub('.R','',title)
+    plot(x, y, main = title, xlab = 'Sequence length', ylab = bquote('log'['10'] ~ '(abundance [fmol/sample])'))
+    lmodel <- lm(y ~ x)
+    a <- lmodel$coefficients[1]
+    b <- lmodel$coefficients[2]
+    abline(a, b, col = 'red')
+    r <- cor(x, y)
+    text(round(max(x, na.rm = TRUE)),max(y, na.rm = TRUE), bquote('r = ' ~ .(r)), pos = 2)
+  }
+}
+
 ## @knitr plotESdata
 plotESdata <- function(ESdata,method) {
   method   <- paste0('Abundance.',method)
@@ -56,15 +90,6 @@ plotESdata <- function(ESdata,method) {
   }
   FC <- plotScatter(dataExp,dataPred,method,bquote('log'['10'] ~ '(measured)'),bquote('log'['10'] ~ '(predicted)'))
   return(FC)
-}
-
-
-## @knitr plotVariability
-plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE) {
-  # Get data:
-  data <- getReplicateData(data,groupNames,1,repeatData)
-  # Plot all combinations:
-  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely)
 }
 
 
