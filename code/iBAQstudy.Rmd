@@ -184,17 +184,50 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'Interp')
 
 ## Method comparison
 
-### Data prediction
+### Preliminar comparison
 
-Let's start by comparing the ES values predicted by each method to the actual UPS2 values. For that we need a couple of plotting functions:
+Let's plot the data between methods: For that we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates). We can also use it to compare between methods by removing the method's name:
+
+```{r getReplicateData}
+```
+
+We also need a couple of plotting functions:
 
 ```{r plotScatter}
 ```
 
-```{r plotESdata}
+```{r plotVariability}
 ```
 
-We now plot the comparison for all methods:
+```{r fig.height = 6, fig.width = 10, fig.align="center"}
+abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
+abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
+abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]
+abundanceTPAN <- SILACdata[,c(1,grep('Abundance.TPAnorm.R',names(SILACdata)))]
+IRvsIBAQ   <- cbind(abundanceIBAQ[,-1],abundanceIR[,-1])
+TPAvsIBAQ  <- cbind(abundanceIBAQ[,-1],abundanceTPA[,-1])
+TPANvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceTPAN[,-1])
+TPAvsIR    <- cbind(abundanceIR[,-1],abundanceTPA[,-1])
+TPANvsIR   <- cbind(abundanceIR[,-1],abundanceTPAN[,-1])
+TPANvsTPA  <- cbind(abundanceTPA[,-1],abundanceTPAN[,-1])
+par(mfrow = c(2,3), mar = c(4,4,2,1), cex = 1)
+plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', 'iBAQ [fmol/sample]', 'iBAQ rescaled [fmol/sample]', FALSE)
+plotVariability(TPAvsIBAQ, c('iBAQ.R','TPA.R'), '', 'iBAQ [fmol/sample]', 'TPA [fmol/sample]', FALSE)
+plotVariability(TPANvsIBAQ, c('iBAQ.R','TPAnorm.R'), '', 'iBAQ [fmol/sample]', 'TPA normalized [fmol/sample]', FALSE)
+plotVariability(TPAvsIR, c('iBAQrescaled.R','TPA.R'), '', 'iBAQ rescaled [fmol/sample]', 'TPA [fmol/sample]', FALSE)
+plotVariability(TPANvsIR, c('iBAQrescaled.R','TPAnorm.R'), '', 'iBAQ rescaled [fmol/sample]', 'TPA normalized [fmol/sample]', FALSE)
+plotVariability(TPANvsTPA, c('TPA.R','TPAnorm.R'), '', 'TPA [fmol/sample]', 'TPA normalized [fmol/sample]', FALSE)
+```
+
+<center>**Figure 1: Comparison of predictions [fmol/sample] between all methods. Green is a FC < 2, yellow between 2 and 10, and red > 10.**</center>
+<br>
+
+### Accuracy evaluation
+
+Let's now compare accuracy. First, we compare the ES values predicted by each method to the actual UPS2 values:
+
+```{r plotESdata}
+```
 
 ```{r fig.height = 7, fig.width = 7, fig.align="center"}
 par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 1)
@@ -204,37 +237,12 @@ FCups2TPA  <- plotESdata(ESdata,'TPA')
 FCups2TPAN <- plotESdata(ESdata,'TPAnorm')
 ```
 
-<center>**Figure 1: Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Green is a FC < 2, yellow between 2 and 10, and red > 10.**</center>
+<center>**Figure 2: Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Green is a FC < 2, yellow between 2 and 10, and red > 10.**</center>
 <br>
 
 We see that all predictions from methods 1, 2 and 4 are very similar; by using ES curves (methods 1-2) we don't gain much prediction power than if we just rescale the data (method 4). However, method 3 performs significantly worse.
 
-We can also see this if we plot the data between methods: For that we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates). We can also use it to compare between methods by removing the method's name:
-
-```{r getReplicateData}
-```
-
-```{r plotVariability}
-```
-
-```{r fig.height = 3, fig.width = 10, fig.align="center"}
-abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
-abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
-abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]
-abundanceTPAN <- SILACdata[,c(1,grep('Abundance.TPAnorm.R',names(SILACdata)))]
-IRvsIBAQ  <- cbind(abundanceIBAQ[,-1],abundanceIR[,-1])
-TPAvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceTPA[,-1])
-MSRvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceTPAN[,-1])
-par(mfrow = c(1,3), mar = c(4,4,2,1), cex = 1)
-plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', 'iBAQ [fmol/sample]', 'iBAQ rescaled [fmol/sample]', FALSE)
-plotVariability(TPAvsIBAQ, c('iBAQ.R','TPA.R'), '', 'iBAQ [fmol/sample]', 'TPA [fmol/sample]', FALSE)
-plotVariability(MSRvsIBAQ, c('iBAQ.R','TPAnorm.R'), '', 'iBAQ [fmol/sample]', 'MS rescaled [fmol/sample]', FALSE)
-```
-
-<center>**Figure 2: Comparison of predictions [fmol/sample] between all methods. Green is a FC < 2, yellow between 2 and 10, and red > 10.**</center>
-<br>
-
-Finally, let's see how are the predictions of ribosomal subunits stoichiometry. For that first we create dataframes with only ribosomal proteins:
+Now, let's see how are the predictions of ribosomal subunits stoichiometry. For that first we create dataframes with only ribosomal proteins:
 
 ```{r getRPdata}
 ```
@@ -246,7 +254,7 @@ rpTPA  <- getRPdata(abundanceTPA,RP)
 rpTPAN <- getRPdata(abundanceTPAN,RP)
 ```
 
-Now we can plot for each method the corresponding data
+Now we can plot for each method the corresponding data:
 
 ```{r plotRPdata}
 ```
@@ -355,7 +363,7 @@ plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
 <br>
 
-### Assesing variability
+### Evaluating precision
 
 We now display the variability of the final abundance data between biological and technical replicates, for all methods, using variability plots and a PCA:
 
@@ -387,7 +395,7 @@ plotPCA(abundanceTPAN[,-1],'PCA')
 
 We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we rescale the normalized MS abundancies (PC1 represents less variability). This means that by using rescaled normalized MS data we achieve lower variability between technical replicates than the other 2 methods.
 
-### Assesing technical variability
+### Evaluating technical precision
 
 Let's look further into the reduction of technical variability:
 
