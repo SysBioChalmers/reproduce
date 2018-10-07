@@ -36,3 +36,5 @@ var/
 
 # html reports in the code section
 code/*.html
+code/**/*.png
+code/**/*.db
