@@ -322,6 +322,14 @@ plotPCA <- function(data,title,outside = FALSE){
 }
 
 
+## @knitr plotAllVariability
+plotAllVariability <- function(abundance) {
+  plotVariability(abundance[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
+  plotVariability(abundance[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
+  plotPCA(abundance[,-1],'PCA')
+}
+
+
 ## @knitr plotFCvsAbundance
 plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   # Options depending on type of plot:
@@ -376,7 +384,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
     in_window <- (sampleData[,1] > min_x)*(sampleData[,1] < max_x)
     fraction  <- sum(in_window)/length(in_window)*100
     fraction  <- round(fraction, digits = 1)
-    text(min_x, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
+    text(min_x-1, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
   }
   return(sampleData)
 }

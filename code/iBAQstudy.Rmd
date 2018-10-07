@@ -226,8 +226,8 @@ Let's now see the predicted abundances of all samples compared to the sequence l
 
 ```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "Figure S2: Predicted abundances [fmol/sample] Vs protein length by all methods."}
 par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 1)
-abundanceNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R','Abundance.TPA.R','Abundance.TPAnorm.R')
-plotAbundancesVsLength(SILACdata,abundanceNames)
+sampleNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R','Abundance.TPA.R','Abundance.TPAnorm.R')
+plotAbundancesVsLength(SILACdata,sampleNames)
 ```
 
 We can see that methods 1,2 and 4 all have similar correlation values, while method 3 correlates less than the other 3 methods to protein length.
@@ -297,20 +297,20 @@ Let's now take a look at the total detected protein amount in each of the 6 samp
 
 ```{r tot-es, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "Figure S6: Total detected protein amounts in all 6 IS, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
-plotTotalProt(ISdata,'Abundance.iBAQ.IS')
-plotTotalProt(ISdata,'Abundance.iBAQrescaled.IS')
-plotTotalProt(ISdata,'Abundance.TPA.IS')
-plotTotalProt(ISdata,'Abundance.TPAnorm.IS')
+ISnames <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS','Abundance.TPA.IS','Abundance.TPAnorm.IS')
+for(name in ISnames) {
+  plotTotalProt(ISdata,name)
+}
 ```
 
 Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure S6):
 
 ```{r tot-samples, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "Figure S7: Total detected protein amounts in all 18 samples, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
-plotTotalProt(SILACdata,'Abundance.iBAQ.R..1_')
-plotTotalProt(SILACdata,'Abundance.iBAQrescaled.R..1_')
-plotTotalProt(SILACdata,'Abundance.TPA.R..1_')
-plotTotalProt(SILACdata,'Abundance.TPAnorm.R..1_')
+sampleNames <- c('Abundance.iBAQ.R..1_','Abundance.iBAQrescaled.R..1_','Abundance.TPA.R..1_','Abundance.TPAnorm.R..1_')
+for(name in sampleNames) {
+  plotTotalProt(SILACdata,name)
+}
 ```
 
 The total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale the IS abundances.
@@ -358,24 +358,15 @@ We now display the variability of the final abundance data between biological an
 ```{r plotPCA}
 ```
 
+```{r plotAllVariability}
+```
+
 ```{r precision-all, fig.height = 12, fig.width = 10, fig.align = "center", fig.cap = "Figure S10: Comparison of data variability from iBAQ (1st row), rescaling iBAQ (2nd row), TPA (3rd row) and normalized TPA (4th row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates."}
 par(mfrow = c(4,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
-# 1st row: iBAQ
-plotVariability(abundanceIBAQ[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-plotVariability(abundanceIBAQ[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
-plotPCA(abundanceIBAQ[,-1],'PCA')
-# 2nd row: iBAQ rescaled
-plotVariability(abundanceIR[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-plotVariability(abundanceIR[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
-plotPCA(abundanceIR[,-1],'PCA')
-# 3rd row: TPA
-plotVariability(abundanceTPA[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-plotVariability(abundanceTPA[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
-plotPCA(abundanceTPA[,-1],'PCA')
-# 4th row: TPA normalized
-plotVariability(abundanceTPAN[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-plotVariability(abundanceTPAN[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
-plotPCA(abundanceTPAN[,-1],'PCA')
+plotAllVariability(abundanceIBAQ)
+plotAllVariability(abundanceIR)
+plotAllVariability(abundanceTPA)
+plotAllVariability(abundanceTPAN)
 ```
 
 We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we rescale the normalized MS abundancies (PC1 represents less variability). This means that by using rescaled normalized MS data we achieve lower variability between technical replicates than the other 2 methods.
@@ -404,10 +395,9 @@ We can now compare again the methods:
 
 ```{r precision-abundance, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "Figure S12: Fold change Vs abundances for all methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in yellow."}
 par(mfrow = c(1,4), mar = c(4,4,1.5,0.5))
-sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQ.R..1_',FALSE)
-sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQrescaled.R..1_',FALSE)
-sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPA.R..1_',FALSE)
-sample4 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPAnorm.R..1_',FALSE)
+for(name in sampleNames) {
+  tmp <- plotFCvsAbundance(SILACdata,ESdata,name,FALSE)
+}
 ```
 
 We see that in all cases more than 80% of the data falls within the detection range of UPS2, which is good. However, all datasets look similar in shape, so instead let's look at the trend of the data with the help of smooth splines:
@@ -426,7 +416,7 @@ We now see that our proposed method of rescaling by normalized MS intensities ha
 
 In conclusion, we can skip entirely the UPS2 data and just assume that the normalized MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples. In this approach, the iBAQ run is only used to do the rescaling, but this could be equally performed with any SILAC run.
 
-# Main figures of manuscript {-}
+# Main figures of manuscript
 
 Figure 1:
 
