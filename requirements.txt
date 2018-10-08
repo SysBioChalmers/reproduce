@@ -2,6 +2,7 @@ Requires the following packages:
 
 ```
 install.packages('plyr','knitr')
+tinytex::install_tinytex()
 source('http://www.bioconductor.org/biocLite.R')
 biocLite('biomaRt')
 ```
