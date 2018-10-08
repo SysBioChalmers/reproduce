@@ -117,8 +117,8 @@ As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-es}),
 ```
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.',1.1e6) #1.1 ug = 1.1*10^6 pg
-ISdata    <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.',6e6)   #6 ug = 6*10^6 pg
+ESdata    <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.',1.1e6) #1.1 ug
+ISdata    <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.',6e6)   #6 ug
 ```
 
 We now use the absolute abundances from the IS (fmol/sample) to infer absolute abundances in each sample of the SILAC data (fmol/sample):
@@ -134,8 +134,8 @@ The alternative: To skip iBAQ values and ES curves entirely, and to assume all M
 `abundance = (MS intensity)*(injected amount)/(sum of all MS intensities*MW values)`
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPA.ES.',1.1e6) #1.1 ug = 1.1*10^6 pg
-ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPA.IS.',6e6)   #6 ug = 6*10^6 pg
+ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPA.ES.',1.1e6) #1.1 ug
+ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPA.IS.',6e6)   #6 ug
 SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPA')
 ```
 
@@ -154,8 +154,8 @@ ISdata <- normalizeIntensities(ISdata)
 Now we rescale the data as before:
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPAnorm.ES.',1.1e6) #1.1 ug = 1.1*10^6 pg
-ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPAnorm.IS.',6e6)   #6 ug = 6*10^6 pg
+ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPAnorm.ES.',1.1e6) #1.1 ug
+ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPAnorm.IS.',6e6)   #6 ug
 SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPAnorm')
 ```
 
@@ -214,13 +214,17 @@ TPANvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceTPAN[,-1])
 TPAvsIR    <- cbind(abundanceIR[,-1],abundanceTPA[,-1])
 TPANvsIR   <- cbind(abundanceIR[,-1],abundanceTPAN[,-1])
 TPANvsTPA  <- cbind(abundanceTPA[,-1],abundanceTPAN[,-1])
+IBAQname   <- 'iBAQ [fmol/sample]'
+IRname     <- 'iBAQ rescaled [fmol/sample]'
+TPAname    <- 'TPA [fmol/sample]'
+TPANname   <- 'TPA normalized [fmol/sample]'
 par(mfrow = c(2,3), mar = c(4,4,2,1), cex = 1)
-plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', 'iBAQ [fmol/sample]', 'iBAQ rescaled [fmol/sample]', FALSE)
-plotVariability(TPAvsIBAQ, c('iBAQ.R','TPA.R'), '', 'iBAQ [fmol/sample]', 'TPA [fmol/sample]', FALSE)
-plotVariability(TPANvsIBAQ, c('iBAQ.R','TPAnorm.R'), '', 'iBAQ [fmol/sample]', 'TPA normalized [fmol/sample]', FALSE)
-plotVariability(TPAvsIR, c('iBAQrescaled.R','TPA.R'), '', 'iBAQ rescaled [fmol/sample]', 'TPA [fmol/sample]', FALSE)
-plotVariability(TPANvsIR, c('iBAQrescaled.R','TPAnorm.R'), '', 'iBAQ rescaled [fmol/sample]', 'TPA normalized [fmol/sample]', FALSE)
-plotVariability(TPANvsTPA, c('TPA.R','TPAnorm.R'), '', 'TPA [fmol/sample]', 'TPA normalized [fmol/sample]', FALSE)
+plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', IBAQname, IRname, FALSE)
+plotVariability(TPAvsIBAQ, c('iBAQ.R','TPA.R'), '', IBAQname, TPAname, FALSE)
+plotVariability(TPANvsIBAQ, c('iBAQ.R','TPAnorm.R'), '', IBAQname, TPANname, FALSE)
+plotVariability(TPAvsIR, c('iBAQrescaled.R','TPA.R'), '', IRname, TPAname, FALSE)
+plotVariability(TPANvsIR, c('iBAQrescaled.R','TPAnorm.R'), '', IRname, TPANname, FALSE)
+plotVariability(TPANvsTPA, c('TPA.R','TPAnorm.R'), '', TPAname, TPANname, FALSE)
 ```
 
 Let's now see the predicted abundances of all samples compared to the sequence length:
@@ -230,7 +234,8 @@ Let's now see the predicted abundances of all samples compared to the sequence l
 
 ```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] Vs protein length by all methods."}
 par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 1)
-sampleNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R','Abundance.TPA.R','Abundance.TPAnorm.R')
+sampleNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R',
+                 'Abundance.TPA.R','Abundance.TPAnorm.R')
 plotAbundancesVsLength(SILACdata,sampleNames)
 ```
 
@@ -301,7 +306,8 @@ Let's now take a look at the total detected protein amount in each of the 6 samp
 
 ```{r tot-es, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-es}Total detected protein amounts in all 6 IS, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
-ISnames <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS','Abundance.TPA.IS','Abundance.TPAnorm.IS')
+ISnames <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS',
+             'Abundance.TPA.IS','Abundance.TPAnorm.IS')
 for(name in ISnames) {
   plotTotalProt(ISdata,name)
 }
@@ -311,7 +317,8 @@ Let's also take a look at the total detected protein amount of each of the 18 sa
 
 ```{r tot-samples, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
-sampleNames <- c('Abundance.iBAQ.R..1_','Abundance.iBAQrescaled.R..1_','Abundance.TPA.R..1_','Abundance.TPAnorm.R..1_')
+sampleNames <- c('Abundance.iBAQ.R..1_','Abundance.iBAQrescaled.R..1_',
+                 'Abundance.TPA.R..1_','Abundance.TPAnorm.R..1_')
 for(name in sampleNames) {
   plotTotalProt(SILACdata,name)
 }
@@ -340,8 +347,9 @@ Let's now take a look at the ES data + standard curves from method 4, compared t
 
 Note that we cannot look at the ES curves of methods 1 and 2 as we do not have the values for the normalized MS intensities by MaxQuant (the software does not provide them).
 
-ISpos <- grep('Intensity.H.T4h',names(ISdata))   #All 6 MS intensity values from the IS (H fraction)
 ```{r es-separate, fig.align = "center", fig.cap = "\\label{fig:es-separate}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(normalized MS intensity) in x-axis), with (green) and without (red) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
+#All 6 MS intensity values from the IS (H fraction):
+ISpos <- grep('Intensity.H.T4h',names(ISdata))
 Hdata   <- ISdata[,ISpos]*ISdata$Mol..weight..kDa.
 scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)

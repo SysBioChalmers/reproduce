@@ -38,7 +38,7 @@ interpolateAbundance <- function(data,pattern,abundance_pattern) {
     UPS2values     <- log10(ESdata[[Lname]])
     lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
     intercept      <- lmodel[1]$coefficients[1]           #intercept
-    abundance      <- 10^(log10(data[,i]) + intercept)    #L.T. for log(data) [fmol/sample]
+    abundance      <- 10^(log10(data[,i]) + intercept)    #LT for log(data) [fmol/sample]
     # Add abundances to dataset:
     name_i         <- gsub(pattern,paste0('Abundance.',abundance_pattern),name_i)
     data[[name_i]] <- abundance
@@ -52,7 +52,8 @@ getSampleAbundance <- function(SILACdata,ISdata,method) {
   # Merge abundance data from IS into SILAC dataset:
   ISpattern  <- paste0('Abundance.',method,'.IS.')
   abundances <- ISdata[,c(1,grep(ISpattern,names(ISdata)))]
-  SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs', all.x = TRUE, all.y = FALSE)
+  SILACdata  <- merge(SILACdata,abundances, by = 'Protein.IDs',
+                      all.x = TRUE, all.y = FALSE)
   # Compute sample abundances:
   LHNratios <- grep('Ratio.H.L.normalized.R',names(SILACdata))
   for(LHNratio in LHNratios) {

@@ -22,8 +22,9 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   data2   <- log10(data2)
   min_val <- round(min(c(data1,data2)))-1
   max_val <- round(max(c(data1,data2)))
-  plot(data1, data2, col = col_scheme, xaxt = 'n', yaxt = 'n', xaxs = 'i', yaxs = 'i',
-       main = title,  xlab = '', ylab = '', xlim = c(min_val,max_val), ylim = c(min_val,max_val))
+  plot(data1, data2, col = col_scheme, xaxt = 'n', yaxt = 'n',
+       xaxs = 'i', yaxs = 'i', main = title,  xlab = '', ylab = '',
+       xlim = c(min_val,max_val), ylim = c(min_val,max_val))
   show_labels <- ifelse(labelx == '', FALSE, TRUE)
   axis(side=1, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015)
   axis(side=2, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015)
@@ -66,13 +67,15 @@ plotAbundancesVsLength <- function(data,AbundanceNames) {
     y <- y[!is.na(y)]
     title <- gsub('Abundance.','',name)
     title <- gsub('.R','',title)
-    plot(x, y, main = title, xlab = 'Sequence length', ylab = bquote('log'['10'] ~ '(abundance [fmol/sample])'))
+    plot(x, y, main = title, xlab = 'Sequence length',
+         ylab = bquote('log'['10'] ~ '(abundance [fmol/sample])'))
     lmodel <- lm(y ~ x)
     a <- lmodel$coefficients[1]
     b <- lmodel$coefficients[2]
     abline(a, b, col = 'red')
     r <- cor(x, y)
-    text(round(max(x, na.rm = TRUE)),max(y, na.rm = TRUE), bquote('r = ' ~ .(r)), pos = 2)
+    text(round(max(x, na.rm = TRUE)),max(y, na.rm = TRUE),
+         bquote('r = ' ~ .(r)), pos = 2)
   }
 }
 
@@ -88,7 +91,8 @@ plotESdata <- function(ESdata,method) {
       dataPred <- c(dataPred,ESdata[,i])
     }
   }
-  FC <- plotScatter(dataExp,dataPred,method,bquote('log'['10'] ~ '(measured)'),bquote('log'['10'] ~ '(predicted)'))
+  FC <- plotScatter(dataExp,dataPred,method,bquote('log'['10'] ~ '(measured)'),
+                    bquote('log'['10'] ~ '(predicted)'))
   return(FC)
 }
 
@@ -137,12 +141,12 @@ plotCumulativeDistrib <- function(FCs,title){
   print(paste(title, '- number of FC compared =',length(FCs$iBAQrescaled)))
   print(paste(title, '- number of FC compared =',length(FCs$TPA)))
   print(paste(title, '- number of FC compared =',length(FCs$TPAnorm)))
-  print(paste(title, 'between iBAQ and iBAQrescaled is the same with a p-val =',round(htest1$p.value,4)))
-  print(paste(title, 'between iBAQ and TPA is the same with a p-val =',round(htest2$p.value,4)))
-  print(paste(title, 'between iBAQ and TPAnorm is the same with a p-val =',round(htest3$p.value,4)))
-  print(paste(title, 'between iBAQrescaled and TPA is the same with a p-val =',round(htest4$p.value,4)))
-  print(paste(title, 'between iBAQrescaled and TPAnorm is the same with a p-val =',round(htest5$p.value,4)))
-  print(paste(title, 'between TPA and TPAnorm is the same with a p-val =',round(htest6$p.value,4)))
+  print(paste(title, 'of iBAQ = iBAQrescaled: p-val =',round(htest1$p.value,4)))
+  print(paste(title, 'of iBAQ = TPA: p-val =',round(htest2$p.value,4)))
+  print(paste(title, 'of iBAQ = TPAnorm: p-val =',round(htest3$p.value,4)))
+  print(paste(title, 'of iBAQrescaled = TPA: p-val =',round(htest4$p.value,4)))
+  print(paste(title, 'of iBAQrescaled = TPAnorm: p-val =',round(htest5$p.value,4)))
+  print(paste(title, 'of TPA = TPAnorm: p-val =',round(htest6$p.value,4)))
   # Plot data:
   min_x <- 0
   max_x <- 1
@@ -257,7 +261,7 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   SD   <- apply(data, 1, sd, na.rm = TRUE)    #Standard deviation for each protein
   mu   <- apply(data, 1, mean, na.rm = TRUE)  #Mean for each protein
   CV   <- SD/mu                               #Coefficient of variation for each protein
-  CVm  <- mean(CV, na.rm = TRUE)*100          #Mean coefficient of variation (as percentage)
+  CVm  <- mean(CV, na.rm = TRUE)*100          #Mean coefficient of variation [%]
   CVm  <- round(CVm, digits = 1)
   #Plot data:
   if(allInOne) { par(mfrow = c(1,1), mar = c(4,4,1,1), pty = "s", cex = 1) }
@@ -359,8 +363,9 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   max_y <- round(max(sampleData[,2])) - 1
   if(!allInOne || grepl('iBAQ.R',pattern)) {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
-         xaxt = 'n', yaxt = 'n', col = color_data, xlim = c(min_x, max_x),
-         ylim = c(min_y, max_y), xlab = bquote('log'['10'] ~ '(abundance [fmol/sample])'), ylab = '')
+         xaxt = 'n', yaxt = 'n', col = color_data,
+         xlim = c(min_x, max_x), ylim = c(min_y, max_y),
+         xlab = bquote('log'['10'] ~ '(abundance [fmol/sample])'), ylab = '')
     title(ylab = bquote('abs(log'['10'] ~ '(FC))'), line=2.5)
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
     axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
