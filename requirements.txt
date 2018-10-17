@@ -1,7 +1,7 @@
 Requires the following packages:
 
 ```
-install.packages('plyr','knitr')
+install.packages('plyr','knitr','vioplot')
 tinytex::install_tinytex()
 source('http://www.bioconductor.org/biocLite.R')
 biocLite('biomaRt')

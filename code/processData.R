@@ -144,3 +144,30 @@ getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
   return(data)
 }
 
+
+## @knitr getCVs
+getCVs <- function(data,groupNames,method){
+  # Erase distinction from name:
+  for(i in 1:length(groupNames)) {
+    names(data) <- gsub(groupNames[i],'',names(data))
+  }
+  #Compute all possible CVs (within groups and within proteins):
+  uniqueGroups <- unique(names(data))
+  CVs <- NULL
+  for(group in uniqueGroups) {
+    groupPos  <- grep(group,names(data))
+    for(i in 1:length(data[,1])) {
+      data_i <- as.numeric(data[i,groupPos])
+      if(sum(is.na(data_i)) == 0) {
+        if(sum(data_i) > 0) {
+          mean_i <- mean(data_i)
+          std_i  <- sd(data_i)
+          CV_i   <- log10(std_i/mean_i*100)
+          CVs    <- c(CVs,CV_i)
+        }
+      }
+    }
+  }
+  return(CVs)
+}
+
