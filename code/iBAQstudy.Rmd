@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE, dev = "png", dpi = 600)
 
 # Summary
 
-Here we will go through the typical way of deducing protein abundances [fmol/sample] from SILAC/iBAQ data, and compare it to rescaling values to a fix total protein abundance based on MS intensities, to asses the usefulness of the external standard curve and iBAQ data. The main observation that comes from this is that as MS measurements are so variable, it's impossible to find a unique ES curve, hence normalizing to a fix total protein abundance is as good as using the "optimal" fit from the ES curve. We can then use the MS intensity directly and skip both the ES curve and the iBAQ values.
+Here we will go through the typical way of deducing protein abundances [fmol/sample] from SILAC/iBAQ data, and compare it to rescaling values to a fix total protein abundance based on MS intensities, to assess the usefulness of the external standard curve and iBAQ data. The main observation that comes from this is that as MS measurements are so variable, it's impossible to find a unique ES curve, hence normalizing to a fixed total protein abundance is as good as using the "optimal" fit from the ES curve. We can then use the MS intensity directly and bypass both the ES curve and the iBAQ values.
 <br>
 
 # Loading and pre-processing data
@@ -41,14 +41,14 @@ read_chunk('mainFigures.R')
 
 ## Loading UPS2
 
-The commercial kit brings 10.6 ug of protein, however only 1.1 ug are injected in the MS:
+The commercial kit brings 10.6 ug of protein, however only 1.1 ug is injected in the MS:
 
 ```{r loadUPS2}
 ```
 
 ## Loading iBAQ data
 
-In the iBAQ data (IS+ES) there are 6 samples: 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of them processed with 2 different MS methods `top5` & `top10`. We will have then 6 different ES curves:
+In the iBAQ data (IS+ES) there are 6 samples: 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of them is processed with 2 different MS methods `top5` & `top10`. We will have then 6 different ES curves:
 
 * top5_batch1
 * top5_batch2
@@ -97,7 +97,7 @@ We use a list of ribosomal genes based on Jenner et al. (2012):  http://dx.doi.o
 
 ## Method 1: iBAQ
 
-Let's start by using the computed iBAQ abundances values by MaxQuant that come in the iBAQ data, which are infered using an ES curve of the UPS2 proteins (in the L fraction). As the data already comes in fmol/sample, the only thing missing is to use the values from the IS (H fraction) together with the normalized L/H ratios in the SILAC data for getting absolute abundances in each sample of the SILAC data (fmol/sample), by doing:
+Let's start by using the computed iBAQ abundances available in the MaxQuant output file, which are inferred using an ES curve of the UPS2 proteins (in the L fraction). As the data already comes in fmol/sample, the only thing missing is to use the values from the IS (H fraction) together with the normalized L/H ratios in the SILAC data for getting absolute abundances in each sample of the SILAC data (fmol/sample), by doing:
 
 `abundance(sample) = (L/H)ratio * abundance(IS)`
 
@@ -130,7 +130,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQrescaled')
 
 ## Method 3: TPA
 
-The alternative: To skip iBAQ values and ES curves entirely, and to assume all MS intensities added up together (mass-wise) should be proportional to the injected amount in ug (TPA approach):
+The alternative: To skip iBAQ values and ES curves entirely, and to assume all MS intensities summed up together (mass-wise) is proportional to the injected amount in ug (TPA approach):
 
 `abundance = (MS intensity)*(injected amount)/(sum of all MS intensities*MW values)`
 
@@ -189,7 +189,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'Interp')
 
 # Method comparison
 
-## Preliminar comparison
+## Preliminary comparison
 
 Let's plot the data between methods: For that we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates). We can also use it to compare between methods by removing the method's name:
 
@@ -204,7 +204,7 @@ We also need a couple of plotting functions:
 ```{r plotVariability}
 ```
 
-```{r general-comp, fig.height = 6, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:general-comp}Comparison of predictions [fmol/sample] between all methods. Green is a FC < 2, yellow between 2 and 10, and red > 10."}
+```{r general-comp, fig.height = 6, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:general-comp}Comparison of predictions [fmol/sample] between all methods (on log10 scale). Green is a FC lower than 2, yellow between 2 and 10, and red over 10."}
 abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
 abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
 abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]
@@ -233,7 +233,7 @@ Let's now see the predicted abundances of all samples compared to the sequence l
 ```{r plotAbundancesVsLength}
 ```
 
-```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] Vs protein length by all methods."}
+```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] Vs protein length for all methods."}
 par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 1)
 sampleNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R',
                  'Abundance.TPA.R','Abundance.TPAnorm.R')
@@ -348,7 +348,7 @@ Let's now take a look at the ES data + standard curves from method 4, compared t
 
 Note that we cannot look at the ES curves of methods 1 and 2 as we do not have the values for the normalized MS intensities by MaxQuant (the software does not provide them).
 
-```{r es-separate, fig.align = "center", fig.cap = "\\label{fig:es-separate}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(normalized MS intensity) in x-axis), with (green) and without (red) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
+```{r es-separate, fig.align = "center", fig.cap = "\\label{fig:es-separate}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(normalized MS intensity) in x-axis) based on the 31/ 48 UPS2 proteins that were detected and measured by the MS, with (green) and without (red) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
 #All 6 MS intensity values from the IS (H fraction):
 ISpos <- grep('Intensity.H.T4h',names(ISdata))
 Hdata   <- ISdata[,ISpos]*ISdata$Mol..weight..kDa.
@@ -356,7 +356,7 @@ scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
 ```
 
-The red fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (consider they are in log), many other curves (as the green fits) can almost equally well fit that data. Let's see everything in the same plot:
+The red fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (considering they are in log10 space), many other curves (as the green fits) can almost equally well fit that data. Let's see everything in the same plot:
 
 ```{r es-together, fig.align = "center", fig.cap = "\\label{fig:es-together}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (green) and without (red) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner."}
 plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
@@ -445,7 +445,7 @@ par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
 plotSplines(SILACdata,ESdata)
 ```
 
-We now see that our proposed method of rescaling by normalized MS intensities has less overall variability than the both iBAQ and rescaled iBAQ, both for lowly and highly abundant proteins.
+We see that method 3 (normalized TPA) has less overall variability than the both iBAQ and rescaled iBAQ, both for lowly and highly abundant proteins.
 
 In conclusion, we can skip entirely the UPS2 data and just assume that the normalized MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples. In this approach, the iBAQ run is only used to do the rescaling, but this could be equally performed with any SILAC run.
 
