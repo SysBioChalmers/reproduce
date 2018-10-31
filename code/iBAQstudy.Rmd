@@ -4,6 +4,7 @@ author: "Benjamin J. Sanchez, Petri-Jaan Lahtvee, Kate Campbell, Sergo Kasvandik
 header-includes:
 - \usepackage{float}
 - \floatplacement{figure}{H}
+bibliography: ../doc/paper/bibliography.bib
 output:
   pdf_document:
     toc: true
@@ -88,7 +89,7 @@ Each injected sample consisted of:
 
 ## Loading ribosomal proteins
 
-We use a list of ribosomal genes based on Jenner et al. (2012):  http://dx.doi.org/10.1016/j.sbi.2012.07.013
+We use a list of ribosomal genes based on previous work [@Jenner2012]:
 
 ```{r loadRibProteins}
 ```
@@ -97,7 +98,7 @@ We use a list of ribosomal genes based on Jenner et al. (2012):  http://dx.doi.o
 
 ## Method 1: iBAQ
 
-Let's start by using the computed iBAQ abundances available in the MaxQuant output file, which are inferred using an ES curve of the UPS2 proteins (in the L fraction). As the data already comes in fmol/sample, the only thing missing is to use the values from the IS (H fraction) together with the normalized L/H ratios in the SILAC data for getting absolute abundances in each sample of the SILAC data (fmol/sample), by doing:
+Let's start by using the computed iBAQ abundances available in the MaxQuant [@Cox2008] output file, which are inferred using an ES curve of the UPS2 proteins (in the L fraction) [@Schwanhausser2011]. As the data already comes in fmol/sample, the only thing missing is to use the values from the IS (H fraction) together with the normalized L/H ratios in the SILAC data for getting absolute abundances in each sample of the SILAC data (fmol/sample), by doing:
 
 `abundance(sample) = (L/H)ratio * abundance(IS)`
 
@@ -130,7 +131,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQrescaled')
 
 ## Method 3: TPA
 
-The alternative: To skip iBAQ values and ES curves entirely, and to assume all MS intensities summed up together (mass-wise) is proportional to the injected amount in ug (TPA approach):
+The alternative: To skip iBAQ values and ES curves entirely, and to assume all MS intensities summed up together (mass-wise) is proportional to the injected amount in ug. This is known as the total protein approach (TPA) [@Wisniewski2014a]:
 
 `abundance = (MS intensity)*(injected amount)/(sum of all MS intensities*MW values)`
 
@@ -461,3 +462,4 @@ Figure 2:
 ```{r figure2, results="hide", warning = FALSE}
 ```
 
+# References
