@@ -53,8 +53,9 @@ plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData
 
 
 ## @knitr plotAbundancesVsLength
-plotAbundancesVsLength <- function(data,AbundanceNames) {
-  for(name in AbundanceNames) {
+plotAbundancesVsLength <- function(data,AbundanceNames,titleNames) {
+  for(i in 1:length(AbundanceNames)) {
+    name    <- AbundanceNames[i]
     data_i  <- data[,grep(name,names(data))]
     x <- NULL
     y <- NULL
@@ -65,9 +66,7 @@ plotAbundancesVsLength <- function(data,AbundanceNames) {
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    title <- gsub('Abundance.','',name)
-    title <- gsub('.R','',title)
-    plot(x, y, main = title, xlab = 'Sequence length',
+    plot(x, y, main = titleNames[i], xlab = 'Sequence length',
          ylab = bquote('log'['10'] ~ '(abundance [fmol/sample])'))
     lmodel <- lm(y ~ x)
     a <- lmodel$coefficients[1]
@@ -80,9 +79,8 @@ plotAbundancesVsLength <- function(data,AbundanceNames) {
 }
 
 ## @knitr plotESdata
-plotESdata <- function(ESdata,method) {
-  method   <- paste0('Abundance.',method)
-  pattern  <- paste0(method,'.ES')
+plotESdata <- function(ESdata,method,title) {
+  pattern  <- paste0('Abundance.',method,'.ES')
   dataExp  <- NULL
   dataPred <- NULL
   for(i in 1:length(names(ESdata))) {
@@ -91,14 +89,14 @@ plotESdata <- function(ESdata,method) {
       dataPred <- c(dataPred,ESdata[,i])
     }
   }
-  FC <- plotScatter(dataExp,dataPred,method,bquote('log'['10'] ~ '(measured)'),
+  FC <- plotScatter(dataExp,dataPred,title,bquote('log'['10'] ~ '(measured)'),
                     bquote('log'['10'] ~ '(predicted)'))
   return(FC)
 }
 
 
 ## @knitr plotRPdata
-plotRPdata <- function(RPdata,method) {
+plotRPdata <- function(RPdata,title) {
   # Remove zeros, compute median and error, and then take log:
   data <- as.matrix(RPdata[,-1])
   data[data == 0] <- NA
@@ -116,7 +114,7 @@ plotRPdata <- function(RPdata,method) {
     else if(length(grep('batch3',names(RPdata)[i])) == 1) { col_opt[i] <- '#0F8141' }
   }
   # Plot data:
-  matplot(data, pch = 1, xaxt = 'n', col = col_opt, main = method,
+  matplot(data, pch = 1, xaxt = 'n', col = col_opt, main = title,
           ylab = bquote('log'['10'] ~ '(abundance)'))
   axis(side=1, at = 1:length(RPdata[,1]), labels = RPdata[,1], las=2, cex.axis = 0.7)
   max_x <- length(RPdata[,1])
@@ -177,7 +175,7 @@ plotCumulativeDistrib <- function(FCs,title){
 
 
 ## @knitr plotTotalProt
-plotTotalProt <- function(data,pattern) {
+plotTotalProt <- function(data,pattern,titleName) {
   pos            <- grep(pattern,names(data))
   data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
   totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
@@ -185,7 +183,7 @@ plotTotalProt <- function(data,pattern) {
   names(totProt) <- gsub(pattern,'',names(totProt))
   barplot(totProt, col = factor(names(totProt)), mgp = c(1.5, 0.5, 0), cex.names = 0.8,
           ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt))
-  title(main = gsub('^([^.]*.[^.]*).*$','\\1',pattern))
+  title(main = titleName, cex.main = 0.9)
 }
 
 
@@ -335,7 +333,7 @@ plotAllVariability <- function(abundance) {
 
 
 ## @knitr plotFCvsAbundance
-plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
+plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   # Options depending on type of plot:
   if(grepl('iBAQ.R',pattern)) {
     color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.03)
@@ -383,7 +381,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
   }
   # Plot UPS2 points:
   if(!allInOne) {
-    title(main = gsub('^([^.]*.[^.]*).*$','\\1',pattern))
+    title(main = titleName)
     points(ESdata[,1],ESdata[,2], col = 'yellow')
     # Compute fraction in window:
     in_window <- (sampleData[,1] > min_x)*(sampleData[,1] < max_x)
@@ -398,10 +396,10 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,allInOne){
 ## @knitr plotSplines
 plotSplines <- function(SILACdata,ESdata){
   #Plot all data:
-  sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQ.R..1_',TRUE)
-  sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQrescaled.R..1_',TRUE)
-  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPA.R..1_',TRUE)
-  sample4 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPAnorm.R..1_',TRUE)
+  sample1 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQ.R..1_','',TRUE)
+  sample2 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.iBAQrescaled.R..1_','',TRUE)
+  sample3 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPA.R..1_','',TRUE)
+  sample4 <- plotFCvsAbundance(SILACdata,ESdata,'Abundance.TPAnorm.R..1_','',TRUE)
   # Create smoothing splines:
   ss1 <- smooth.spline(sample1[,1], sample1[,2], df = 10)
   ss2 <- smooth.spline(sample2[,1], sample2[,2], df = 10)
