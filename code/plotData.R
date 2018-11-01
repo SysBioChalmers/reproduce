@@ -66,15 +66,14 @@ plotAbundancesVsLength <- function(data,AbundanceNames,titleNames) {
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    plot(x, y, main = titleNames[i], xlab = 'Sequence length',
-         ylab = bquote('log'['10'] ~ '(abundance [fmol/sample])'))
+    plot(x, y, main = titleNames[i], xlab = '', ylab = '')
     lmodel <- lm(y ~ x)
-    a <- lmodel$coefficients[1]
-    b <- lmodel$coefficients[2]
+    a  <- lmodel$coefficients[1]
+    b  <- lmodel$coefficients[2]
+    R2 <- round(summary(lmodel)$r.squared,2)
     abline(a, b, col = 'red')
-    r <- cor(x, y)
-    text(round(max(x, na.rm = TRUE)),max(y, na.rm = TRUE),
-         bquote('r = ' ~ .(r)), pos = 2)
+    text(round(max(x, na.rm = TRUE)),floor(max(y, na.rm = TRUE)),
+         bquote('R'^2 ~ '=' ~ .(R2)), pos = 2)
   }
 }
 
@@ -225,24 +224,26 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   max_y <- ceiling(max(y, na.rm = TRUE))
   if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
   if(allInOne) {
+    interSize <- 0.5
     if(first) {
       plot(x,y, col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
            xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
            xlab = bquote('log'['10'] ~ '(intensity value)'),
-           ylab = bquote('log'['10'] ~ '(abundance)'))
+           ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(2, 0.5, 0))
       text(min_x, max_y-0.5, bquote('CV'['m'] ~ '=' ~ .(CVm) ~ '%'), pos = 4)
-      axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
-      axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
-      axis(side=3, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
-      axis(side=4, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
     } else {
       points(x,y, col = 'blue')
     }
   } else {
+    interSize <- 0.3
     plot(x,y, pch = s,col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
          asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name)
-    axis(side=1, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
-    axis(side=2, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
+  }
+  if(!allInOne || first) {
+    axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x,
+         tck = 0.015, mgp = c(2, interSize*2/3, 0))
+    axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y,
+         tck = 0.015, mgp = c(2, interSize, 0))
     axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
     axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
   }
@@ -262,8 +263,8 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   CVm  <- mean(CV, na.rm = TRUE)*100          #Mean coefficient of variation [%]
   CVm  <- round(CVm, digits = 1)
   #Plot data:
-  if(allInOne) { par(mfrow = c(1,1), mar = c(4,4,1,1), pty = "s", cex = 1) }
-  else         { par(mfrow = c(2,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1) }
+  if(allInOne) { par(mfrow = c(1,1), mar = c(3,3,0,0), pty = "s", cex = 1) }
+  else         { par(mfrow = c(2,3), mar = c(3, 3, 2, 1), cex = 0.5) }
   ESdata <- ESdata[order(ESdata$amount.fmoles),]
   plotES(ESdata,pattern,scaling,'top5_batch1',allInOne,TRUE,CVm)
   plotES(ESdata,pattern,scaling,'top5_batch2',allInOne,FALSE,CVm)
@@ -325,10 +326,15 @@ plotPCA <- function(data,title,outside = FALSE){
 
 
 ## @knitr plotAllVariability
-plotAllVariability <- function(abundance) {
-  plotVariability(abundance[,-1],c('.R1.1','.R2.1','.R3.1'),'Biological Variability')
-  plotVariability(abundance[,-1],c('_batch1','_batch2','_batch3'),'Technical Variability')
-  plotPCA(abundance[,-1],'PCA')
+plotAllVariability <- function(abundance,showTitle) {
+  if(showTitle) {
+    titleNames = c('Biological Variability','Technical Variability','PCA')
+  } else {
+    titleNames = c('','','')
+  }
+  plotVariability(abundance[,-1],c('.R1.1','.R2.1','.R3.1'),titleNames[1])
+  plotVariability(abundance[,-1],c('_batch1','_batch2','_batch3'),titleNames[2])
+  plotPCA(abundance[,-1],titleNames[3])
 }
 
 

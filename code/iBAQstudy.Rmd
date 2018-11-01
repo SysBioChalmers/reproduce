@@ -234,8 +234,8 @@ Let's now see the predicted abundances of all samples compared to the sequence l
 ```{r plotAbundancesVsLength}
 ```
 
-```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] Vs protein length for all methods."}
-par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 1)
+```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] (in the log10 space) Vs sequence length for all proteins and all methods."}
+par(mfrow = c(2,2), mar = c(3,3,2,1), cex = 1)
 sampleNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R',
                  'Abundance.TPA.R','Abundance.TPAnorm.R')
 titleNames <- c(IBAQname,IRname,TPAname,TPANname)
@@ -377,11 +377,11 @@ We now display the variability of the final abundance data between biological an
 ```
 
 ```{r precision-all, fig.height = 12, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-all}Comparison of data variability from 1) iBAQ (1st row), 2) rescaling iBAQ (2nd row), 3) TPA (3rd row) and 4) normalized TPA (4th row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates."}
-par(mfrow = c(4,3), mar = c(0, 0, 1, 0) + 0.5, cex = 1)
-plotAllVariability(abundanceIBAQ)
-plotAllVariability(abundanceIR)
-plotAllVariability(abundanceTPA)
-plotAllVariability(abundanceTPAN)
+par(mfrow = c(4,3), mar = c(0, 1, 1.5, 0), cex = 1)
+plotAllVariability(abundanceIBAQ,TRUE)
+plotAllVariability(abundanceIR,FALSE)
+plotAllVariability(abundanceTPA,FALSE)
+plotAllVariability(abundanceTPAN,FALSE)
 ```
 
 We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled normalized MS data we achieve lower variability between technical replicates than with methods 1 and 2.
