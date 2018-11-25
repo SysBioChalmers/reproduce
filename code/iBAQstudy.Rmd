@@ -242,17 +242,24 @@ plotVariability(TPANvsIR, c('iBAQrescaled.R','TPAnorm.R'), '', IRname, TPANname,
 plotVariability(TPANvsTPA, c('TPA.R','TPAnorm.R'), '', TPAname, TPANname, FALSE)
 ```
 
-Let's now see the predicted abundances of all samples compared to the sequence length:
+Comparing sequence length Vs the number of theoretical peptides:
 
-```{r plotAbundancesVsLength}
+```{r plotVsLength}
 ```
+
+```{r general-Ntheo, fig.height = 4, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:general-Ntheo}Number of theoretical peptides Vs sequence length for all proteins."}
+par(mfrow = c(1,1), mar = c(4,4,2,1), cex = 1)
+plotVsLength(ISdata,'theo.peptides','Number of theoretical peptides')
+```
+
+We see that in fact sequence length works as a good proxy for the number of theoretical peptides. Let's now see the predicted abundances of all samples compared to the sequence length:
 
 ```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] (in the log10 space) Vs sequence length for all proteins and all methods."}
 par(mfrow = c(2,2), mar = c(3,3,2,1), cex = 1)
 sampleNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R',
                  'Abundance.TPA.R','Abundance.TPAnorm.R')
 titleNames <- c(IBAQname,IRname,TPAname,TPANname)
-plotAbundancesVsLength(SILACdata,sampleNames,titleNames)
+plotVsLength(SILACdata,sampleNames,titleNames)
 ```
 
 We can see that methods 1,2 and 4 all have similar correlation values, while method 3 correlates less than the other 3 methods to protein length.

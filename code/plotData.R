@@ -52,16 +52,21 @@ plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData
 }
 
 
-## @knitr plotAbundancesVsLength
-plotAbundancesVsLength <- function(data,AbundanceNames,titleNames) {
-  for(i in 1:length(AbundanceNames)) {
-    name    <- AbundanceNames[i]
-    data_i  <- data[,grep(name,names(data))]
-    x <- NULL
-    y <- NULL
-    for(j in 1:length(names(data_i))) {
-      x <- c(x,data$Sequence.length)
-      y <- c(y,log10(data_i[,j]))
+## @knitr plotVsLength
+plotVsLength <- function(data,varNames,titleNames) {
+  for(i in 1:length(varNames)) {
+    if(length(varNames) == 1) {
+      x <- data$Sequence.length
+      y <- data[[varNames]]
+    } else {
+      name   <- varNames[i]
+      data_i <- data[,grep(name,names(data))]
+      x <- NULL
+      y <- NULL
+      for(j in 1:length(names(data_i))) {
+        x <- c(x,data$Sequence.length)
+        y <- c(y,log10(data_i[,j]))
+      }
     }
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
