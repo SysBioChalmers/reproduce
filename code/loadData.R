@@ -28,6 +28,14 @@ SILACdata <- read.csv(file = fileName, sep = '\t', header = TRUE)
 names(SILACdata) <- gsub('_Batch','_batch',names(SILACdata))
 
 
+## @knitr loadNtheoPeptides
+fileName  <- '../data/raw_internal/int_std_proteinGroups_theoretical_peptides.txt'
+NTPdata <- read.csv(file = fileName, sep = '\t', header = TRUE)
+NTP     <- NTPdata[,grep('Intensity.T4h',names(NTPdata))]/NTPdata[,grep('iBAQ.T4h',names(NTPdata))]
+NTP     <- round(rowMeans(NTP,na.rm = TRUE))
+NTP     <- data.frame(Protein.IDs = NTPdata$Protein.IDs, theo.peptides = NTP)
+
+
 ## @knitr loadRibProteins
 RP <- read.csv('../data/raw_external/RP-list.csv')
 # Add uniprot IDs:

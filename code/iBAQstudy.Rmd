@@ -87,6 +87,19 @@ Each injected sample consisted of:
 ```{r loadSILACdata}
 ```
 
+## Getting number of theoretical peptides
+
+We can obtain the number of theoretical peptides for each of the proteins if we remove the UPS2 sequences and label from the MaxQuant search, which leads the software to report only the iBAQ intensities of the proteins. We then divide the raw intensity with the iBAQ intensity to get the desired number:
+
+```{r loadNtheoPeptides}
+```
+
+We then merge this information with the IS data:
+
+```{r}
+ISdata <- merge(NTP, ISdata, by = 'Protein.IDs', all.x = FALSE, all.y = TRUE)
+```
+
 ## Loading ribosomal proteins
 
 We use a list of ribosomal genes based on previous work [@Jenner2012]:
