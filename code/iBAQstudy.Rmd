@@ -162,15 +162,15 @@ We will also try out to first normalize all MS intensitiy values by the sequence
 ```
 
 ```{r}
-ESdata <- normalizeIntensities(ESdata)
-ISdata <- normalizeIntensities(ISdata)
+ESdata <- normalizeIntensities(ESdata,'Sequence.length')
+ISdata <- normalizeIntensities(ISdata,'Sequence.length')
 ```
 
 Now we rescale the data as before:
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPAnorm.ES.',1.1e6) #1.1 ug
-ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPAnorm.IS.',6e6)   #6 ug
+ESdata    <- rescaleData(ESdata,'normInt.length.L.T4h_','TPAnorm.ES.',1.1e6) #1.1 ug
+ISdata    <- rescaleData(ISdata,'normInt.length.H.T4h_','TPAnorm.IS.',6e6)   #6 ug
 SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPAnorm')
 ```
 
@@ -180,7 +180,7 @@ Note that for methods 3 and 4 we have essentially created a linear model:
 
 `log(abundance) = log(MSintensity) + log(m)` -> linear model with a = 1 and b = log(m) in the log space.
 
-## Additional method: MS intensities using an ES curve
+## Additional methods
 
 As we do not have the normalized intensities for the MaxQuant calculations of iBAQ abundances, we will use an additional method only for comparing the ES curves quality. Abundance of the IS here is computed by building a log-log standard curve for the ES and applying it to the normalized MS intensities from the IS (H fraction). Note that said ES curve MUST have slope = 1, as the underlying assumption is that MS intensities are linearly proportional to the mass of the corresponding proteins, therefore:
 
@@ -200,6 +200,15 @@ ISdata    <- interpolateAbundance(ISdata,'Intensity.H.T4h_','Interp.IS.')
 ESdata    <- interpolateAbundance(ESdata,'Intensity.L.T4h_','Interp.ES.')
 SILACdata <- getSampleAbundance(SILACdata,ISdata,'Interp')
 ```
+
+Finally, in the case of the IS data, we can also get the intensity values normalized by the number of theoretical peptides (which we will use later for validating our assumption of sequence length as proxy for number of theoretical peptides):
+
+```{r}
+ISdata    <- normalizeIntensities(ISdata,'theo.peptides')
+ISdata    <- rescaleData(ISdata,'normInt.Ntheo.H.T4h_','TPANtheo.IS.',6e6)   #6 ug
+SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPANtheo')
+```
+
 
 # Method comparison
 
@@ -252,7 +261,18 @@ par(mfrow = c(1,1), mar = c(4,4,2,1), cex = 1)
 plotVsLength(ISdata,'theo.peptides','Number of theoretical peptides')
 ```
 
-We see that in fact sequence length works as a good proxy for the number of theoretical peptides. Let's now see the predicted abundances of all samples compared to the sequence length:
+We see that in fact sequence length works as a good proxy for the number of theoretical peptides. We can further see this comparing predictions between both normalization methods:
+
+```{r general-goodProxy, fig.height = 4, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:general-goodProxy}Comparison of predictions [fmol/sample] (on log10 scale) between normalizing methods (sequence length Vs number of theoretical peptides). Green is a FC lower than 2, yellow between 2 and 10, and red over 10."}
+abundanceNtheo <- SILACdata[,c(1,grep('Abundance.TPANtheo.R',names(SILACdata)))]
+normComb       <- cbind(abundanceNtheo[,-1],abundanceTPAN[,-1])
+nameNtheo      <- 'Normalizing by num theo peptides'
+nameLength     <- 'Normalizing by sequence length'
+par(mfrow = c(1,1), mar = c(4,4,2,1), cex = 1)
+plotVariability(normComb, c('TPANtheo.R','TPAnorm.R'), '', nameNtheo, nameLength, FALSE)
+```
+
+Let's now see the predicted abundances of all samples compared to the sequence length:
 
 ```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] (in the log10 space) Vs sequence length for all proteins and all methods."}
 par(mfrow = c(2,2), mar = c(3,3,2,1), cex = 1)
@@ -288,10 +308,11 @@ Now, let's see how are the predictions of ribosomal subunits stoichiometry. For 
 ```
 
 ```{r}
-rpIBAQ <- getRPdata(abundanceIBAQ,RP)
-rpIR   <- getRPdata(abundanceIR,RP)
-rpTPA  <- getRPdata(abundanceTPA,RP)
-rpTPAN <- getRPdata(abundanceTPAN,RP)
+rpIBAQ  <- getRPdata(abundanceIBAQ,RP)
+rpIR    <- getRPdata(abundanceIR,RP)
+rpTPA   <- getRPdata(abundanceTPA,RP)
+rpTPAN  <- getRPdata(abundanceTPAN,RP)
+rpNtheo <- getRPdata(abundanceNtheo,RP)
 ```
 
 Now we can plot for each method the corresponding data:
@@ -300,11 +321,12 @@ Now we can plot for each method the corresponding data:
 ```
 
 ```{r accuracy-ribosome, fig.height = 10, fig.width = 8, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample], according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
-par(mfrow = c(4,1), mar = c(4,4,2,1), cex = 1)
-FCrpIBAQ <- plotRPdata(rpIBAQ,IBAQname)
-FCrpIR   <- plotRPdata(rpIR,IRname)
-FCrpTPA  <- plotRPdata(rpTPA,TPAname)
-FCrpTPAN <- plotRPdata(rpTPAN,TPANname)
+par(mfrow = c(5,1), mar = c(4,4,2,1), cex = 1)
+FCrpIBAQ  <- plotRPdata(rpIBAQ,IBAQname)
+FCrpIR    <- plotRPdata(rpIR,IRname)
+FCrpTPA   <- plotRPdata(rpTPA,TPAname)
+FCrpTPAN  <- plotRPdata(rpTPAN,TPANname)
+FCrpNtheo <- plotRPdata(rpNtheo,nameNtheo)
 ```
 
 These distributions are not very different between them (with exception of method 3), as we can see in the cumulative distributions:
@@ -397,11 +419,12 @@ We now display the variability of the final abundance data between biological an
 ```
 
 ```{r precision-all, fig.height = 12, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-all}Comparison of data variability from 1) iBAQ (1st row), 2) rescaling iBAQ (2nd row), 3) TPA (3rd row) and 4) normalized TPA (4th row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively), and green is a FC < 2, yellow between 2 and 10, and red > 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates."}
-par(mfrow = c(4,3), mar = c(0, 1, 1.5, 0), cex = 1)
+par(mfrow = c(5,3), mar = c(0, 1, 1.5, 0), cex = 1)
 plotAllVariability(abundanceIBAQ,TRUE)
 plotAllVariability(abundanceIR,FALSE)
 plotAllVariability(abundanceTPA,FALSE)
 plotAllVariability(abundanceTPAN,FALSE)
+plotAllVariability(abundanceNtheo,FALSE)
 ```
 
 We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled normalized MS data we achieve lower variability between technical replicates than with methods 1 and 2.

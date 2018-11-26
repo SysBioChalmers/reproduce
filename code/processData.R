@@ -20,9 +20,17 @@ ESdata[ESdata == 0] <- NA
 
 
 ## @knitr normalizeIntensities
-normalizeIntensities <- function(data) {
-  MSpos <- grep('Intensity',names(data))
-  data[,MSpos] <- data[,MSpos]/data$Sequence.length
+normalizeIntensities <- function(data,varName) {
+  # Create a copy of data and normalize intensities:
+  Ndata <- data
+  MSpos <- grep('Intensity',names(Ndata))
+  Ndata[,MSpos] <- Ndata[,MSpos]/Ndata[[varName]]
+  #Change variable names:
+  varName <- gsub('Sequence.length','length',varName)
+  varName <- gsub('theo.peptides','Ntheo',varName)
+  names(Ndata) <- gsub('Intensity',paste0('normInt.',varName),names(Ndata))
+  #Merge back:
+  data <- merge(data, Ndata)
   return(data)
 }
 
