@@ -124,7 +124,7 @@ plotRPdata <- function(RPdata,title) {
 
 
 ## @knitr plotCumulativeDistrib
-plotCumulativeDistrib <- function(FCs,title){
+plotCumulativeDistrib <- function(FCs,varName){
   # Assign names to dataframe:
   colnames(FCs) <- c('iBAQ','iBAQrescaled','TPA','TPAnorm')
   # Compute differences between distributions:
@@ -133,20 +133,25 @@ plotCumulativeDistrib <- function(FCs,title){
   htest3 <- ks.test(FCs$iBAQ, FCs$TPAnorm)
   htest4 <- ks.test(FCs$iBAQrescaled, FCs$TPA)
   htest5 <- ks.test(FCs$iBAQrescaled, FCs$TPAnorm)
-  htest6 <- ks.test(FCs$TPA, FCs$TPAnorm,)
-  print(paste(title, '- number of FC compared =',length(FCs$iBAQ)))
-  print(paste(title, '- number of FC compared =',length(FCs$iBAQrescaled)))
-  print(paste(title, '- number of FC compared =',length(FCs$TPA)))
-  print(paste(title, '- number of FC compared =',length(FCs$TPAnorm)))
-  print(paste(title, 'of iBAQ = iBAQrescaled: p-val =',round(htest1$p.value,4)))
-  print(paste(title, 'of iBAQ = TPA: p-val =',round(htest2$p.value,4)))
-  print(paste(title, 'of iBAQ = TPAnorm: p-val =',round(htest3$p.value,4)))
-  print(paste(title, 'of iBAQrescaled = TPA: p-val =',round(htest4$p.value,4)))
-  print(paste(title, 'of iBAQrescaled = TPAnorm: p-val =',round(htest5$p.value,4)))
-  print(paste(title, 'of TPA = TPAnorm: p-val =',round(htest6$p.value,4)))
+  htest6 <- ks.test(FCs$TPA, FCs$TPAnorm)
+  print(paste(varName, '- number of FC compared =',length(FCs$iBAQ)))
+  print(paste(varName, '- number of FC compared =',length(FCs$iBAQrescaled)))
+  print(paste(varName, '- number of FC compared =',length(FCs$TPA)))
+  print(paste(varName, '- number of FC compared =',length(FCs$TPAnorm)))
+  print(paste(varName, 'of iBAQ = iBAQrescaled: p-val =',round(htest1$p.value,4)))
+  print(paste(varName, 'of iBAQ = TPA: p-val =',round(htest2$p.value,4)))
+  print(paste(varName, 'of iBAQ = TPAnorm: p-val =',round(htest3$p.value,4)))
+  print(paste(varName, 'of iBAQrescaled = TPA: p-val =',round(htest4$p.value,4)))
+  print(paste(varName, 'of iBAQrescaled = TPAnorm: p-val =',round(htest5$p.value,4)))
+  print(paste(varName, 'of TPA = TPAnorm: p-val =',round(htest6$p.value,4)))
   # Plot data:
   min_x <- 0
   max_x <- 1
+  if(nchar(varName) > 4) {
+    title <- varName
+  } else {
+    title <- ''
+  }
   plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
        xlim = c(min_x, max_x), ylim = c(0, 1), main = title, xlab = '', ylab = '')
   axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
@@ -162,7 +167,11 @@ plotCumulativeDistrib <- function(FCs,title){
     FC   <- sort(FCs[,i])
     step <- 1/(length(FC)-1)
     cdf  <- seq(0, 1, by = step)
-    lines(FC,cdf, col = color[i], lwd = 2)
+    if(startsWith(varName,'Tech') && i == 4) {
+      lines(FC,cdf, col = color[i], lwd = 2, lty = 2)
+    } else {
+      lines(FC,cdf, col = color[i], lwd = 2)
+    }
   }
   # Plot values for 2-fold position:
   for(i in 1:length(names(FCs))) {
