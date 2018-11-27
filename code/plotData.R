@@ -358,8 +358,15 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   sampleData <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
   # Get FC values for ES data:
   ESdata_pattern <- gsub('.R..1_','.ES',pattern)
-  abundance      <- ESdata[,grep(ESdata_pattern,names(ESdata))]
-  ESdata         <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
+  ESabundance    <- ESdata[,grep(ESdata_pattern,names(ESdata))]
+  ESdata         <- getReplicateData(ESabundance,c('_batch1','_batch2','_batch3'),2)
+  # Print number of yeast proteins below minimum detected UPS2 protein
+  min_es <- min(ESdata[,1], na.rm = TRUE)
+  max_es <- max(ESdata[,1], na.rm = TRUE)
+  if(!allInOne) {
+    belowThreshold <- sum(sampleData[,1] < min_es, na.rm = TRUE)/length(names(abundance))
+    print(paste(titleName,'->',round(belowThreshold),'proteins below UPS2 detection range'))
+  }
   # Plot FC of abundanceData
   min_x <- round(min(sampleData[,1])) + 1
   max_x <- round(max(sampleData[,1]))
@@ -380,9 +387,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   }
   # Plot UPS2 window:
   if(!allInOne || grepl('TPAnorm.R',pattern)) {
-    min_x <- min(ESdata[,1])
-    max_x <- max(ESdata[,1])
-    polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),
+    polygon(c(min_es,min_es,max_es,max_es,min_es),c(min_y,max_y,max_y,min_y,min_y),
             col = rgb(red = 1, green = 1, blue = 0, alpha = 0.3), border = NA)
   }
   # Plot UPS2 points:
@@ -390,10 +395,10 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
     title(main = titleName)
     points(ESdata[,1],ESdata[,2], col = 'yellow')
     # Compute fraction in window:
-    in_window <- (sampleData[,1] > min_x)*(sampleData[,1] < max_x)
+    in_window <- (sampleData[,1] > min_es)*(sampleData[,1] < max_es)
     fraction  <- sum(in_window)/length(in_window)*100
     fraction  <- round(fraction, digits = 1)
-    text(min_x-1, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
+    text(min_es-1, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
   }
   return(sampleData)
 }
