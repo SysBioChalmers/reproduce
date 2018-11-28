@@ -81,7 +81,8 @@ plotAbundancesVsLength <- function(data,AbundanceNames,titleNames) {
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    plot(x, y, main = titleNames[i], xlab = '', ylab = '')
+    col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
+    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '')
     lmodel <- lm(y ~ x)
     a  <- lmodel$coefficients[1]
     b  <- lmodel$coefficients[2]
