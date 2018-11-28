@@ -197,8 +197,8 @@ So if the fit is done in the log space, we fix the ES curve to always have slope
 ```
 
 ```{r}
-ISdata    <- interpolateAbundance(ISdata,'Intensity.H.T4h_','Interp.IS.')
-ESdata    <- interpolateAbundance(ESdata,'Intensity.L.T4h_','Interp.ES.')
+ISdata    <- interpolateAbundance(ISdata,'normInt.length.H.T4h_','Interp.IS.')
+ESdata    <- interpolateAbundance(ESdata,'normInt.length.L.T4h_','Interp.ES.')
 SILACdata <- getSampleAbundance(SILACdata,ISdata,'Interp')
 ```
 
@@ -267,7 +267,7 @@ plotVsLength(ISdata,'theo.peptides','Number of theoretical peptides')
 
 We see that in fact sequence length works as a good proxy for the number of theoretical peptides. We can further see this comparing predictions between both normalization methods:
 
-```{r general-goodProxy, fig.height = 4, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:general-goodProxy}Comparison of predictions [fmol/sample] (on log10 scale) between normalizing methods (sequence length Vs number of theoretical peptides). Green is a FC lower than 2, yellow between 2 and 10, and red over 10."}
+```{r general-goodProxy, fig.height = 4, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:general-goodProxy}Comparison of predictions [fmol/sample] (on log10 scale) between normalizing methods (sequence length Vs number of theoretical peptides). Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
 abundanceNtheo <- SILACdata[,c(1,grep('Abundance.TPANtheo.R',names(SILACdata)))]
 normComb       <- cbind(abundanceNtheo[,-1],abundanceTPAN[,-1])
 nameNtheo      <- 'Normalizing by num theo peptides'
@@ -398,16 +398,16 @@ Note that we cannot look at the ES curves of methods 1 and 2 as we do not have t
 
 ```{r es-separate, fig.align = "center", fig.cap = "\\label{fig:es-separate}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(normalized MS intensity) in x-axis) based on the 31/ 48 UPS2 proteins that were detected and measured by the MS, with (gray) and without (blue) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
 #All 6 MS intensity values from the IS (H fraction):
-ISpos <- grep('Intensity.H.T4h',names(ISdata))
+ISpos <- grep('normInt.length.H.T4h',names(ISdata))
 Hdata   <- ISdata[,ISpos]*ISdata$Mol..weight..kDa.
 scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
-plotAllES(ESdata,'Intensity.L.T4h_',scaling,FALSE)
+plotAllES(ESdata,'normInt.length.L.T4h_',scaling,FALSE)
 ```
 
 The blue fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (considering they are in log10 space), many other curves (as the gray fits) can almost equally well fit that data. Let's see everything in the same plot:
 
 ```{r es-together, fig.align = "center", fig.cap = "\\label{fig:es-together}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (gray) and without (blue) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner."}
-plotAllES(ESdata,'Intensity.L.T4h_',scaling,TRUE)
+plotAllES(ESdata,'normInt.length.L.T4h_',scaling,TRUE)
 ```
 
 Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
