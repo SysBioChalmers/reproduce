@@ -7,9 +7,9 @@
 setEPS()
 postscript("../results/figures/figure1.eps", height = 3.5, width = 8.5)
 par(mfrow = c(1,3), mar = c(4,4,1,1), cex = 0.9)
-plotCumulativeDistrib(ups2FC,'')
-plotCumulativeDistrib(rpFC,'')
-plotCumulativeDistrib(techFC,'')
+plotCumulativeDistrib(ups2FC,'UPS2')
+plotCumulativeDistrib(rpFC,'Ribo')
+plotCumulativeDistrib(techFC,'Tech')
 dev.off()
 
 

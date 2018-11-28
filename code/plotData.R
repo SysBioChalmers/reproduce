@@ -2,6 +2,20 @@
 # Functions for plotting the data used in this study
 # Benjamin Sanchez
 
+## @knitr getColors
+getColors <- function(n) {
+  colormap <- read.table('../data/raw_external/colormaps/cividis.txt', header = FALSE)
+  colormap <- as.matrix(colormap)
+  N        <- length(colormap[,1])
+  pos      <- seq(from = 1, to = N, by = floor((N-1)/(n-1)))
+  cols <- NULL
+  for(i in 1:n) {
+    cols[i] <- rgb(red = colormap[pos[i],1],
+                   green = colormap[pos[i],2],
+                   blue = colormap[pos[i],3])
+  }
+  return(cols)
+}
 
 ## @knitr plotScatter
 plotScatter <- function(data1,data2,title,labelx,labely) {
@@ -16,7 +30,8 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   # Define colors:
   FC         <- abs(log10(data2/data1))
   FCm        <- round(median(10^FC), digits = 2)
-  col_scheme <- ifelse(10^FC>2, ifelse(10^FC>10, '#EB2426', '#F3B70D'), '#0F8141')
+  cols       <- getColors(6)
+  col_scheme <- ifelse(10^FC>2, ifelse(10^FC>10, cols[4], cols[6]), cols[2])
   # Plot data:
   data1   <- log10(data1)
   data2   <- log10(data2)
@@ -107,10 +122,11 @@ plotRPdata <- function(RPdata,title) {
   mead_val <- log10(mead_val)
   # Color by tech. rep:
   col_opt <- NULL
+  cols    <- getColors(6)
   for(i in 2:length(names(RPdata))) {
-    if(length(grep('batch1',names(RPdata)[i])) == 1)      { col_opt[i] <- '#EB2426' }
-    else if(length(grep('batch2',names(RPdata)[i])) == 1) { col_opt[i] <- '#3953A3' }
-    else if(length(grep('batch3',names(RPdata)[i])) == 1) { col_opt[i] <- '#0F8141' }
+    if(length(grep('batch1',names(RPdata)[i])) == 1)      { col_opt[i] <- cols[1] }
+    else if(length(grep('batch2',names(RPdata)[i])) == 1) { col_opt[i] <- cols[3] }
+    else if(length(grep('batch3',names(RPdata)[i])) == 1) { col_opt[i] <- cols[5] }
   }
   # Plot data:
   matplot(data, pch = 1, xaxt = 'n', col = col_opt, main = title,
@@ -124,7 +140,7 @@ plotRPdata <- function(RPdata,title) {
 
 
 ## @knitr plotCumulativeDistrib
-plotCumulativeDistrib <- function(FCs,title){
+plotCumulativeDistrib <- function(FCs,varName){
   # Assign names to dataframe:
   colnames(FCs) <- c('iBAQ','iBAQrescaled','TPA','TPAnorm')
   # Compute differences between distributions:
@@ -133,20 +149,25 @@ plotCumulativeDistrib <- function(FCs,title){
   htest3 <- ks.test(FCs$iBAQ, FCs$TPAnorm)
   htest4 <- ks.test(FCs$iBAQrescaled, FCs$TPA)
   htest5 <- ks.test(FCs$iBAQrescaled, FCs$TPAnorm)
-  htest6 <- ks.test(FCs$TPA, FCs$TPAnorm,)
-  print(paste(title, '- number of FC compared =',length(FCs$iBAQ)))
-  print(paste(title, '- number of FC compared =',length(FCs$iBAQrescaled)))
-  print(paste(title, '- number of FC compared =',length(FCs$TPA)))
-  print(paste(title, '- number of FC compared =',length(FCs$TPAnorm)))
-  print(paste(title, 'of iBAQ = iBAQrescaled: p-val =',round(htest1$p.value,4)))
-  print(paste(title, 'of iBAQ = TPA: p-val =',round(htest2$p.value,4)))
-  print(paste(title, 'of iBAQ = TPAnorm: p-val =',round(htest3$p.value,4)))
-  print(paste(title, 'of iBAQrescaled = TPA: p-val =',round(htest4$p.value,4)))
-  print(paste(title, 'of iBAQrescaled = TPAnorm: p-val =',round(htest5$p.value,4)))
-  print(paste(title, 'of TPA = TPAnorm: p-val =',round(htest6$p.value,4)))
+  htest6 <- ks.test(FCs$TPA, FCs$TPAnorm)
+  print(paste(varName, '- number of FC compared =',length(FCs$iBAQ)))
+  print(paste(varName, '- number of FC compared =',length(FCs$iBAQrescaled)))
+  print(paste(varName, '- number of FC compared =',length(FCs$TPA)))
+  print(paste(varName, '- number of FC compared =',length(FCs$TPAnorm)))
+  print(paste(varName, 'of iBAQ = iBAQrescaled: p-val =',round(htest1$p.value,4)))
+  print(paste(varName, 'of iBAQ = TPA: p-val =',round(htest2$p.value,4)))
+  print(paste(varName, 'of iBAQ = TPAnorm: p-val =',round(htest3$p.value,4)))
+  print(paste(varName, 'of iBAQrescaled = TPA: p-val =',round(htest4$p.value,4)))
+  print(paste(varName, 'of iBAQrescaled = TPAnorm: p-val =',round(htest5$p.value,4)))
+  print(paste(varName, 'of TPA = TPAnorm: p-val =',round(htest6$p.value,4)))
   # Plot data:
   min_x <- 0
   max_x <- 1
+  if(nchar(varName) > 4) {
+    title <- varName
+  } else {
+    title <- ''
+  }
   plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
        xlim = c(min_x, max_x), ylim = c(0, 1), main = title, xlab = '', ylab = '')
   axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
@@ -157,18 +178,23 @@ plotCumulativeDistrib <- function(FCs,title){
   title(ylab='Cumulative Distribution', line=2.5)
   lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
   # Plot fold changes as a cdf:
-  color = c('red','green','blue','cyan')
-  for(i in 1:length(names(FCs))) {
+  N    <- length(names(FCs))
+  cols <- getColors(N)
+  for(i in 1:N) {
     FC   <- sort(FCs[,i])
     step <- 1/(length(FC)-1)
     cdf  <- seq(0, 1, by = step)
-    lines(FC,cdf, col = color[i], lwd = 2)
+    if(startsWith(varName,'Tech') && i == 4) {
+      lines(FC,cdf, col = cols[i], lwd = 2, lty = 2)
+    } else {
+      lines(FC,cdf, col = cols[i], lwd = 2)
+    }
   }
   # Plot values for 2-fold position:
-  for(i in 1:length(names(FCs))) {
+  for(i in 1:N) {
     FC  <- sort(FCs[,i])
     pos <- which.min(abs(FC - log10(2)))
-    points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = color[i])
+    points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = cols[i])
   }
 }
 
@@ -180,7 +206,9 @@ plotTotalProt <- function(data,pattern,titleName) {
   totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
   meanProt       <- round(mean(totProt))+1
   names(totProt) <- gsub(pattern,'',names(totProt))
-  barplot(totProt, col = factor(names(totProt)), mgp = c(1.5, 0.5, 0), cex.names = 0.8,
+  factors <- factor(names(totProt))
+  cols    <- getColors(nlevels(factors))
+  barplot(totProt, col = cols[factors], mgp = c(1.5, 0.5, 0), cex.names = 0.8,
           ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt))
   title(main = titleName, cex.main = 0.9)
 }
@@ -197,7 +225,8 @@ plotLM <- function(x,y,scaling,allInOne) {
     pos <- 1
     intercept <- log10(scaling)  #Also fix intercept
   }
-  col_opt <- ifelse(scaling == 0,'red','green')
+  cols    <- getColors(3)
+  col_opt <- ifelse(scaling == 0,cols[1],cols[2])
   abline(a = intercept, b = 1, col = col_opt)
   #Compute and display R2:
   yp <- x + intercept
@@ -222,21 +251,22 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   max_x <- ceiling(max(x, na.rm = TRUE))
   min_y <- floor(min(y, na.rm = TRUE))
   max_y <- ceiling(max(y, na.rm = TRUE))
+  cols  <- getColors(3)
   if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
   if(allInOne) {
     interSize <- 0.5
     if(first) {
-      plot(x,y, col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
+      plot(x,y, col = cols[3], xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
            xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
            xlab = bquote('log'['10'] ~ '(intensity value)'),
            ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(2, 0.5, 0))
       text(min_x, max_y-0.5, bquote('CV'['m'] ~ '=' ~ .(CVm) ~ '%'), pos = 4)
     } else {
-      points(x,y, col = 'blue')
+      points(x,y, col = cols[3])
     }
   } else {
     interSize <- 0.3
-    plot(x,y, pch = s,col = 'blue', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
+    plot(x,y, pch = s,col = cols[3], xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
          asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name)
   }
   if(!allInOne || first) {
@@ -291,15 +321,16 @@ plotPCA <- function(data,title,outside = FALSE){
   # Plotting options:
   pch_opt <- NULL
   col_opt <- NULL
+  cols    <- getColors(6)
   for(i in 1:length(names(data))) {
     # Shape by bio. rep.
     if(length(grep('R1.1',names(data)[i])) == 1)      { pch_opt[i] <- 1 } 
     else if(length(grep('R2.1',names(data)[i])) == 1) { pch_opt[i] <- 2 }
     else if(length(grep('R3.1',names(data)[i])) == 1) { pch_opt[i] <- 3 }
     # Color by tech. rep.
-    if(length(grep('batch1',names(data)[i])) == 1)      { col_opt[i] <- '#EB2426' }
-    else if(length(grep('batch2',names(data)[i])) == 1) { col_opt[i] <- '#3953A3' }
-    else if(length(grep('batch3',names(data)[i])) == 1) { col_opt[i] <- '#0F8141' }
+    if(length(grep('batch1',names(data)[i])) == 1)      { col_opt[i] <- cols[1] }
+    else if(length(grep('batch2',names(data)[i])) == 1) { col_opt[i] <- cols[3] }
+    else if(length(grep('batch3',names(data)[i])) == 1) { col_opt[i] <- cols[5] }
   }
   # Plot PCA:
   deltax <- max(pca$x[,1]) - min(pca$x[,1])
@@ -341,14 +372,16 @@ plotAllVariability <- function(abundance,showTitle) {
 ## @knitr plotFCvsAbundance
 plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   # Options depending on type of plot:
+  cols <- getColors(4)
+  rgbs <- col2rgb(cols)/255
   if(grepl('iBAQ.R',pattern)) {
-    color_data <- rgb(red = 1, green = 0, blue = 0, alpha = 0.03)
+    color_data <- rgb(red = rgbs[1,1], green = rgbs[2,1], blue = rgbs[3,1], alpha = 0.03)
   } else if(grepl('iBAQrescaled.R',pattern)) {
-    color_data <- rgb(red = 0, green = 1, blue = 0, alpha = 0.02)
+    color_data <- rgb(red = rgbs[1,2], green = rgbs[2,2], blue = rgbs[3,2], alpha = 0.03)
   } else if(grepl('TPA.R',pattern)) {
-    color_data <- rgb(red = 0, green = 0, blue = 1, alpha = 0.02)
+    color_data <- rgb(red = rgbs[1,3], green = rgbs[2,3], blue = rgbs[3,3], alpha = 0.04)
   } else if(grepl('TPAnorm.R',pattern)) {
-    color_data <- rgb(red = 0, green = 1, blue = 1, alpha = 0.02)
+    color_data <- rgb(red = rgbs[1,4], green = rgbs[2,4], blue = rgbs[3,4], alpha = 0.05)
   }
   if(allInOne) {
     color_data <- rgb(red = 0, green = 0, blue = 0, alpha = 0.02)
@@ -358,8 +391,15 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   sampleData <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
   # Get FC values for ES data:
   ESdata_pattern <- gsub('.R..1_','.ES',pattern)
-  abundance      <- ESdata[,grep(ESdata_pattern,names(ESdata))]
-  ESdata         <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
+  ESabundance    <- ESdata[,grep(ESdata_pattern,names(ESdata))]
+  ESdata         <- getReplicateData(ESabundance,c('_batch1','_batch2','_batch3'),2)
+  # Print number of yeast proteins below minimum detected UPS2 protein
+  min_es <- min(ESdata[,1], na.rm = TRUE)
+  max_es <- max(ESdata[,1], na.rm = TRUE)
+  if(!allInOne) {
+    belowThreshold <- sum(sampleData[,1] < min_es, na.rm = TRUE)/length(names(abundance))
+    print(paste(titleName,'->',round(belowThreshold),'proteins below UPS2 detection range'))
+  }
   # Plot FC of abundanceData
   min_x <- round(min(sampleData[,1])) + 1
   max_x <- round(max(sampleData[,1]))
@@ -380,20 +420,18 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   }
   # Plot UPS2 window:
   if(!allInOne || grepl('TPAnorm.R',pattern)) {
-    min_x <- min(ESdata[,1])
-    max_x <- max(ESdata[,1])
-    polygon(c(min_x,min_x,max_x,max_x,min_x),c(min_y,max_y,max_y,min_y,min_y),
-            col = rgb(red = 1, green = 1, blue = 0, alpha = 0.3), border = NA)
+    polygon(c(min_es,min_es,max_es,max_es,min_es),c(min_y,max_y,max_y,min_y,min_y),
+            col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1), border = NA)
   }
   # Plot UPS2 points:
   if(!allInOne) {
     title(main = titleName)
-    points(ESdata[,1],ESdata[,2], col = 'yellow')
+    points(ESdata[,1],ESdata[,2], col = 'black')
     # Compute fraction in window:
-    in_window <- (sampleData[,1] > min_x)*(sampleData[,1] < max_x)
+    in_window <- (sampleData[,1] > min_es)*(sampleData[,1] < max_es)
     fraction  <- sum(in_window)/length(in_window)*100
     fraction  <- round(fraction, digits = 1)
-    text(min_x-1, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
+    text(min_es-1, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
   }
   return(sampleData)
 }
@@ -411,9 +449,10 @@ plotSplines <- function(SILACdata,ESdata){
   ss2 <- smooth.spline(sample2[,1], sample2[,2], df = 10)
   ss3 <- smooth.spline(sample3[,1], sample3[,2], df = 10)
   ss4 <- smooth.spline(sample4[,1], sample4[,2], df = 10)
-  lines(ss1, lwd = 2, col = 'red')
-  lines(ss2, lwd = 2, col = 'green')
-  lines(ss3, lwd = 2, col = 'blue')
-  lines(ss4, lwd = 2, col = 'cyan')
+  cols <- getColors(4)
+  lines(ss1, lwd = 2, col = cols[1])
+  lines(ss2, lwd = 2, col = cols[2])
+  lines(ss3, lwd = 2, col = cols[3])
+  lines(ss4, lwd = 2, col = cols[4])
 }
 
