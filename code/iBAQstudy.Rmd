@@ -3,6 +3,7 @@ title: "Supplementary Material"
 author: "Benjamin J. Sanchez, Petri-Jaan Lahtvee, Kate Campbell, Sergo Kasvandik, Rosemary Yu, Ivan Domenzain, Aleksej Zelezniak and Jens Nielsen"
 header-includes:
 - \usepackage{float}
+- \renewcommand{\thefigure}{S\arabic{figure}}
 - \floatplacement{figure}{H}
 bibliography: ../doc/paper/bibliography.bib
 output:
