@@ -202,7 +202,12 @@ plotCumulativeDistrib <- function(FCs,varName){
 
 ## @knitr plotTotalProt
 plotTotalProt <- function(data,pattern,titleName) {
-  pos            <- grep(pattern,names(data))
+  pos <- grep(pattern,names(data))
+  # Display number of proteins detected:
+  meanVals <- rowMeans(data[,pos], na.rm = TRUE)
+  coverage <- sum(!is.na(meanVals))
+  print(paste(titleName,'-',coverage,'proteins detected'))
+  # Get total protein detected:
   data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
   totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
   meanProt       <- round(mean(totProt))+1

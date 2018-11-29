@@ -115,7 +115,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQ')
 
 ## Method 2: Rescaling iBAQ values
 
-As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-es}), we should asses the benefits of rescaling all of these values to add up to the injected amounts:
+As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-IS}), we should asses the benefits of rescaling all of these values to add up to the injected amounts:
 
 `abundance = (iBAQ abundance)*(injected amount)/(sum of all iBAQ abundances*MW values)`
 
@@ -314,7 +314,7 @@ Let's now take a look at the total detected protein amount in each of the 6 samp
 ```{r plotTotalProt}
 ```
 
-```{r tot-es, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-es}Total detected protein amounts in all 6 IS, according to all methods."}
+```{r tot-IS, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-IS}Total detected protein amounts in all 6 IS, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
 ISnames <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS',
              'Abundance.TPA.IS','Abundance.TPAnorm.IS')
@@ -323,7 +323,7 @@ for(i in 1:length(ISnames)) {
 }
 ```
 
-Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-es}):
+Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-IS}):
 
 ```{r tot-samples, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
@@ -334,7 +334,7 @@ for(i in 1:length(sampleNames)) {
 }
 ```
 
-The total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale the IS abundances.
+In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale (methods 2, 3 and 4). Note that for all cases the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
 ## ES curves
 
