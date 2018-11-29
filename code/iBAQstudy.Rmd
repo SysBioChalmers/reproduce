@@ -4,7 +4,9 @@ author: "Benjamin J. Sanchez, Petri-Jaan Lahtvee, Kate Campbell, Sergo Kasvandik
 header-includes:
 - \usepackage{float}
 - \renewcommand{\thefigure}{S\arabic{figure}}
+- \renewcommand{\thetable}{S\arabic{table}}
 - \floatplacement{figure}{H}
+- \floatplacement{table}{H}
 bibliography: ../doc/paper/bibliography.bib
 output:
   pdf_document:
@@ -32,6 +34,7 @@ library(plyr)
 library(knitr)
 library(biomaRt)
 library(vioplot)
+library(kableExtra)
 ```
 
 ```{r echo=FALSE}
@@ -388,7 +391,32 @@ plotAllVariability(abundanceTPA,FALSE)
 plotAllVariability(abundanceTPAN,FALSE)
 ```
 
-We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled normalized MS data we achieve lower variability between technical replicates than with methods 1 and 2.
+We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between technical replicates than with methods 1 and 2. This is confirmed by looking at the breakdown of fold changes by method:
+
+```{r FCbreakdownRep}
+```
+
+```{r FCbreakdown}
+```
+
+```{r breakdown, warning = FALSE}
+col1 <- FCbreakdown(abundanceIBAQ)
+col2 <- FCbreakdown(abundanceIR)
+col3 <- FCbreakdown(abundanceTPA)
+col4 <- FCbreakdown(abundanceTPAN)
+breakdown <- cbind(col1,col2,col3,col4)
+colnames(breakdown)  <- c("Method 1","Method 2","Method 3","Method 4")
+row.names(breakdown) <- c("FC < 2","2 < FC < 10","10 < FC",
+                          "FC < 2","2 < FC < 10","10 < FC",
+                          "FC < 2","2 < FC < 10","10 < FC")
+tablecap <- "Fold change breakdown by method and type of replicate."
+kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
+  kable_styling(latex_options = "hold_position") %>%
+  group_rows("Biological Replicates", 1, 3) %>%
+  group_rows("Technical Replicates", 4, 6) %>%
+  group_rows("All Replicates", 7, 9)
+
+```
 
 ## Evaluating technical precision
 
