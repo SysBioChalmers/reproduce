@@ -145,6 +145,40 @@ getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
 }
 
 
+## @knitr FCbreakdownRep
+FCbreakdownRep <- function(data,groupNames) {
+  for(i in 1:length(groupNames)) {
+    names(data) <- gsub(groupNames[i],'',names(data))
+  }
+  FCs <- NULL
+  for(i in 1:(length(names(data))-1)) {
+    for(j in (i+1):length(names(data))) {
+      if(names(data)[i] == names(data)[j]) {
+        FCs <- cbind(FCs,10^abs(log10(data[,i]/data[,j])))
+      }
+    }
+  }
+  FCs[is.infinite(FCs)] <- NA
+  maxFC <- apply(FCs, 1, max, na.rm = TRUE)
+  x     <- NULL
+  x[1]  <- sum(maxFC < 2, na.rm = TRUE)/length(maxFC)
+  x[2]  <- sum((maxFC >= 2)*(maxFC <= 10), na.rm = TRUE)/length(maxFC)
+  x[3]  <- sum(maxFC > 10, na.rm = TRUE)/length(maxFC)
+  x     <- paste0(round(x*100,digits = 1),"%")
+  return(x)
+}
+
+
+## @knitr FCbreakdown
+FCbreakdown <- function(data) {
+  x      <- NULL
+  x[1:3] <- FCbreakdownRep(data,c('.R1.1','.R2.1','.R3.1'))
+  x[4:6] <- FCbreakdownRep(data,c('_batch1','_batch2','_batch3'))
+  x[7:9] <- FCbreakdownRep(data,c('.R1.1','.R2.1','.R3.1','_batch1','_batch2','_batch3'))
+  return(x)
+}
+
+
 ## @knitr getCVs
 getCVs <- function(data,groupNames,method){
   # Erase distinction from name:
