@@ -391,7 +391,7 @@ plotAllVariability(abundanceTPA,FALSE)
 plotAllVariability(abundanceTPAN,FALSE)
 ```
 
-We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between technical replicates than with methods 1 and 2. This is confirmed by looking at the breakdown of fold changes by method:
+We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between technical replicates than with methods 1 and 2. This is confirmed by looking at the breakdown of proteins by method:
 
 ```{r FCbreakdownRep}
 ```
@@ -409,7 +409,8 @@ colnames(breakdown)  <- c("Method 1","Method 2","Method 3","Method 4")
 row.names(breakdown) <- c("FC < 2","2 < FC < 10","10 < FC",
                           "FC < 2","2 < FC < 10","10 < FC",
                           "FC < 2","2 < FC < 10","10 < FC")
-tablecap <- "Fold change breakdown by method and type of replicate."
+tablecap <- paste("Protein breakdown by method and type of replicate.",
+                  "For each protein, the maximum fold change is considered.")
 kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
   kable_styling(latex_options = "hold_position") %>%
   group_rows("Biological Replicates", 1, 3) %>%
