@@ -20,11 +20,12 @@ ESdata[ESdata == 0] <- NA
 
 
 ## @knitr addNtheoPeptides
-addNtheoPeptides <- function(data,NTPdata) {
-  NTP  <- NTPdata[,grep('Intensity.T4h',names(NTPdata))]/NTPdata[,grep('iBAQ.T4h',names(NTPdata))]
-  NTP  <- round(rowMeans(NTP,na.rm = TRUE))
-  NTP  <- data.frame(Protein.IDs = NTPdata$Protein.IDs, theo.peptides = NTP)
-  data <- merge(NTP, data, by = 'Protein.IDs', all.x = FALSE, all.y = TRUE)
+addNtheoPeptides <- function(data,NTPdata,fraction) {
+  intPos  <- names(NTPdata) == paste0('Intensity',fraction)
+  iBAQpos <- names(NTPdata) == paste0('iBAQ',fraction)
+  NTP     <- NTPdata[,intPos]/NTPdata[,iBAQpos]
+  NTP     <- data.frame(Protein.IDs = NTPdata$Protein.IDs, theo.peptides = NTP)
+  data    <- merge(NTP, data, by = 'Protein.IDs', all.x = FALSE, all.y = TRUE)
   return(data)
 }
 

@@ -102,8 +102,8 @@ We can obtain the number of theoretical peptides for each of the proteins if we 
 ```
 
 ```{r}
-ISdata <- addNtheoPeptides(ISdata,NTPdata)
-ESdata <- addNtheoPeptides(ESdata,NTPdataUPS2)
+ISdata <- addNtheoPeptides(ISdata,NTPdata,'')
+ESdata <- addNtheoPeptides(ESdata,NTPdataUPS2,'.L')
 ```
 
 ## Loading ribosomal proteins
