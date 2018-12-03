@@ -19,6 +19,16 @@ ESdata <- merge(UPS2, ESdata, by = 'Protein.IDs', all.x = FALSE, all.y = FALSE)
 ESdata[ESdata == 0] <- NA
 
 
+## @knitr addNtheoPeptides
+addNtheoPeptides <- function(data,NTPdata) {
+  NTP  <- NTPdata[,grep('Intensity.T4h',names(NTPdata))]/NTPdata[,grep('iBAQ.T4h',names(NTPdata))]
+  NTP  <- round(rowMeans(NTP,na.rm = TRUE))
+  NTP  <- data.frame(Protein.IDs = NTPdata$Protein.IDs, theo.peptides = NTP)
+  data <- merge(NTP, data, by = 'Protein.IDs', all.x = FALSE, all.y = TRUE)
+  return(data)
+}
+
+
 ## @knitr normalizeIntensities
 normalizeIntensities <- function(data,varName) {
   # Create a copy of data and normalize intensities:

@@ -93,15 +93,17 @@ Each injected sample consisted of:
 
 ## Getting number of theoretical peptides
 
-We can obtain the number of theoretical peptides for each of the proteins if we remove the UPS2 sequences and label from the MaxQuant search, which leads the software to report only the iBAQ intensities of the proteins. We then divide the raw intensity with the iBAQ intensity to get the desired number:
+We can obtain the number of theoretical peptides for each of the proteins if we remove the UPS2 sequences and label from the MaxQuant search, which leads the software to report only the iBAQ intensities of the proteins. We then divide the raw intensity with the iBAQ intensity to get the desired number, and merge this information with the IS and ES data:
 
 ```{r loadNtheoPeptides}
 ```
 
-We then merge this information with the IS data:
+```{r addNtheoPeptides}
+```
 
 ```{r}
-ISdata <- merge(NTP, ISdata, by = 'Protein.IDs', all.x = FALSE, all.y = TRUE)
+ISdata <- addNtheoPeptides(ISdata,NTPdata)
+ESdata <- addNtheoPeptides(ESdata,NTPdataUPS2)
 ```
 
 ## Loading ribosomal proteins

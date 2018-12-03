@@ -29,11 +29,11 @@ names(SILACdata) <- gsub('_Batch','_batch',names(SILACdata))
 
 
 ## @knitr loadNtheoPeptides
-fileName  <- '../data/raw_internal/int_std_proteinGroups_theoretical_peptides.txt'
-NTPdata <- read.csv(file = fileName, sep = '\t', header = TRUE)
-NTP     <- NTPdata[,grep('Intensity.T4h',names(NTPdata))]/NTPdata[,grep('iBAQ.T4h',names(NTPdata))]
-NTP     <- round(rowMeans(NTP,na.rm = TRUE))
-NTP     <- data.frame(Protein.IDs = NTPdata$Protein.IDs, theo.peptides = NTP)
+fileName    <- '../data/raw_internal/int_std_proteinGroups_theoretical_peptides.txt'
+NTPdata     <- read.csv(file = fileName, sep = '\t', header = TRUE)
+fileName    <- '../data/raw_internal/181203_UPS2_theoretical_peptide_nrs.txt'
+NTPdataUPS2 <-read.csv(file = fileName, sep = '\t', header = TRUE)
+NTPdataUPS2$Protein.IDs <- gsub(';.*','',NTPdataUPS2$Protein.IDs)
 
 
 ## @knitr loadRibProteins
