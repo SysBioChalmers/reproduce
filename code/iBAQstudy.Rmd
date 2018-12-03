@@ -344,8 +344,8 @@ These distributions are not very different between them (with exception of metho
 ```
 
 ```{r accuracy-cdf, warning = FALSE, fig.height = 5, fig.width = 8, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for both accuracy evaluation metrics: differences of predicted Vs experimental values of UPS2 (left) and differences to median value in ribosomal measurements (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
-ups2FC <- data.frame(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
-rpFC   <- data.frame(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
+ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
+rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
 par(mfrow = c(1,2), mar = c(4,4,2,1), cex = 1)
 plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
 plotCumulativeDistrib(rpFC,'Ribosomal stoichiometry variability')
@@ -496,7 +496,7 @@ FCtechIBAQ <- getReplicateData(abundanceIBAQ[,-1],names,2,FALSE)
 FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
 FCtechTPA  <- getReplicateData(abundanceTPA[,-1],names,2,FALSE)
 FCtechTPAN <- getReplicateData(abundanceTPAN[,-1],names,2,FALSE)
-techFC     <- data.frame(FCtechIBAQ[,2],FCtechIR[,2],FCtechTPA[,2],FCtechTPAN[,2])
+techFC     <- list(FCtechIBAQ[,2],FCtechIR[,2],FCtechTPA[,2],FCtechTPAN[,2])
 plotCumulativeDistrib(techFC,'Technical variability')
 ```
 

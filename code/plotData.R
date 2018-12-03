@@ -148,7 +148,7 @@ plotRPdata <- function(RPdata,title) {
 ## @knitr plotCumulativeDistrib
 plotCumulativeDistrib <- function(FCs,varName){
   # Assign names to dataframe:
-  colnames(FCs) <- c('iBAQ','iBAQrescaled','TPA','TPAnorm')
+  names(FCs) <- c('iBAQ','iBAQrescaled','TPA','TPAnorm')
   # Compute differences between distributions:
   htest1 <- ks.test(FCs$iBAQ, FCs$iBAQrescaled)
   htest2 <- ks.test(FCs$iBAQ, FCs$TPA)
@@ -187,7 +187,7 @@ plotCumulativeDistrib <- function(FCs,varName){
   N    <- length(names(FCs))
   cols <- getColors(N)
   for(i in 1:N) {
-    FC   <- sort(FCs[,i])
+    FC   <- sort(FCs[[i]])
     step <- 1/(length(FC)-1)
     cdf  <- seq(0, 1, by = step)
     if(startsWith(varName,'Tech') && i == 4) {
@@ -198,7 +198,7 @@ plotCumulativeDistrib <- function(FCs,varName){
   }
   # Plot values for 2-fold position:
   for(i in 1:N) {
-    FC  <- sort(FCs[,i])
+    FC  <- sort(FCs[[i]])
     pos <- which.min(abs(FC - log10(2)))
     points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = cols[i])
   }
