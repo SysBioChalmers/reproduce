@@ -210,6 +210,7 @@ plotTotalProt <- function(data,pattern,titleName) {
   pos <- grep(pattern,names(data))
   # Display number of proteins detected:
   meanVals <- rowMeans(data[,pos], na.rm = TRUE)
+  meanVals[meanVals <= 0] <- NA
   coverage <- sum(!is.na(meanVals))
   print(paste(titleName,'-',coverage,'proteins detected'))
   # Get total protein detected:
