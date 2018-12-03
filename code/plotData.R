@@ -86,7 +86,8 @@ plotVsLength <- function(data,varNames,titleNames) {
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    plot(x, y, main = titleNames[i], xlab = '', ylab = '')
+    col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
+    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '')
     lmodel <- lm(y ~ x)
     a  <- lmodel$coefficients[1]
     b  <- lmodel$coefficients[2]
@@ -206,7 +207,12 @@ plotCumulativeDistrib <- function(FCs,varName){
 
 ## @knitr plotTotalProt
 plotTotalProt <- function(data,pattern,titleName) {
-  pos            <- grep(pattern,names(data))
+  pos <- grep(pattern,names(data))
+  # Display number of proteins detected:
+  meanVals <- rowMeans(data[,pos], na.rm = TRUE)
+  coverage <- sum(!is.na(meanVals))
+  print(paste(titleName,'-',coverage,'proteins detected'))
+  # Get total protein detected:
   data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
   totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
   meanProt       <- round(mean(totProt))+1

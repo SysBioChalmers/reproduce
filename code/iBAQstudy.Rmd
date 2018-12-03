@@ -4,7 +4,9 @@ author: "Benjamin J. Sanchez, Petri-Jaan Lahtvee, Kate Campbell, Sergo Kasvandik
 header-includes:
 - \usepackage{float}
 - \renewcommand{\thefigure}{S\arabic{figure}}
+- \renewcommand{\thetable}{S\arabic{table}}
 - \floatplacement{figure}{H}
+- \floatplacement{table}{H}
 bibliography: ../doc/paper/bibliography.bib
 output:
   pdf_document:
@@ -32,6 +34,7 @@ library(plyr)
 library(knitr)
 library(biomaRt)
 library(vioplot)
+library(kableExtra)
 ```
 
 ```{r echo=FALSE}
@@ -125,7 +128,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQ')
 
 ## Method 2: Rescaling iBAQ values
 
-As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-es}), we should asses the benefits of rescaling all of these values to add up to the injected amounts:
+As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-IS}), we should asses the benefits of rescaling all of these values to add up to the injected amounts:
 
 `abundance = (iBAQ abundance)*(injected amount)/(sum of all iBAQ abundances*MW values)`
 
@@ -353,7 +356,7 @@ Let's now take a look at the total detected protein amount in each of the 6 samp
 ```{r plotTotalProt}
 ```
 
-```{r tot-es, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-es}Total detected protein amounts in all 6 IS, according to all methods."}
+```{r tot-IS, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-IS}Total detected protein amounts in all 6 IS, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
 ISnames <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS',
              'Abundance.TPA.IS','Abundance.TPAnorm.IS')
@@ -362,7 +365,7 @@ for(i in 1:length(ISnames)) {
 }
 ```
 
-Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-es}):
+Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-IS}):
 
 ```{r tot-samples, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
 par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
@@ -373,7 +376,7 @@ for(i in 1:length(sampleNames)) {
 }
 ```
 
-The total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale the IS abundances.
+In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale (methods 2, 3 and 4). Note that for all cases the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
 ## ES curves
 
@@ -431,7 +434,33 @@ plotAllVariability(abundanceTPAN,FALSE)
 plotAllVariability(abundanceNtheo,FALSE)
 ```
 
-We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled normalized MS data we achieve lower variability between technical replicates than with methods 1 and 2.
+We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between technical replicates than with methods 1 and 2. This is confirmed by looking at the breakdown of proteins by method:
+
+```{r FCbreakdownRep}
+```
+
+```{r FCbreakdown}
+```
+
+```{r breakdown, warning = FALSE}
+col1 <- FCbreakdown(abundanceIBAQ)
+col2 <- FCbreakdown(abundanceIR)
+col3 <- FCbreakdown(abundanceTPA)
+col4 <- FCbreakdown(abundanceTPAN)
+breakdown <- cbind(col1,col2,col3,col4)
+colnames(breakdown)  <- c("Method 1","Method 2","Method 3","Method 4")
+row.names(breakdown) <- c("FC < 2","2 < FC < 10","10 < FC",
+                          "FC < 2","2 < FC < 10","10 < FC",
+                          "FC < 2","2 < FC < 10","10 < FC")
+tablecap <- paste("Protein breakdown by method and type of replicate.",
+                  "For each protein, the maximum fold change is considered.")
+kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
+  kable_styling(latex_options = "hold_position") %>%
+  group_rows("Biological Replicates", 1, 3) %>%
+  group_rows("Technical Replicates", 4, 6) %>%
+  group_rows("All Replicates", 7, 9)
+
+```
 
 ## Evaluating technical precision
 
