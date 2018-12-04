@@ -362,32 +362,11 @@ kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
 
 ### Evaluating technical precision
 
-Let's look further into the reduction of technical variability, by looking at violin plots for the coefficients of variation:
-
-```{r getCVs}
-```
-
-```{r precision-violin, fig.height = 2.5, fig.width = 5,  fig.align = "center", fig.cap = "\\label{fig:precision-violin}Violin plots of CVs between batches. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
-par(mfrow = c(1,1), mar = c(2,4,0.5,0.5), cex = 0.8)
-names      <- c('_batch1','_batch2','_batch3')
-CVbatchIBAQ <- getCVs(abundanceIBAQ[,-1],names)
-CVbatchIR   <- getCVs(abundanceIR[,-1],names)
-CVbatchTPA  <- getCVs(abundanceTPA[,-1],names)
-CVbatchTPAN <- getCVs(abundanceTPAN[,-1],names)
-plot(1, 1, xlim = c(0,4.5), ylim = c(-1,2.2), type = 'n',
-     xaxs = 'i', xaxt = 'n', xlab = '', ylab = 'log10(CV)')
-axis(side = 1, at = 1:4, labels = gsub('Method ','',titleNames))
-cols <- getColors(4)
-vioplot(CVbatchIBAQ, at = 1, col = cols[1], add = TRUE)
-vioplot(CVbatchIR,   at = 2, col = cols[2], add = TRUE)
-vioplot(CVbatchTPA,  at = 3, col = cols[3], add = TRUE)
-vioplot(CVbatchTPAN, at = 4, col = cols[4], add = TRUE)
-```
-
-We can see all of the above in a summarized plot with cumulative distributions:
+Let's look further into the reduction of technical variability, by looking at the cumulative distribution of each method:
 
 ```{r precision-tech, fig.height = 4, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 par(mfrow = c(1,1), mar = c(4,4,1,1))
+names      <- c('_batch1','_batch2','_batch3')
 FCtechIBAQ <- getReplicateData(abundanceIBAQ[,-1],names,2,FALSE)
 FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
 FCtechTPA  <- getReplicateData(abundanceTPA[,-1],names,2,FALSE)
@@ -417,7 +396,7 @@ We see that in all cases more than 85% of the data falls within the detection ra
 
 Plotting now all data together with the smoothing splines for each method:
 
-```{r precision-splines, fig.height = 4, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in yellow."}
+```{r precision-splines, fig.height = 3, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in yellow."}
 par(mfrow = c(1,1), mar = c(4,4,0.5,0.5))
 plotSplines(SILACdata,ESdata)
 ```
@@ -430,17 +409,15 @@ We see that method 4 (normalized TPA) has less overall variability than the both
 
 Let's take a look at the ES data + standard curves from method 4, compared to the alternative method (using an ES curve on the normalized MS intensities). For that we need:
 
-* A function for plotting a linear fit (with a slope = 1):
+* A function for plotting a linear fit (with a slope = 1).
+* A function for plotting the external standard.
+* A function for plotting all 6 external standards (together or separate).
 
 ```{r plotLM}
 ```
 
-* A function for plotting the external standard:
-
 ```{r plotES}
 ```
-
-* A function for plotting all 6 external standards (together or separate):
 
 ```{r plotAllES}
 ```
