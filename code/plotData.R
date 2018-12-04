@@ -142,12 +142,12 @@ plotCumulativeDistrib <- function(FCs,varName){
   print(paste(varName, '- number of FC compared =',length(FCs$iBAQrescaled)))
   print(paste(varName, '- number of FC compared =',length(FCs$TPA)))
   print(paste(varName, '- number of FC compared =',length(FCs$TPAnorm)))
-  print(paste(varName, 'of iBAQ = iBAQrescaled: p-val =',round(htest1$p.value,4)))
-  print(paste(varName, 'of iBAQ = TPA: p-val =',round(htest2$p.value,4)))
-  print(paste(varName, 'of iBAQ = TPAnorm: p-val =',round(htest3$p.value,4)))
-  print(paste(varName, 'of iBAQrescaled = TPA: p-val =',round(htest4$p.value,4)))
-  print(paste(varName, 'of iBAQrescaled = TPAnorm: p-val =',round(htest5$p.value,4)))
-  print(paste(varName, 'of TPA = TPAnorm: p-val =',round(htest6$p.value,4)))
+  print(paste(varName, 'of iBAQ = iBAQrescaled: p-val =',htest1$p.value))
+  print(paste(varName, 'of iBAQ = TPA: p-val =',htest2$p.value))
+  print(paste(varName, 'of iBAQ = TPAnorm: p-val =',htest3$p.value))
+  print(paste(varName, 'of iBAQrescaled = TPA: p-val =',htest4$p.value))
+  print(paste(varName, 'of iBAQrescaled = TPAnorm: p-val =',htest5$p.value))
+  print(paste(varName, 'of TPA = TPAnorm: p-val =',htest6$p.value))
   # Plot data:
   min_x <- 0
   max_x <- 1
