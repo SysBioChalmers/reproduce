@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Material"
+title: "Benchmarking accuracy and precision of intensity-based absolute quantification of protein abundances in *Saccharomyces cerevisiae*: Supplementary material"
 author: "Benjamin J. Sanchez, Petri-Jaan Lahtvee, Kate Campbell, Sergo Kasvandik, Rosemary Yu, Ivan Domenzain, Aleksej Zelezniak and Jens Nielsen"
 header-includes:
 - \usepackage{float}
@@ -11,7 +11,7 @@ bibliography: ../doc/paper/bibliography.bib
 output:
   pdf_document:
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     number_sections: true
     highlight: tango
 ---
@@ -65,8 +65,6 @@ In the iBAQ data (IS+ES) there are 6 samples: 3 technical replicates (`batch1`, 
 ```{r loadIBAQdata}
 ```
 
-## Getting the ES data
-
 In each sample of the iBAQ data there are:
 
 * 6 ug of IS: yeast samples, all marked; i.e. will appear in the heavy fraction (H)
@@ -91,7 +89,7 @@ Each injected sample consisted of:
 ```{r loadSILACdata}
 ```
 
-## Getting number of theoretical peptides
+## Getting the number of theoretical peptides
 
 We can obtain the number of theoretical peptides for each of the proteins if we remove the UPS2 sequences and label from the MaxQuant search, which leads the software to report only the iBAQ intensities of the proteins. We then divide the total raw intensity with the total iBAQ intensity to get the desired number, and merge this information with the IS and ES data:
 
@@ -209,85 +207,59 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'Interp')
 
 # Method comparison
 
-## Preliminary comparison
+## Protein totals
 
-Let's plot the data between methods: For that we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates). We can also use it to compare between methods by removing the method's name:
-
-```{r getReplicateData}
-```
-
-We also need a couple of plotting functions:
+First, let's take a look at the total detected protein amount in each of the 6 samples of IS, for all methods:
 
 ```{r getColors}
 ```
 
-```{r plotScatter}
+```{r plotTotalProt}
 ```
 
-```{r plotVariability}
-```
-
-```{r general-comp, fig.height = 6, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:general-comp}Comparison of predictions [fmol/sample] between all methods (on log10 scale). Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
-abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
-abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
-abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]
-abundanceTPAN <- SILACdata[,c(1,grep('Abundance.TPAnorm.R',names(SILACdata)))]
-IRvsIBAQ   <- cbind(abundanceIBAQ[,-1],abundanceIR[,-1])
-TPAvsIBAQ  <- cbind(abundanceIBAQ[,-1],abundanceTPA[,-1])
-TPANvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceTPAN[,-1])
-TPAvsIR    <- cbind(abundanceIR[,-1],abundanceTPA[,-1])
-TPANvsIR   <- cbind(abundanceIR[,-1],abundanceTPAN[,-1])
-TPANvsTPA  <- cbind(abundanceTPA[,-1],abundanceTPAN[,-1])
-IBAQname   <- 'Method 1: iBAQ'
-IRname     <- 'Method 2: iBAQ rescaled'
-TPAname    <- 'Method 3: TPA'
-TPANname   <- 'Method 4: TPA normalized'
-par(mfrow = c(2,3), mar = c(4,4,2,1), cex = 1)
-plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', IBAQname, IRname, FALSE)
-plotVariability(TPAvsIBAQ, c('iBAQ.R','TPA.R'), '', IBAQname, TPAname, FALSE)
-plotVariability(TPANvsIBAQ, c('iBAQ.R','TPAnorm.R'), '', IBAQname, TPANname, FALSE)
-plotVariability(TPAvsIR, c('iBAQrescaled.R','TPA.R'), '', IRname, TPAname, FALSE)
-plotVariability(TPANvsIR, c('iBAQrescaled.R','TPAnorm.R'), '', IRname, TPANname, FALSE)
-plotVariability(TPANvsTPA, c('TPA.R','TPAnorm.R'), '', TPAname, TPANname, FALSE)
-```
-
-Let's now see the predicted abundances of all samples compared to the sequence length:
-
-```{r plotVsLength}
-```
-
-```{r general-length, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] (in the log10 space) Vs sequence length for all proteins and all methods."}
-par(mfrow = c(2,2), mar = c(3,3,2,1), cex = 1)
-sampleNames <- c('Abundance.iBAQ.R','Abundance.iBAQrescaled.R',
-                 'Abundance.TPA.R','Abundance.TPAnorm.R')
+```{r tot-IS, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-IS}Total detected protein amounts in all 6 IS, according to all methods."}
+par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
+IBAQname <- 'Method 1: iBAQ'
+IRname   <- 'Method 2: iBAQ rescaled'
+TPAname  <- 'Method 3: TPA'
+TPANname <- 'Method 4: TPA normalized'
+ISnames  <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS',
+              'Abundance.TPA.IS','Abundance.TPAnorm.IS')
 titleNames <- c(IBAQname,IRname,TPAname,TPANname)
-plotVsLength(SILACdata,sampleNames,titleNames)
+for(i in 1:length(ISnames)) {
+  plotTotalProt(ISdata,ISnames[i],titleNames[i])
+}
 ```
 
-We can see that methods 1, 2 and 4 all have similar correlation values, while method 3 correlates less than the other 3 methods to protein length. This is expected, because methods 1, 2 and 4 all normalize by the number of theoretical peptides, which correlates well with sequence length:
+Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-IS}):
 
-```{r general-Ntheo, fig.height = 4, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:general-Ntheo}Number of theoretical peptides Vs sequence length for all proteins."}
-par(mfrow = c(1,1), mar = c(4,4,2,1), cex = 1)
-plotVsLength(ISdata,'theo.peptides','Number of theoretical peptides')
+```{r tot-samples, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
+par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
+sampleNames <- c('Abundance.iBAQ.R..1_','Abundance.iBAQrescaled.R..1_',
+                 'Abundance.TPA.R..1_','Abundance.TPAnorm.R..1_')
+for(i in 1:length(sampleNames)) {
+  plotTotalProt(SILACdata,sampleNames[i],titleNames[i])
+}
 ```
 
-With this we also see that sequence length can work as a good proxy for the number of theoretical peptides. 
+In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale (methods 2, 3 and 4). Note that for all cases the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
-<br>
-
-## Accuracy evaluation
+## Evaluating accuracy
 
 Let's now compare accuracy. First, we compare the ES values predicted by each method to the actual UPS2 values:
 
-```{r plotESdata}
+```{r plotScatter}
 ```
 
-```{r accuracy-ups2, fig.height = 7, fig.width = 7, fig.align="center", fig.cap = "\\label{fig:accuracy-ups2}Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
-par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 1)
-FCups2IBAQ <- plotESdata(ESdata,'iBAQ',IBAQname)
-FCups2IR   <- plotESdata(ESdata,'iBAQrescaled',IRname)
-FCups2TPA  <- plotESdata(ESdata,'TPA',TPAname)
-FCups2TPAN <- plotESdata(ESdata,'TPAnorm',TPANname)
+```{r plotESerror}
+```
+
+```{r accuracy-ups2, fig.height = 5, fig.width = 5, fig.align="center", fig.cap = "\\label{fig:accuracy-ups2}Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
+par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 0.8)
+FCups2IBAQ <- plotESerror(ESdata,'iBAQ',IBAQname)
+FCups2IR   <- plotESerror(ESdata,'iBAQrescaled',IRname)
+FCups2TPA  <- plotESerror(ESdata,'TPA',TPAname)
+FCups2TPAN <- plotESerror(ESdata,'TPAnorm',TPANname)
 ```
 
 We see that all predictions from methods 1, 2 and 4 are very similar; by using ES curves (methods 1-2) we don't gain much prediction power than if we just rescale the normalized data (method 4). However, method 3 performs significantly worse.
@@ -298,6 +270,10 @@ Now, let's see how are the predictions of ribosomal subunits stoichiometry. For 
 ```
 
 ```{r}
+abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
+abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
+abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]
+abundanceTPAN <- SILACdata[,c(1,grep('Abundance.TPAnorm.R',names(SILACdata)))]
 rpIBAQ  <- getRPdata(abundanceIBAQ,RP)
 rpIR    <- getRPdata(abundanceIR,RP)
 rpTPA   <- getRPdata(abundanceTPA,RP)
@@ -322,81 +298,25 @@ These distributions are not very different between them (with exception of metho
 ```{r plotCumulativeDistrib}
 ```
 
-```{r accuracy-cdf, warning = FALSE, fig.height = 5, fig.width = 8, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for both accuracy evaluation metrics: differences of predicted Vs experimental values of UPS2 (left) and differences to median value in ribosomal measurements (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
+```{r accuracy-cdf, warning = FALSE, fig.height = 4, fig.width = 6, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for both accuracy evaluation metrics: differences of predicted Vs experimental values of UPS2 (left) and differences to median value in ribosomal measurements (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
 rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
-par(mfrow = c(1,2), mar = c(4,4,2,1), cex = 1)
+par(mfrow = c(1,2), mar = c(3.5,4,2,1), cex = 0.8)
 plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
 plotCumulativeDistrib(rpFC,'Ribosomal stoichiometry variability')
 ```
 
-## Protein totals
-
-Let's now take a look at the total detected protein amount in each of the 6 samples of IS, for all methods:
-
-```{r plotTotalProt}
-```
-
-```{r tot-IS, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-IS}Total detected protein amounts in all 6 IS, according to all methods."}
-par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
-ISnames <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS',
-             'Abundance.TPA.IS','Abundance.TPAnorm.IS')
-for(i in 1:length(ISnames)) {
-  plotTotalProt(ISdata,ISnames[i],titleNames[i])
-}
-```
-
-Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-IS}):
-
-```{r tot-samples, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
-par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
-sampleNames <- c('Abundance.iBAQ.R..1_','Abundance.iBAQrescaled.R..1_',
-                 'Abundance.TPA.R..1_','Abundance.TPAnorm.R..1_')
-for(i in 1:length(sampleNames)) {
-  plotTotalProt(SILACdata,sampleNames[i],titleNames[i])
-}
-```
-
-In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale (methods 2, 3 and 4). Note that for all cases the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
-
-## ES curves
-
-Let's now take a look at the ES data + standard curves from method 4, compared to the alternative method (using an ES curve on the normalized MS intensities). For that we need:
-
-* A function for plotting a linear fit (with a slope = 1):
-
-```{r plotLM}
-```
-
-* A function for plotting the external standard:
-
-```{r plotES}
-```
-
-* A function for plotting all 6 external standards (together or separate):
-
-```{r plotAllES}
-```
-
-```{r es-separate, fig.align = "center", fig.cap = "\\label{fig:es-separate}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(normalized MS intensity) in x-axis) based on the 31/ 48 UPS2 proteins that were detected and measured by the MS, with (gray) and without (blue) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
-#All 6 MS intensity values from the IS (H fraction):
-ISpos <- grep('normInt.Ntheo.H.T4h',names(ISdata))
-Hdata   <- ISdata[,ISpos]*ISdata$Mol..weight..kDa.
-scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
-plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,FALSE)
-```
-
-The blue fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (considering they are in log10 space), many other curves (as the gray fits) can almost equally well fit that data. Let's see everything in the same plot:
-
-```{r es-together, fig.align = "center", fig.cap = "\\label{fig:es-together}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (gray) and without (blue) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner."}
-plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,TRUE)
-```
-
-Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
-
 ## Evaluating precision
 
-We now display the variability of the final abundance data between biological and technical replicates, for all methods, using variability plots and a PCA:
+We now display the variability of the final abundance data between biological and technical replicates, for all methods. For that we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates). We can also use it to compare between methods by removing the method's name:
+
+```{r getReplicateData}
+```
+
+We now define plotting functions (variability plots and a PCA):
+
+```{r plotVariability}
+```
 
 ```{r plotPCA}
 ```
@@ -440,15 +360,15 @@ kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
 
 ```
 
-## Evaluating technical precision
+### Evaluating technical precision
 
 Let's look further into the reduction of technical variability, by looking at violin plots for the coefficients of variation:
 
 ```{r getCVs}
 ```
 
-```{r precision-violin, fig.width = 8, fig.align = "center", fig.cap = "\\label{fig:precision-violin}Violin plots of CVs between batches. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
-par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
+```{r precision-violin, fig.height = 2.5, fig.width = 5,  fig.align = "center", fig.cap = "\\label{fig:precision-violin}Violin plots of CVs between batches. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
+par(mfrow = c(1,1), mar = c(2,4,0.5,0.5), cex = 0.8)
 names      <- c('_batch1','_batch2','_batch3')
 CVbatchIBAQ <- getCVs(abundanceIBAQ[,-1],names)
 CVbatchIR   <- getCVs(abundanceIR[,-1],names)
@@ -466,8 +386,8 @@ vioplot(CVbatchTPAN, at = 4, col = cols[4], add = TRUE)
 
 We can see all of the above in a summarized plot with cumulative distributions:
 
-```{r precision-tech, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
-par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
+```{r precision-tech, fig.height = 4, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
+par(mfrow = c(1,1), mar = c(4,4,1,1))
 FCtechIBAQ <- getReplicateData(abundanceIBAQ[,-1],names,2,FALSE)
 FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
 FCtechTPA  <- getReplicateData(abundanceTPA[,-1],names,2,FALSE)
@@ -497,14 +417,95 @@ We see that in all cases more than 85% of the data falls within the detection ra
 
 Plotting now all data together with the smoothing splines for each method:
 
-```{r precision-splines, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in yellow."}
-par(mfrow = c(1,1), mar = c(4,4,1.5,0.5))
+```{r precision-splines, fig.height = 4, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in yellow."}
+par(mfrow = c(1,1), mar = c(4,4,0.5,0.5))
 plotSplines(SILACdata,ESdata)
 ```
 
 We see that method 4 (normalized TPA) has less overall variability than the both iBAQ and rescaled iBAQ, both for lowly and highly abundant proteins. It also performs better than the traditional TPA (method 3).
 
+## Additional comparisons
+
+### ES curves
+
+Let's take a look at the ES data + standard curves from method 4, compared to the alternative method (using an ES curve on the normalized MS intensities). For that we need:
+
+* A function for plotting a linear fit (with a slope = 1):
+
+```{r plotLM}
+```
+
+* A function for plotting the external standard:
+
+```{r plotES}
+```
+
+* A function for plotting all 6 external standards (together or separate):
+
+```{r plotAllES}
+```
+
+```{r es-separate, fig.height = 3.5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:es-separate}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(normalized MS intensity) in x-axis) based on the 31/ 48 UPS2 proteins that were detected and measured by the MS, with (gray) and without (blue) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
+#All 6 MS intensity values from the IS (H fraction):
+ISpos <- grep('normInt.Ntheo.H.T4h',names(ISdata))
+Hdata   <- ISdata[,ISpos]*ISdata$Mol..weight..kDa.
+scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
+plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,FALSE)
+```
+
+The blue fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (considering they are in log10 space), many other curves (as the gray fits) can almost equally well fit that data. Let's see everything in the same plot:
+
+```{r es-together, fig.height = 2.5, fig.width = 2.5, fig.align = "center", fig.cap = "\\label{fig:es-together}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (gray) and without (blue) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner."}
+plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,TRUE)
+```
+
+Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
+
 In conclusion, we can skip entirely the UPS2 data and just assume that the normalized MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples. In this approach, the iBAQ run is only used to do the rescaling, but this could be equally performed with any SILAC run.
+
+### Predictions between methods
+
+Let's plot the data between methods: 
+
+```{r general-comp, fig.height = 6, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:general-comp}Comparison of predictions [fmol/sample] between all methods (on log10 scale). Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
+IRvsIBAQ   <- cbind(abundanceIBAQ[,-1],abundanceIR[,-1])
+TPAvsIBAQ  <- cbind(abundanceIBAQ[,-1],abundanceTPA[,-1])
+TPANvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceTPAN[,-1])
+TPAvsIR    <- cbind(abundanceIR[,-1],abundanceTPA[,-1])
+TPANvsIR   <- cbind(abundanceIR[,-1],abundanceTPAN[,-1])
+TPANvsTPA  <- cbind(abundanceTPA[,-1],abundanceTPAN[,-1])
+par(mfrow = c(2,3), mar = c(4,4,2,1), cex = 1)
+plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', IBAQname, IRname, FALSE)
+plotVariability(TPAvsIBAQ, c('iBAQ.R','TPA.R'), '', IBAQname, TPAname, FALSE)
+plotVariability(TPANvsIBAQ, c('iBAQ.R','TPAnorm.R'), '', IBAQname, TPANname, FALSE)
+plotVariability(TPAvsIR, c('iBAQrescaled.R','TPA.R'), '', IRname, TPAname, FALSE)
+plotVariability(TPANvsIR, c('iBAQrescaled.R','TPAnorm.R'), '', IRname, TPANname, FALSE)
+plotVariability(TPANvsTPA, c('TPA.R','TPAnorm.R'), '', TPAname, TPANname, FALSE)
+```
+
+We can see that predictions between methods are not very different.
+
+### Sequence length
+
+Finally, let's see the predicted abundances of all samples compared to sequence length:
+
+```{r plotVsLength}
+```
+
+```{r general-length, fig.height = 4, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] (in the log10 space) Vs sequence length for all proteins and all methods."}
+par(mfrow = c(2,2), mar = c(2,2,1.5,1), cex = 0.8)
+plotVsLength(SILACdata,sampleNames,titleNames)
+```
+
+We can see that methods 1, 2 and 4 all have similar correlation values, while method 3 correlates less than the other 3 methods to protein length. This is expected, because methods 1, 2 and 4 all normalize by the number of theoretical peptides, which correlates well with sequence length:
+
+```{r general-Ntheo, fig.height = 2.5, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:general-Ntheo}Number of theoretical peptides Vs sequence length for all proteins."}
+par(mfrow = c(1,1), mar = c(2,2,1.5,1), cex = 0.8)
+plotVsLength(ISdata,'theo.peptides','Number of theoretical peptides')
+```
+
+With this we also see that sequence length can work as a good proxy for the number of theoretical peptides (if the latter is not available).
+<br>
 
 # Main figures of manuscript
 

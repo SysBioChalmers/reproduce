@@ -30,42 +30,6 @@ addNtheoPeptides <- function(data,NTPdata,fraction) {
 }
 
 
-## @knitr normalizeIntensities
-normalizeIntensities <- function(data,varName) {
-  # Create a copy of data and normalize intensities:
-  Ndata <- data
-  MSpos <- grep('Intensity',names(Ndata))
-  Ndata[,MSpos] <- Ndata[,MSpos]/Ndata[[varName]]
-  #Change variable names:
-  varName <- gsub('Sequence.length','length',varName)
-  varName <- gsub('theo.peptides','Ntheo',varName)
-  names(Ndata) <- gsub('Intensity',paste0('normInt.',varName),names(Ndata))
-  #Merge back:
-  data <- merge(data, Ndata)
-  return(data)
-}
-
-## @knitr interpolateAbundance
-interpolateAbundance <- function(data,pattern,abundance_pattern) {
-  pos <- grep(pattern,names(data))   #All values to interpolate
-  for(i in pos) {
-    # Define name of relevant variables:
-    name_i <- names(data)[i]
-    Lname  <- gsub('.H.','.L.',name_i)  #name of ES intensity
-    # Build linear model and apply to get abundance of H:
-    UPS2abundances <- log10(ESdata$amount.fmoles)
-    UPS2values     <- log10(ESdata[[Lname]])
-    lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
-    intercept      <- lmodel[1]$coefficients[1]           #intercept
-    abundance      <- 10^(log10(data[,i]) + intercept)    #LT for log(data) [fmol/sample]
-    # Add abundances to dataset:
-    name_i         <- gsub(pattern,paste0('Abundance.',abundance_pattern),name_i)
-    data[[name_i]] <- abundance
-  }
-  return(data)
-}
-
-
 ## @knitr getSampleAbundance
 getSampleAbundance <- function(SILACdata,ISdata,method) {
   # Merge abundance data from IS into SILAC dataset:
@@ -104,6 +68,43 @@ rescaleData <- function(data,pattern,name,totProt) {
     # Add abundances to dataset:
     new_name <- gsub(pattern,paste0('Abundance.',name),names(data)[i])
     data[[new_name]] <- abundance
+  }
+  return(data)
+}
+
+
+## @knitr normalizeIntensities
+normalizeIntensities <- function(data,varName) {
+  # Create a copy of data and normalize intensities:
+  Ndata <- data
+  MSpos <- grep('Intensity',names(Ndata))
+  Ndata[,MSpos] <- Ndata[,MSpos]/Ndata[[varName]]
+  #Change variable names:
+  varName <- gsub('Sequence.length','length',varName)
+  varName <- gsub('theo.peptides','Ntheo',varName)
+  names(Ndata) <- gsub('Intensity',paste0('normInt.',varName),names(Ndata))
+  #Merge back:
+  data <- merge(data, Ndata)
+  return(data)
+}
+
+
+## @knitr interpolateAbundance
+interpolateAbundance <- function(data,pattern,abundance_pattern) {
+  pos <- grep(pattern,names(data))   #All values to interpolate
+  for(i in pos) {
+    # Define name of relevant variables:
+    name_i <- names(data)[i]
+    Lname  <- gsub('.H.','.L.',name_i)  #name of ES intensity
+    # Build linear model and apply to get abundance of H:
+    UPS2abundances <- log10(ESdata$amount.fmoles)
+    UPS2values     <- log10(ESdata[[Lname]])
+    lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
+    intercept      <- lmodel[1]$coefficients[1]           #intercept
+    abundance      <- 10^(log10(data[,i]) + intercept)    #LT for log(data) [fmol/sample]
+    # Add abundances to dataset:
+    name_i         <- gsub(pattern,paste0('Abundance.',abundance_pattern),name_i)
+    data[[name_i]] <- abundance
   }
   return(data)
 }
