@@ -244,6 +244,8 @@ for(i in 1:length(sampleNames)) {
 
 In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale (methods 2, 3 and 4). Note that for all cases the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
+Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which lead us to have to infer them as described in section \ref{getting-the-number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so for any other software this would not be a limitation. In any case, the coverage decrease was very low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 -> 166) and no values when comparing ribosome stoichiometry (731 -> 731). When analyzing precision (section \ref{evaluating-technical-precision}), we only lost 1.2% of values (21,320 -> 21,061).
+
 ## Evaluating accuracy
 
 Let's now compare accuracy. First, we compare the ES values predicted by each method to the actual UPS2 values:
