@@ -10,8 +10,6 @@ header-includes:
 bibliography: ../doc/paper/bibliography.bib
 output:
   pdf_document:
-    toc: true
-    toc_depth: 3
     number_sections: true
     highlight: tango
 ---
@@ -19,6 +17,11 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, dev = "png", dpi = 600)
 ```
+
+\pagenumbering{gobble}
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
 
 # Summary
 
@@ -86,7 +89,7 @@ Each injected sample consisted of:
 * 6 ug of IS (detected in the H fraction)
 * 6 ug of actual sample (detected in the L fraction)
 
-```{r loadSILACdata}
+```{r loadSILACdata, warning = FALSE}
 ```
 
 ## Getting the number of theoretical peptides
@@ -106,7 +109,7 @@ ESdata <- addNtheoPeptides(ESdata,NTPdataUPS2,'.L')
 
 ## Loading ribosomal proteins
 
-We use a list of ribosomal genes based on previous work [@Jenner2012]:
+We used a list of ribosomal genes based on previous work [@Jenner2012]:
 
 ```{r loadRibProteins}
 ```
@@ -136,8 +139,8 @@ As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-IS}),
 ```
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.',1.1e6) #1.1 ug
-ISdata    <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.',6e6)   #6 ug
+ESdata <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.',1.1e6) #1.1 ug
+ISdata <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.',6e6)   #6 ug
 ```
 
 We now use the absolute abundances from the IS (fmol/sample) to infer absolute abundances in each sample of the SILAC data (fmol/sample):
@@ -161,6 +164,8 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPA')
 ## Method 4: Normalized TPA
 
 We will also try out to first normalize all MS intensitiy values by the corresponding number of theoretical peptides:
+
+`abundance = (normalized MS intensity)*(injected amount)/(sum of all normalized MS intensities*MW values)`
 
 ```{r normalizeIntensities}
 ```
@@ -196,15 +201,15 @@ First, let's take a look at the total detected protein amount in each of the 6 s
 ```{r plotTotalProt}
 ```
 
-```{r tot-IS, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-IS}Total detected protein amounts in all 6 IS, according to all methods."}
-par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
-IBAQname <- 'Method 1: iBAQ'
-IRname   <- 'Method 2: iBAQ rescaled'
-TPAname  <- 'Method 3: TPA'
-TPANname <- 'Method 4: TPA normalized'
-ISnames  <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS',
-              'Abundance.TPA.IS','Abundance.TPAnorm.IS')
+```{r tot-IS, fig.height = 1.5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:tot-IS}Total detected protein amounts in all 6 IS, according to all methods."}
+par(mfcol = c(1,4), mar = c(0.5,2.5,1.5,1), cex = 0.5)
+IBAQname   <- 'Method 1: iBAQ'
+IRname     <- 'Method 2: iBAQ rescaled'
+TPAname    <- 'Method 3: TPA'
+TPANname   <- 'Method 4: TPA normalized'
 titleNames <- c(IBAQname,IRname,TPAname,TPANname)
+ISnames    <- c('Abundance.iBAQ.IS','Abundance.iBAQrescaled.IS',
+                'Abundance.TPA.IS','Abundance.TPAnorm.IS')
 for(i in 1:length(ISnames)) {
   plotTotalProt(ISdata,ISnames[i],titleNames[i])
 }
@@ -212,8 +217,8 @@ for(i in 1:length(ISnames)) {
 
 Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-IS}):
 
-```{r tot-samples, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
-par(mfcol = c(1,4), mar = c(1,2.5,2,1), cex = 1)
+```{r tot-samples, fig.height = 1.5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
+par(mfcol = c(1,4), mar = c(0.5,2.5,1.5,1), cex = 0.5)
 sampleNames <- c('Abundance.iBAQ.R..1_','Abundance.iBAQrescaled.R..1_',
                  'Abundance.TPA.R..1_','Abundance.TPAnorm.R..1_')
 for(i in 1:length(sampleNames)) {
@@ -223,7 +228,7 @@ for(i in 1:length(sampleNames)) {
 
 In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale (methods 2, 3 and 4). Note that for all cases the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
-Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which lead us to have to infer them as described in section \ref{getting-the-number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so for any other software this would not be a limitation. In any case, the coverage decrease was very low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 -> 166) and no values when comparing ribosome stoichiometry (731 -> 731). When analyzing precision (section \ref{evaluating-technical-precision}), we only lost 1.2% of values (21,320 -> 21,061).
+Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which lead us to have to infer them as described in section \ref{getting-the-number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so for any other software this would not be a limitation. In any case, the coverage decrease was very low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 $\rightarrow$ 166) and no values when comparing ribosome stoichiometry (731 $\rightarrow$ 731). When analyzing precision (section \ref{evaluating-technical-precision}), we only lost 1.2% of values (21,320 $\rightarrow$ 21,061).
 
 ## Evaluating accuracy
 
@@ -235,8 +240,8 @@ Let's now compare accuracy. First, we compare the ES values predicted by each me
 ```{r plotESerror}
 ```
 
-```{r accuracy-ups2, fig.height = 5, fig.width = 5, fig.align="center", fig.cap = "\\label{fig:accuracy-ups2}Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
-par(mfrow = c(2,2), mar = c(4,4,2,1), cex = 0.8)
+```{r accuracy-ups2, fig.height = 4.5, fig.width = 4.5, fig.align="center", fig.cap = "\\label{fig:accuracy-ups2}Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
+par(mfrow = c(2,2), mar = c(3.5,4,2,2), cex = 0.7)
 FCups2IBAQ <- plotESerror(ESdata,'iBAQ',IBAQname)
 FCups2IR   <- plotESerror(ESdata,'iBAQrescaled',IRname)
 FCups2TPA  <- plotESerror(ESdata,'TPA',TPAname)
@@ -266,8 +271,8 @@ Now we can plot for each method the corresponding data:
 ```{r plotRPdata}
 ```
 
-```{r accuracy-ribosome, fig.height = 10, fig.width = 8, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample], according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
-par(mfrow = c(4,1), mar = c(4,4,2,1), cex = 1)
+```{r accuracy-ribosome, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample], according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
+par(mfrow = c(4,1), mar = c(4,4,2,1), cex = 0.8)
 FCrpIBAQ  <- plotRPdata(rpIBAQ,IBAQname)
 FCrpIR    <- plotRPdata(rpIR,IRname)
 FCrpTPA   <- plotRPdata(rpTPA,TPAname)
@@ -356,12 +361,10 @@ techFC     <- list(FCtechIBAQ[,2],FCtechIR[,2],FCtechTPA[,2],FCtechTPAN[,2])
 plotCumulativeDistrib(techFC,'Technical variability')
 ```
 
-We can also look at technical variability by plotting each FC to the basal abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
+We can also look at technical variability by plotting each FC to the corresponding abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
 
 ```{r plotFCvsAbundance}
 ```
-
-We can now compare again the methods:
 
 ```{r precision-abundance, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-abundance}Fold change Vs abundances for all methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in black."}
 par(mfrow = c(1,4), mar = c(4,4,1.5,0.5))
@@ -374,8 +377,6 @@ We see that in all cases more than 85% of the data falls within the detection ra
 
 ```{r plotSplines}
 ```
-
-Plotting now all data together with the smoothing splines for each method:
 
 ```{r precision-splines, fig.height = 3, fig.width = 4, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in yellow."}
 par(mfrow = c(1,1), mar = c(4,4,0.5,0.5))
@@ -417,13 +418,11 @@ The blue fits give us the transformation from light (L) MS intensity of the UPS2
 plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,TRUE)
 ```
 
-Note that the MS precision is quite poor: the same protein detection can vary almost a full order of magnitude in some cases. This supports the idea that an alternative linear fit can replace the original ES curve, as both are an approximation anyway.
-
 In conclusion, we can skip entirely the UPS2 data and just assume that the normalized MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples. In this approach, the iBAQ run is only used to do the rescaling, but this could be equally performed with any SILAC run.
 
 ### Predictions between methods
 
-Let's plot the data between methods: 
+Plotting the data between methods shows us that predictions are not very different: 
 
 ```{r general-comp, fig.height = 6, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:general-comp}Comparison of predictions [fmol/sample] between all methods (on log10 scale). Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
 IRvsIBAQ   <- cbind(abundanceIBAQ[,-1],abundanceIR[,-1])
@@ -440,8 +439,6 @@ plotVariability(TPAvsIR, c('iBAQrescaled.R','TPA.R'), '', IRname, TPAname, FALSE
 plotVariability(TPANvsIR, c('iBAQrescaled.R','TPAnorm.R'), '', IRname, TPANname, FALSE)
 plotVariability(TPANvsTPA, c('TPA.R','TPAnorm.R'), '', TPAname, TPANname, FALSE)
 ```
-
-We can see that predictions between methods are not very different.
 
 ### Sequence length
 
@@ -463,7 +460,6 @@ plotVsLength(ISdata,'theo.peptides','Number of theoretical peptides')
 ```
 
 With this we also see that sequence length can work as a good proxy for the number of theoretical peptides (if the latter is not available).
-<br>
 
 # Main figures of manuscript
 
@@ -476,5 +472,7 @@ Figure 2:
 
 ```{r figure2, results="hide", warning = FALSE}
 ```
+
+\newpage
 
 # References
