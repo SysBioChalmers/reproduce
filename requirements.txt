@@ -1,8 +1,4 @@
-Requires the following packages:
-
-```
-install.packages('plyr','knitr','vioplot','kableExtra')
+install.packages('plyr','knitr','kableExtra')
 tinytex::install_tinytex()
 source('http://www.bioconductor.org/biocLite.R')
 biocLite('biomaRt')
-```

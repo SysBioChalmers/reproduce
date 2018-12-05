@@ -36,7 +36,6 @@ Here we will go through the typical way of deducing protein abundances [fmol/sam
 library(plyr)
 library(knitr)
 library(biomaRt)
-library(vioplot)
 library(kableExtra)
 ```
 
