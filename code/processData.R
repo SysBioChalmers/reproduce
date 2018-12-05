@@ -89,27 +89,6 @@ normalizeIntensities <- function(data,varName) {
 }
 
 
-## @knitr interpolateAbundance
-interpolateAbundance <- function(data,pattern,abundance_pattern) {
-  pos <- grep(pattern,names(data))   #All values to interpolate
-  for(i in pos) {
-    # Define name of relevant variables:
-    name_i <- names(data)[i]
-    Lname  <- gsub('.H.','.L.',name_i)  #name of ES intensity
-    # Build linear model and apply to get abundance of H:
-    UPS2abundances <- log10(ESdata$amount.fmoles)
-    UPS2values     <- log10(ESdata[[Lname]])
-    lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
-    intercept      <- lmodel[1]$coefficients[1]           #intercept
-    abundance      <- 10^(log10(data[,i]) + intercept)    #LT for log(data) [fmol/sample]
-    # Add abundances to dataset:
-    name_i         <- gsub(pattern,paste0('Abundance.',abundance_pattern),name_i)
-    data[[name_i]] <- abundance
-  }
-  return(data)
-}
-
-
 ## @knitr getRPdata
 getRPdata <- function(data,RP) {
   data <- merge(RP,data, by = 'Protein.IDs', all.x = FALSE, all.y = FALSE)

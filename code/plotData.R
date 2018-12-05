@@ -350,23 +350,25 @@ plotSplines <- function(SILACdata,ESdata){
 
 ## @knitr plotLM
 plotLM <- function(x,y,scaling,allInOne) {
-  #Make linear model with fixed slope = 1
-  lmodel    <- lm(y - x ~ 1)
+  # Make linear model:
+  lmodel    <- lm(y ~ x)
   intercept <- lmodel$coefficients[1]
+  slope     <- lmodel$coefficients[2]
   if(scaling == 0) {
-    pos <- 0
+    text_pos <- 0
   } else {
-    pos <- 1
-    intercept <- log10(scaling)  #Also fix intercept
+    text_pos  <- 1
+    slope     <- 1
+    intercept <- log10(scaling)
   }
-  cols    <- getColors(3)
-  col_opt <- ifelse(scaling == 0,cols[1],cols[2])
-  abline(a = intercept, b = 1, col = col_opt)
-  #Compute and display R2:
-  yp <- x + intercept
+  cols    <- getColors(4)
+  col_opt <- ifelse(scaling == 0,cols[1],cols[4])
+  abline(a = intercept, b = slope, col = col_opt)
+  # Compute and display R2:
+  yp <- slope*x + intercept
   R2 <- round(1 - (sum((y - yp)^2)/sum((y - mean(y))^2)),2)
   if(!allInOne) {
-    text(round(min(x, na.rm = TRUE))-1,max(y, na.rm = TRUE)-pos,
+    text(round(min(x, na.rm = TRUE))-1,max(y, na.rm = TRUE)-text_pos,
          bquote('R'^2 ~ '=' ~ .(R2)), pos = 4, col = col_opt)
   }
 }
@@ -385,22 +387,21 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   max_x <- ceiling(max(x, na.rm = TRUE))
   min_y <- floor(min(y, na.rm = TRUE))
   max_y <- ceiling(max(y, na.rm = TRUE))
-  cols  <- getColors(3)
   if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
   if(allInOne) {
     interSize <- 0.5
     if(first) {
-      plot(x,y, col = cols[3], xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
+      plot(x,y, col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
            xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
            xlab = bquote('log'['10'] ~ '(intensity value)'),
            ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(2, 0.5, 0))
       text(min_x, max_y-0.5, bquote('CV'['m'] ~ '=' ~ .(CVm) ~ '%'), pos = 4)
     } else {
-      points(x,y, col = cols[3])
+      points(x,y, col = 'black')
     }
   } else {
     interSize <- 0.3
-    plot(x,y, pch = s,col = cols[3], xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
+    plot(x,y, pch = s,col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
          asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name)
   }
   if(!allInOne || first) {

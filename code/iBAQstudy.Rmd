@@ -180,30 +180,9 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPAnorm')
 
 Note that for methods 3 and 4 we have essentially created a linear model:
 
-`abundance = m*MSintensity`, where `m = (6 ug)/(sum of all MSintensities*MWs)`
+`abundance = m*intensity`, where `m = (6 ug)/(sum of intensities*MWs)`
 
-`log(abundance) = log(MSintensity) + log(m)` -> linear model with a = 1 and b = log(m) in the log space.
-
-## Additional method
-
-We will use an additional method only for comparing the ES curves quality. Abundance of the IS here is computed by building a log-log standard curve for the ES and applying it to the normalized MS intensities from the IS (H fraction). Note that said ES curve MUST have slope = 1, as the underlying assumption is that MS intensities are linearly proportional to the mass of the corresponding proteins, therefore:
-
-`moles = m*MSint`
-
-`log10(moles) = log10(m*MSint)`
-
-`log10(moles) = log10(MSint) + log10(m)`
-
-So if the fit is done in the log space, we fix the ES curve to always have slope = 1, and find the corresponding fit for the intercept:
-
-```{r interpolateAbundance}
-```
-
-```{r}
-ISdata    <- interpolateAbundance(ISdata,'normInt.Ntheo.H.T4h_','Interp.IS.')
-ESdata    <- interpolateAbundance(ESdata,'normInt.Ntheo.L.T4h_','Interp.ES.')
-SILACdata <- getSampleAbundance(SILACdata,ISdata,'Interp')
-```
+`log(abundance) = log(intensity) + log(m)` -> linear model with a = 1 and b = log(m) in the log space.
 
 # Method comparison
 
@@ -409,10 +388,10 @@ We see that method 4 (normalized TPA) has less overall variability than the both
 
 ### ES curves
 
-Let's take a look at the ES data + standard curves from method 4, compared to the alternative method (using an ES curve on the normalized MS intensities). For that we need:
+Let's take a look at the ES real abundance values Vs the normalized intensity data from method 4, and compare the "linear model" mentioned in section \ref{method-4-normalized-tpa} (method 4) to a linear fit to the data (method 1). For that we need:
 
-* A function for plotting a linear fit (with a slope = 1).
-* A function for plotting the external standard.
+* A function for plotting a linear fit.
+* A function for plotting the external standard data + fits.
 * A function for plotting all 6 external standards (together or separate).
 
 ```{r plotLM}
@@ -424,17 +403,17 @@ Let's take a look at the ES data + standard curves from method 4, compared to th
 ```{r plotAllES}
 ```
 
-```{r es-separate, fig.height = 3.5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:es-separate}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(normalized MS intensity) in x-axis) based on the 31/ 48 UPS2 proteins that were detected and measured by the MS, with (gray) and without (blue) rescaling. Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
+```{r es-separate, fig.height = 3.5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:es-separate}log10(abundance [fmol/sample]) Vs log10(normalized MS intensity) of the 30/48 UPS2 proteins that were detected and measured by the MS, together with 2 linear models used later for converting the data: method 1, iBAQ (blue); and method 4, rescaling the normalized intensities (yellow). Within each of the 4 orders of magnitude, each symbol corresponds to a different protein."}
 #All 6 MS intensity values from the IS (H fraction):
-ISpos <- grep('normInt.Ntheo.H.T4h',names(ISdata))
+ISpos   <- grep('normInt.Ntheo.H.T4h',names(ISdata))
 Hdata   <- ISdata[,ISpos]*ISdata$Mol..weight..kDa.
 scaling <- 6e6/colSums(Hdata, na.rm = TRUE)
 plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,FALSE)
 ```
 
-The blue fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with the traditional approach. But they don't look the best (considering they are in log10 space), many other curves (as the gray fits) can almost equally well fit that data. Let's see everything in the same plot:
+The blue fits give us the transformation from light (L) MS intensity of the UPS2 proteins to abundance (fmol/sample) with iBAQ. But they don't look the best (considering they are in log10 space), many other curves (as the yellow fits) can almost equally well fit that data. Let's see everything in the same plot:
 
-```{r es-together, fig.height = 2.5, fig.width = 2.5, fig.align = "center", fig.cap = "\\label{fig:es-together}ES curves (log10(abundance [fmol/sample]) in y-axis Vs log10(MS intensity) in x-axis), with (gray) and without (blue) rescaling. Average coefficient of variation (CVm) within each protein is shown in the upper left corner."}
+```{r es-together, fig.height = 2.5, fig.width = 2.5, fig.align = "center", fig.cap = "\\label{fig:es-together}log10(abundance [fmol/sample]) Vs log10(normalized MS intensity) of the 30/48 UPS2 proteins that were detected and measured by the MS, together with 2 linear models used later for converting the data: method 1, iBAQ (blue); and method 4, rescaling the normalized intensities (yellow). Average coefficient of variation (CVm) within each protein is shown in the upper left corner."}
 plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,TRUE)
 ```
 
