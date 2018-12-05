@@ -17,6 +17,28 @@ getColors <- function(n) {
   return(cols)
 }
 
+
+## @knitr plotTotalProt
+plotTotalProt <- function(data,pattern,titleName) {
+  pos <- grep(pattern,names(data))
+  # Display number of proteins detected:
+  meanVals <- rowMeans(data[,pos], na.rm = TRUE)
+  meanVals[meanVals <= 0] <- NA
+  coverage <- sum(!is.na(meanVals))
+  print(paste(titleName,'-',coverage,'proteins detected'))
+  # Get total protein detected:
+  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
+  totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
+  meanProt       <- round(mean(totProt))+1
+  names(totProt) <- gsub(pattern,'',names(totProt))
+  factors <- factor(names(totProt))
+  cols    <- getColors(nlevels(factors))
+  barplot(totProt, col = cols[factors], mgp = c(1.5, 0.5, 0), cex.names = 0.8,
+          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt))
+  title(main = titleName, cex.main = 0.9)
+}
+
+
 ## @knitr plotScatter
 plotScatter <- function(data1,data2,title,labelx,labely) {
   # Remove NA values - zeros - Infs:
@@ -58,48 +80,8 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
 }
 
 
-## @knitr plotVariability
-plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE) {
-  # Get data:
-  data <- getReplicateData(data,groupNames,1,repeatData)
-  # Plot all combinations:
-  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely)
-}
-
-
-## @knitr plotVsLength
-plotVsLength <- function(data,varNames,titleNames) {
-  for(i in 1:length(varNames)) {
-    if(length(varNames) == 1) {
-      x <- data$Sequence.length
-      y <- data[[varNames]]
-    } else {
-      name   <- varNames[i]
-      data_i <- data[,grep(name,names(data))]
-      x <- NULL
-      y <- NULL
-      for(j in 1:length(names(data_i))) {
-        x <- c(x,data$Sequence.length)
-        y <- c(y,log10(data_i[,j]))
-      }
-    }
-    y[is.infinite(y)] <- NA
-    x <- x[!is.na(y)]
-    y <- y[!is.na(y)]
-    col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
-    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '')
-    lmodel <- lm(y ~ x)
-    a  <- lmodel$coefficients[1]
-    b  <- lmodel$coefficients[2]
-    R2 <- round(summary(lmodel)$r.squared,2)
-    abline(a, b, col = 'red')
-    text(round(max(x, na.rm = TRUE)),floor(max(y, na.rm = TRUE)),
-         bquote('R'^2 ~ '=' ~ .(R2)), pos = 2)
-  }
-}
-
-## @knitr plotESdata
-plotESdata <- function(ESdata,method,title) {
+## @knitr plotESerror
+plotESerror <- function(ESdata,method,title) {
   pattern  <- paste0('Abundance.',method,'.ES')
   dataExp  <- NULL
   dataPred <- NULL
@@ -160,12 +142,12 @@ plotCumulativeDistrib <- function(FCs,varName){
   print(paste(varName, '- number of FC compared =',length(FCs$iBAQrescaled)))
   print(paste(varName, '- number of FC compared =',length(FCs$TPA)))
   print(paste(varName, '- number of FC compared =',length(FCs$TPAnorm)))
-  print(paste(varName, 'of iBAQ = iBAQrescaled: p-val =',round(htest1$p.value,4)))
-  print(paste(varName, 'of iBAQ = TPA: p-val =',round(htest2$p.value,4)))
-  print(paste(varName, 'of iBAQ = TPAnorm: p-val =',round(htest3$p.value,4)))
-  print(paste(varName, 'of iBAQrescaled = TPA: p-val =',round(htest4$p.value,4)))
-  print(paste(varName, 'of iBAQrescaled = TPAnorm: p-val =',round(htest5$p.value,4)))
-  print(paste(varName, 'of TPA = TPAnorm: p-val =',round(htest6$p.value,4)))
+  print(paste(varName, 'of iBAQ = iBAQrescaled: p-val =',htest1$p.value))
+  print(paste(varName, 'of iBAQ = TPA: p-val =',htest2$p.value))
+  print(paste(varName, 'of iBAQ = TPAnorm: p-val =',htest3$p.value))
+  print(paste(varName, 'of iBAQrescaled = TPA: p-val =',htest4$p.value))
+  print(paste(varName, 'of iBAQrescaled = TPAnorm: p-val =',htest5$p.value))
+  print(paste(varName, 'of TPA = TPAnorm: p-val =',htest6$p.value))
   # Plot data:
   min_x <- 0
   max_x <- 1
@@ -205,115 +187,12 @@ plotCumulativeDistrib <- function(FCs,varName){
 }
 
 
-## @knitr plotTotalProt
-plotTotalProt <- function(data,pattern,titleName) {
-  pos <- grep(pattern,names(data))
-  # Display number of proteins detected:
-  meanVals <- rowMeans(data[,pos], na.rm = TRUE)
-  meanVals[meanVals <= 0] <- NA
-  coverage <- sum(!is.na(meanVals))
-  print(paste(titleName,'-',coverage,'proteins detected'))
-  # Get total protein detected:
-  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
-  totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
-  meanProt       <- round(mean(totProt))+1
-  names(totProt) <- gsub(pattern,'',names(totProt))
-  factors <- factor(names(totProt))
-  cols    <- getColors(nlevels(factors))
-  barplot(totProt, col = cols[factors], mgp = c(1.5, 0.5, 0), cex.names = 0.8,
-          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt))
-  title(main = titleName, cex.main = 0.9)
-}
-
-
-## @knitr plotLM
-plotLM <- function(x,y,scaling,allInOne) {
-  #Make linear model with fixed slope = 1
-  lmodel    <- lm(y - x ~ 1)
-  intercept <- lmodel$coefficients[1]
-  if(scaling == 0) {
-    pos <- 0
-  } else {
-    pos <- 1
-    intercept <- log10(scaling)  #Also fix intercept
-  }
-  cols    <- getColors(3)
-  col_opt <- ifelse(scaling == 0,cols[1],cols[2])
-  abline(a = intercept, b = 1, col = col_opt)
-  #Compute and display R2:
-  yp <- x + intercept
-  R2 <- round(1 - (sum((y - yp)^2)/sum((y - mean(y))^2)),2)
-  if(!allInOne) {
-    text(round(min(x, na.rm = TRUE))-1,max(y, na.rm = TRUE)-pos,
-         bquote('R'^2 ~ '=' ~ .(R2)), pos = 4, col = col_opt)
-  }
-}
-
-
-## @knitr plotES
-plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
-  #Plot data:
-  x <- log10(ESdata[[paste0(pattern,name)]])
-  y <- log10(ESdata$amount.fmoles)
-  s <- rep(0:18,length.out = length(x))
-  y <- y[!is.na(x)]
-  s <- s[!is.na(x)]
-  x <- x[!is.na(x)]
-  min_x <- round(min(x, na.rm = TRUE))-1
-  max_x <- ceiling(max(x, na.rm = TRUE))
-  min_y <- floor(min(y, na.rm = TRUE))
-  max_y <- ceiling(max(y, na.rm = TRUE))
-  cols  <- getColors(3)
-  if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
-  if(allInOne) {
-    interSize <- 0.5
-    if(first) {
-      plot(x,y, col = cols[3], xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
-           xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
-           xlab = bquote('log'['10'] ~ '(intensity value)'),
-           ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(2, 0.5, 0))
-      text(min_x, max_y-0.5, bquote('CV'['m'] ~ '=' ~ .(CVm) ~ '%'), pos = 4)
-    } else {
-      points(x,y, col = cols[3])
-    }
-  } else {
-    interSize <- 0.3
-    plot(x,y, pch = s,col = cols[3], xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
-         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name)
-  }
-  if(!allInOne || first) {
-    axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x,
-         tck = 0.015, mgp = c(2, interSize*2/3, 0))
-    axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y,
-         tck = 0.015, mgp = c(2, interSize, 0))
-    axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
-    axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
-  }
-  #Get linear fits:
-  plotLM(x,y,0,allInOne)
-  plotLM(x,y,scaling,allInOne)
-}
-
-
-## @knitr plotAllES
-plotAllES <- function(ESdata,pattern,scaling,allInOne) {
-  #Compute the mean coefficient of variation:
-  data <- ESdata[,grep(pattern,names(ESdata))]
-  SD   <- apply(data, 1, sd, na.rm = TRUE)    #Standard deviation for each protein
-  mu   <- apply(data, 1, mean, na.rm = TRUE)  #Mean for each protein
-  CV   <- SD/mu                               #Coefficient of variation for each protein
-  CVm  <- mean(CV, na.rm = TRUE)*100          #Mean coefficient of variation [%]
-  CVm  <- round(CVm, digits = 1)
-  #Plot data:
-  if(allInOne) { par(mfrow = c(1,1), mar = c(3,3,0,0), pty = "s", cex = 1) }
-  else         { par(mfrow = c(2,3), mar = c(3, 3, 2, 1), cex = 0.5) }
-  ESdata <- ESdata[order(ESdata$amount.fmoles),]
-  plotES(ESdata,pattern,scaling,'top5_batch1',allInOne,TRUE,CVm)
-  plotES(ESdata,pattern,scaling,'top5_batch2',allInOne,FALSE,CVm)
-  plotES(ESdata,pattern,scaling,'top5_batch3',allInOne,FALSE,CVm)
-  plotES(ESdata,pattern,scaling,'top10_batch1',allInOne,FALSE,CVm)
-  plotES(ESdata,pattern,scaling,'top10_batch2',allInOne,FALSE,CVm)
-  plotES(ESdata,pattern,scaling,'top10_batch3',allInOne,FALSE,CVm)
+## @knitr plotVariability
+plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE) {
+  # Get data:
+  data <- getReplicateData(data,groupNames,1,repeatData)
+  # Plot all combinations:
+  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely)
 }
 
 
@@ -466,5 +345,129 @@ plotSplines <- function(SILACdata,ESdata){
   lines(ss2, lwd = 2, col = cols[2])
   lines(ss3, lwd = 2, col = cols[3])
   lines(ss4, lwd = 2, col = cols[4])
+}
+
+
+## @knitr plotLM
+plotLM <- function(x,y,scaling,allInOne) {
+  # Make linear model:
+  lmodel    <- lm(y ~ x)
+  intercept <- lmodel$coefficients[1]
+  slope     <- lmodel$coefficients[2]
+  if(scaling == 0) {
+    text_pos <- 0
+  } else {
+    text_pos  <- 1
+    slope     <- 1
+    intercept <- log10(scaling)
+  }
+  cols    <- getColors(4)
+  col_opt <- ifelse(scaling == 0,cols[1],cols[4])
+  abline(a = intercept, b = slope, col = col_opt)
+  # Compute and display R2:
+  yp <- slope*x + intercept
+  R2 <- round(1 - (sum((y - yp)^2)/sum((y - mean(y))^2)),2)
+  if(!allInOne) {
+    text(round(min(x, na.rm = TRUE))-1,max(y, na.rm = TRUE)-text_pos,
+         bquote('R'^2 ~ '=' ~ .(R2)), pos = 4, col = col_opt)
+  }
+}
+
+
+## @knitr plotES
+plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
+  #Plot data:
+  x <- log10(ESdata[[paste0(pattern,name)]])
+  y <- log10(ESdata$amount.fmoles)
+  s <- rep(0:18,length.out = length(x))
+  y <- y[!is.na(x)]
+  s <- s[!is.na(x)]
+  x <- x[!is.na(x)]
+  min_x <- round(min(x, na.rm = TRUE))-1
+  max_x <- ceiling(max(x, na.rm = TRUE))
+  min_y <- floor(min(y, na.rm = TRUE))
+  max_y <- ceiling(max(y, na.rm = TRUE))
+  if(length(scaling) > 1) { scaling <- scaling[grep(name,names(scaling))] }
+  if(allInOne) {
+    interSize <- 0.5
+    if(first) {
+      plot(x,y, col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
+           xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
+           xlab = bquote('log'['10'] ~ '(intensity value)'),
+           ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(2, 0.5, 0))
+      text(min_x, max_y-0.5, bquote('CV'['m'] ~ '=' ~ .(CVm) ~ '%'), pos = 4)
+    } else {
+      points(x,y, col = 'black')
+    }
+  } else {
+    interSize <- 0.3
+    plot(x,y, pch = s,col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
+         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name)
+  }
+  if(!allInOne || first) {
+    axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x,
+         tck = 0.015, mgp = c(2, interSize*2/3, 0))
+    axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y,
+         tck = 0.015, mgp = c(2, interSize, 0))
+    axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
+    axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
+  }
+  #Get linear fits:
+  plotLM(x,y,0,allInOne)
+  plotLM(x,y,scaling,allInOne)
+}
+
+
+## @knitr plotAllES
+plotAllES <- function(ESdata,pattern,scaling,allInOne) {
+  #Compute the mean coefficient of variation:
+  data <- ESdata[,grep(pattern,names(ESdata))]
+  SD   <- apply(data, 1, sd, na.rm = TRUE)    #Standard deviation for each protein
+  mu   <- apply(data, 1, mean, na.rm = TRUE)  #Mean for each protein
+  CV   <- SD/mu                               #Coefficient of variation for each protein
+  CVm  <- mean(CV, na.rm = TRUE)*100          #Mean coefficient of variation [%]
+  CVm  <- round(CVm, digits = 1)
+  #Plot data:
+  if(allInOne) { par(mfrow = c(1,1), mar = c(3,3,0,0), pty = "s", cex = 0.8) }
+  else         { par(mfrow = c(2,3), mar = c(2, 2, 2, 1), cex = 0.5) }
+  ESdata <- ESdata[order(ESdata$amount.fmoles),]
+  plotES(ESdata,pattern,scaling,'top5_batch1',allInOne,TRUE,CVm)
+  plotES(ESdata,pattern,scaling,'top5_batch2',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top5_batch3',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top10_batch1',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top10_batch2',allInOne,FALSE,CVm)
+  plotES(ESdata,pattern,scaling,'top10_batch3',allInOne,FALSE,CVm)
+}
+
+
+## @knitr plotVsLength
+plotVsLength <- function(data,varNames,titleNames) {
+  for(i in 1:length(varNames)) {
+    if(length(varNames) == 1) {
+      x <- data$Sequence.length
+      y <- data[[varNames]]
+    } else {
+      name   <- varNames[i]
+      data_i <- data[,grep(name,names(data))]
+      x <- NULL
+      y <- NULL
+      for(j in 1:length(names(data_i))) {
+        x <- c(x,data$Sequence.length)
+        y <- c(y,log10(data_i[,j]))
+      }
+    }
+    y[is.infinite(y)] <- NA
+    x <- x[!is.na(y)]
+    y <- y[!is.na(y)]
+    col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
+    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '')
+    lmodel <- lm(y ~ x)
+    a  <- lmodel$coefficients[1]
+    b  <- lmodel$coefficients[2]
+    R2 <- round(summary(lmodel)$r.squared,2)
+    abline(a, b, col = 'red')
+    text(round(max(x, na.rm = TRUE)),floor(max(y, na.rm = TRUE)),
+         bquote('R'^2 ~ '=' ~ .(R2)), pos = 2)
+  }
 }
 

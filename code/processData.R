@@ -30,42 +30,6 @@ addNtheoPeptides <- function(data,NTPdata,fraction) {
 }
 
 
-## @knitr normalizeIntensities
-normalizeIntensities <- function(data,varName) {
-  # Create a copy of data and normalize intensities:
-  Ndata <- data
-  MSpos <- grep('Intensity',names(Ndata))
-  Ndata[,MSpos] <- Ndata[,MSpos]/Ndata[[varName]]
-  #Change variable names:
-  varName <- gsub('Sequence.length','length',varName)
-  varName <- gsub('theo.peptides','Ntheo',varName)
-  names(Ndata) <- gsub('Intensity',paste0('normInt.',varName),names(Ndata))
-  #Merge back:
-  data <- merge(data, Ndata)
-  return(data)
-}
-
-## @knitr interpolateAbundance
-interpolateAbundance <- function(data,pattern,abundance_pattern) {
-  pos <- grep(pattern,names(data))   #All values to interpolate
-  for(i in pos) {
-    # Define name of relevant variables:
-    name_i <- names(data)[i]
-    Lname  <- gsub('.H.','.L.',name_i)  #name of ES intensity
-    # Build linear model and apply to get abundance of H:
-    UPS2abundances <- log10(ESdata$amount.fmoles)
-    UPS2values     <- log10(ESdata[[Lname]])
-    lmodel         <- lm(UPS2abundances - UPS2values ~ 1) #ES curve with fixed slope = 1
-    intercept      <- lmodel[1]$coefficients[1]           #intercept
-    abundance      <- 10^(log10(data[,i]) + intercept)    #LT for log(data) [fmol/sample]
-    # Add abundances to dataset:
-    name_i         <- gsub(pattern,paste0('Abundance.',abundance_pattern),name_i)
-    data[[name_i]] <- abundance
-  }
-  return(data)
-}
-
-
 ## @knitr getSampleAbundance
 getSampleAbundance <- function(SILACdata,ISdata,method) {
   # Merge abundance data from IS into SILAC dataset:
@@ -105,6 +69,22 @@ rescaleData <- function(data,pattern,name,totProt) {
     new_name <- gsub(pattern,paste0('Abundance.',name),names(data)[i])
     data[[new_name]] <- abundance
   }
+  return(data)
+}
+
+
+## @knitr normalizeIntensities
+normalizeIntensities <- function(data,varName) {
+  # Create a copy of data and normalize intensities:
+  Ndata <- data
+  MSpos <- grep('Intensity',names(Ndata))
+  Ndata[,MSpos] <- Ndata[,MSpos]/Ndata[[varName]]
+  #Change variable names:
+  varName <- gsub('Sequence.length','length',varName)
+  varName <- gsub('theo.peptides','Ntheo',varName)
+  names(Ndata) <- gsub('Intensity',paste0('normInt.',varName),names(Ndata))
+  #Merge back:
+  data <- merge(data, Ndata)
   return(data)
 }
 
@@ -195,32 +175,5 @@ FCbreakdown <- function(data) {
   x[4:6] <- FCbreakdownRep(data,c('_batch1','_batch2','_batch3'))
   x[7:9] <- FCbreakdownRep(data,c('.R1.1','.R2.1','.R3.1','_batch1','_batch2','_batch3'))
   return(x)
-}
-
-
-## @knitr getCVs
-getCVs <- function(data,groupNames,method){
-  # Erase distinction from name:
-  for(i in 1:length(groupNames)) {
-    names(data) <- gsub(groupNames[i],'',names(data))
-  }
-  #Compute all possible CVs (within groups and within proteins):
-  uniqueGroups <- unique(names(data))
-  CVs <- NULL
-  for(group in uniqueGroups) {
-    groupPos  <- grep(group,names(data))
-    for(i in 1:length(data[,1])) {
-      data_i <- as.numeric(data[i,groupPos])
-      if(sum(is.na(data_i)) == 0) {
-        if(sum(data_i) > 0) {
-          mean_i <- mean(data_i)
-          std_i  <- sd(data_i)
-          CV_i   <- log10(std_i/mean_i*100)
-          CVs    <- c(CVs,CV_i)
-        }
-      }
-    }
-  }
-  return(CVs)
 }
 
