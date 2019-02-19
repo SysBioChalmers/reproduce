@@ -218,7 +218,7 @@ plotPCA <- function(data,title,outside = FALSE){
     if(length(grep('R1.1',names(data)[i])) == 1)      { pch_opt[i] <- 1 } 
     else if(length(grep('R2.1',names(data)[i])) == 1) { pch_opt[i] <- 2 }
     else if(length(grep('R3.1',names(data)[i])) == 1) { pch_opt[i] <- 3 }
-    # Color by tech. rep.
+    # Color by batch
     if(length(grep('batch1',names(data)[i])) == 1)      { col_opt[i] <- cols[1] }
     else if(length(grep('batch2',names(data)[i])) == 1) { col_opt[i] <- cols[3] }
     else if(length(grep('batch3',names(data)[i])) == 1) { col_opt[i] <- cols[5] }
@@ -250,7 +250,7 @@ plotPCA <- function(data,title,outside = FALSE){
 ## @knitr plotAllVariability
 plotAllVariability <- function(abundance,showTitle) {
   if(showTitle) {
-    titleNames = c('Biological Variability','Technical Variability','PCA')
+    titleNames = c('Biological Variability','Batch Variability','PCA')
   } else {
     titleNames = c('','','')
   }

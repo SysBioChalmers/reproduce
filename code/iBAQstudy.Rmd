@@ -55,7 +55,7 @@ The commercial kit brings 10.6 ug of protein, however only 1.1 ug is injected in
 
 ## Loading iBAQ data
 
-In the iBAQ data (IS+ES) there are 6 samples: 3 technical replicates (`batch1`, `batch2` & `batch3`) and each of them is processed with 2 different MS methods `top5` & `top10`. We will have then 6 different ES curves:
+In the iBAQ data (IS+ES) there are 6 samples: measured in 3 batches (`batch1`, `batch2` & `batch3`) and each of them processed with 2 different MS methods `top5` & `top10`. We will have then 6 different ES curves:
 
 * top5_batch1
 * top5_batch2
@@ -80,7 +80,7 @@ In each sample of the iBAQ data there are:
 There are 18 different samples:
 
 * 3 biological replicates (`R1`, `R2` & `R3`)
-* each with 3 technical replicates (`batch1`, `batch2` & `batch3`)
+* each measured on 3 different batches (`batch1`, `batch2` & `batch3`)
 * each estimated with a different MS method (`top5` & `top10`)
 
 Each injected sample consisted of:
@@ -150,7 +150,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQrescaled')
 
 ## Method 3: TPA
 
-The alternative: To skip iBAQ values and ES curves entirely, and to assume all MS intensities summed up together (mass-wise) is proportional to the injected amount in ug. This is known as the total protein approach (TPA) [@Wisniewski2014a]:
+The alternative: To skip iBAQ values and ES curves entirely, and to assume all MS intensities summed up together (mass-wise) are proportional to the injected amount in ug. This is known as the total protein approach (TPA) [@Wisniewski2014a]:
 
 `abundance = (MS intensity)*(injected amount)/(sum of all MS intensities*MW values)`
 
@@ -162,7 +162,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPA')
 
 ## Method 4: Normalized TPA
 
-We will also try out to first normalize all MS intensitiy values by the corresponding number of theoretical peptides:
+We will also try out to first normalize all MS intensitiy values by the corresponding number of theoretical peptides [@Wisniewski2012]:
 
 `abundance = (normalized MS intensity)*(injected amount)/(sum of all normalized MS intensities*MW values)`
 
@@ -288,12 +288,12 @@ ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
 rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
 par(mfrow = c(1,2), mar = c(3.5,4,2,1), cex = 0.7)
 plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
-plotCumulativeDistrib(rpFC,'Ribosomal stoichiometry variability')
+plotCumulativeDistrib(rpFC,'Ribosomal stoichiometry error')
 ```
 
 ## Evaluating precision
 
-We now display the variability of the final abundance data between biological and technical replicates, for all methods. For that we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same technical replicate/MS method but 2 different biological replicates). We can also use it to compare between methods by removing the method's name:
+We now display the variability of the final abundance data between biological replicates and between batches, for all methods. For that we define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same batch/MS method but 2 different biological replicates). We can also use it to compare between methods by removing the method's name:
 
 ```{r getReplicateData}
 ```
@@ -309,7 +309,7 @@ We now define plotting functions (variability plots and a PCA):
 ```{r plotAllVariability}
 ```
 
-```{r precision-all, fig.height = 12, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-all}Comparison of data variability from 1) iBAQ (1st row), 2) rescaling iBAQ (2nd row), 3) TPA (3rd row) and 4) normalized TPA (4th row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same replicate (biological or technical, respectively). Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10. In the PCA plots (right column), colors refer to technical replicates and shapes to biological replicates."}
+```{r precision-all, fig.height = 12, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-all}Comparison of data variability from 1) iBAQ (1st row), 2) rescaling iBAQ (2nd row), 3) TPA (3rd row) and 4) normalized TPA (4th row). In the variability plots (left and middle columns, log10(abundance [fmol/sample]) both in the x-axis and y-axis), 2 abundance values for a given protein are plotted if they belong to the same biological replicate or batch, respectively. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10. In the PCA plots (right column), colors refer to MS batches and shapes to biological replicates."}
 par(mfrow = c(4,3), mar = c(0, 1, 1.5, 0), cex = 1)
 plotAllVariability(abundanceIBAQ,TRUE)
 plotAllVariability(abundanceIR,FALSE)
@@ -317,7 +317,7 @@ plotAllVariability(abundanceTPA,FALSE)
 plotAllVariability(abundanceTPAN,FALSE)
 ```
 
-We see a lower median fold change in the technical replicates + a better separation of the "technical clusters" in the PCA when we use method 3 or 4 (PC1 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between technical replicates than with methods 1 and 2. This is confirmed by looking at the breakdown of proteins by method:
+We see a lower median fold change between batches + a better separation of the "batch clusters" in the PCA when we use method 3 or 4 (PC1+PC2 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between batches than with methods 1 and 2. This is confirmed by looking at the breakdown of proteins by method:
 
 ```{r FCbreakdownRep}
 ```
@@ -339,15 +339,15 @@ tablecap <- paste("Protein breakdown by method and type of replicate.",
                   "For each protein, the maximum fold change is considered.")
 kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
   kable_styling(latex_options = "hold_position") %>%
-  group_rows("Biological Replicates", 1, 3) %>%
-  group_rows("Technical Replicates", 4, 6) %>%
-  group_rows("All Replicates", 7, 9)
+  group_rows("Variability between biological Replicates", 1, 3) %>%
+  group_rows("Variability between batches", 4, 6) %>%
+  group_rows("Variability between all replicates", 7, 9)
 
 ```
 
-### Evaluating technical precision
+### Evaluating inter-batch precision
 
-Let's look further into the reduction of technical variability, by looking at the cumulative distribution of each method:
+Let's look further into the reduction of batch variability, by looking at the cumulative distribution of each method:
 
 ```{r precision-tech, fig.height = 4, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 par(mfrow = c(1,1), mar = c(4,4,1,1))
@@ -357,10 +357,10 @@ FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
 FCtechTPA  <- getReplicateData(abundanceTPA[,-1],names,2,FALSE)
 FCtechTPAN <- getReplicateData(abundanceTPAN[,-1],names,2,FALSE)
 techFC     <- list(FCtechIBAQ[,2],FCtechIR[,2],FCtechTPA[,2],FCtechTPAN[,2])
-plotCumulativeDistrib(techFC,'Technical variability')
+plotCumulativeDistrib(techFC,'Batch variability')
 ```
 
-We can also look at technical variability by plotting each FC to the corresponding abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
+We can also look at batch variability by plotting each FC to the corresponding abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
 
 ```{r plotFCvsAbundance}
 ```
