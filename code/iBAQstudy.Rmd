@@ -286,7 +286,7 @@ These distributions are not very different between them (with exception of metho
 ```{r accuracy-cdf, warning = FALSE, fig.height = 4, fig.width = 6, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for both accuracy evaluation metrics: differences of predicted Vs experimental values of UPS2 (left) and differences to median value in ribosomal measurements (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
 rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
-par(mfrow = c(1,2), mar = c(3.5,4,2,1), cex = 0.8)
+par(mfrow = c(1,2), mar = c(3.5,4,2,1), cex = 0.7)
 plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
 plotCumulativeDistrib(rpFC,'Ribosomal stoichiometry variability')
 ```
