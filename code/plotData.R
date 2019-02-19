@@ -444,30 +444,31 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
 plotVsLength <- function(data,varNames,titleNames) {
   for(i in 1:length(varNames)) {
     if(length(varNames) == 1) {
-      x <- data$Sequence.length
-      y <- data[[varNames]]
+      x <- log10(data$Sequence.length)
+      y <- log10(data[[varNames]])
+      col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.1)
     } else {
       name   <- varNames[i]
       data_i <- data[,grep(name,names(data))]
       x <- NULL
       y <- NULL
       for(j in 1:length(names(data_i))) {
-        x <- c(x,data$Sequence.length)
+        x <- c(x,log10(data$Sequence.length))
         y <- c(y,log10(data_i[,j]))
       }
+      col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
     }
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
     plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '')
     lmodel <- lm(y ~ x)
     a  <- lmodel$coefficients[1]
     b  <- lmodel$coefficients[2]
     R2 <- round(summary(lmodel)$r.squared,2)
     abline(a, b, col = 'red')
-    text(round(max(x, na.rm = TRUE)),floor(max(y, na.rm = TRUE)),
-         bquote('R'^2 ~ '=' ~ .(R2)), pos = 2)
+    text(floor(max(x, na.rm = TRUE)),round(min(y, na.rm = TRUE))+0.5,
+         bquote('R'^2 ~ '=' ~ .(R2)), pos = 4)
   }
 }
 
