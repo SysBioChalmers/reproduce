@@ -206,7 +206,7 @@ plotPCA <- function(data,title,outside = FALSE){
   log_data                        <- t(log_data)
   # Do PCA:
   pca  <- prcomp(log_data)
-  var  <- pca$sdev/sum(pca$sdev)*100
+  var  <- pca$sdev^2/sum(pca$sdev^2)*100
   var1 <- round(var[1], digits = 1)
   var2 <- round(var[2], digits = 1)
   # Plotting options:
