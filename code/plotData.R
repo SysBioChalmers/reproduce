@@ -206,7 +206,7 @@ plotPCA <- function(data,title,outside = FALSE){
   log_data                        <- t(log_data)
   # Do PCA:
   pca  <- prcomp(log_data)
-  var  <- pca$sdev/sum(pca$sdev)*100
+  var  <- pca$sdev^2/sum(pca$sdev^2)*100
   var1 <- round(var[1], digits = 1)
   var2 <- round(var[2], digits = 1)
   # Plotting options:
@@ -218,7 +218,7 @@ plotPCA <- function(data,title,outside = FALSE){
     if(length(grep('R1.1',names(data)[i])) == 1)      { pch_opt[i] <- 1 } 
     else if(length(grep('R2.1',names(data)[i])) == 1) { pch_opt[i] <- 2 }
     else if(length(grep('R3.1',names(data)[i])) == 1) { pch_opt[i] <- 3 }
-    # Color by tech. rep.
+    # Color by batch
     if(length(grep('batch1',names(data)[i])) == 1)      { col_opt[i] <- cols[1] }
     else if(length(grep('batch2',names(data)[i])) == 1) { col_opt[i] <- cols[3] }
     else if(length(grep('batch3',names(data)[i])) == 1) { col_opt[i] <- cols[5] }
@@ -250,7 +250,7 @@ plotPCA <- function(data,title,outside = FALSE){
 ## @knitr plotAllVariability
 plotAllVariability <- function(abundance,showTitle) {
   if(showTitle) {
-    titleNames = c('Biological Variability','Technical Variability','PCA')
+    titleNames = c('Biological Variability','Batch Variability','PCA')
   } else {
     titleNames = c('','','')
   }
@@ -444,30 +444,31 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
 plotVsLength <- function(data,varNames,titleNames) {
   for(i in 1:length(varNames)) {
     if(length(varNames) == 1) {
-      x <- data$Sequence.length
-      y <- data[[varNames]]
+      x <- log10(data$Sequence.length)
+      y <- log10(data[[varNames]])
+      col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.1)
     } else {
       name   <- varNames[i]
       data_i <- data[,grep(name,names(data))]
       x <- NULL
       y <- NULL
       for(j in 1:length(names(data_i))) {
-        x <- c(x,data$Sequence.length)
+        x <- c(x,log10(data$Sequence.length))
         y <- c(y,log10(data_i[,j]))
       }
+      col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
     }
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
     plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '')
     lmodel <- lm(y ~ x)
     a  <- lmodel$coefficients[1]
     b  <- lmodel$coefficients[2]
     R2 <- round(summary(lmodel)$r.squared,2)
     abline(a, b, col = 'red')
-    text(round(max(x, na.rm = TRUE)),floor(max(y, na.rm = TRUE)),
-         bquote('R'^2 ~ '=' ~ .(R2)), pos = 2)
+    text(floor(max(x, na.rm = TRUE)),round(min(y, na.rm = TRUE))+0.5,
+         bquote('R'^2 ~ '=' ~ .(R2)), pos = 4)
   }
 }
 
