@@ -40,10 +40,10 @@ NTPdataUPS2$Protein.IDs <- gsub(';.*','',NTPdataUPS2$Protein.IDs)
 RP <- read.csv('../data/raw_external/RP-list.csv')
 # Add uniprot IDs:
 ensembl <- useMart('ENSEMBL_MART_ENSEMBL', dataset='scerevisiae_gene_ensembl',
-                   host='http://Jul2018.archive.ensembl.org')
-RP      <- getBM(attributes=c('wikigene_name','uniprotswissprot'),
+                   host='http://dec2016.archive.ensembl.org/')
+RP      <- getBM(attributes=c('wikigene_name','uniprot_swissprot'),
                  filters = 'wikigene_name', values = RP$wikigene_name, mart = ensembl)
 # Remove duplicated protein entries:
-RP <- RP[!duplicated(RP$uniprotswissprot),]
+RP <- RP[!duplicated(RP$uniprot_swissprot),]
 # Change variable name:
-names(RP) <- gsub('uniprotswissprot','Protein.IDs',names(RP))
+names(RP) <- gsub('uniprot_swissprot','Protein.IDs',names(RP))

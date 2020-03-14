@@ -109,7 +109,7 @@ ESdata <- addNtheoPeptides(ESdata,NTPdataUPS2,'.L')
 
 We used a list of ribosomal genes based on previous work [@Jenner2012].
 
-```{r loadRibProteins}
+```{r loadRibProteins, message = FALSE}
 ```
 
 # Methods evaluated
