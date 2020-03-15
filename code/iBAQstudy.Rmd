@@ -1,6 +1,6 @@
 ---
 title: "Benchmarking accuracy and precision of intensity-based absolute quantification of protein abundances in *Saccharomyces cerevisiae*: Supplementary material"
-author: "Benjamin J. Sanchez, Petri-Jaan Lahtvee, Kate Campbell, Sergo Kasvandik, Rosemary Yu, Ivan Domenzain, Aleksej Zelezniak and Jens Nielsen"
+author: "BJ Sanchez, PJ Lahtvee, K Campbell, S Kasvandik, R Yu, I Domenzain, A Zelezniak and J Nielsen"
 header-includes:
 - \usepackage{float}
 - \renewcommand{\thefigure}{S\arabic{figure}}
