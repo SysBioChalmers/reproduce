@@ -40,3 +40,4 @@ code/*.pdf
 code/*.tex
 code/**/*.png
 code/**/*.db
+code/*.log
