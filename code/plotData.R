@@ -63,10 +63,11 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
        xaxs = 'i', yaxs = 'i', main = title,  xlab = '', ylab = '',
        xlim = c(min_val,max_val), ylim = c(min_val,max_val))
   show_labels <- ifelse(labelx == '', FALSE, TRUE)
-  axis(side=1, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015)
-  axis(side=2, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015, las = 1)
-  axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
-  axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
+  step <- ifelse(max_val - min_val > 6, 2, 1)
+  axis(side=1, at = seq(min_val, max_val, by = step), labels = show_labels, tck = 0.015)
+  axis(side=2, at = seq(min_val, max_val, by = step), labels = show_labels, tck = 0.015, las = 1)
+  axis(side=3, at = seq(min_val, max_val, by = step), labels = FALSE, tck = 0.015)
+  axis(side=4, at = seq(min_val, max_val, by = step), labels = FALSE, tck = 0.015)
   if(labelx != '') {
     title(xlab=labelx, line=2.5)
     title(ylab=labely, line=2.5)
@@ -226,19 +227,19 @@ plotPCA <- function(data,title,outside = FALSE){
   # Plot PCA:
   deltax <- max(pca$x[,1]) - min(pca$x[,1])
   deltay <- max(pca$x[,2]) - min(pca$x[,2])
-  xmin   <- min(pca$x[,1]) - deltax/8
-  xmax   <- max(pca$x[,1]) + deltax/8
-  ymin   <- min(pca$x[,2]) - deltay/8
-  ymax   <- max(pca$x[,2]) + deltay/8
+  xmin   <- min(pca$x[,1]) - deltax/4
+  xmax   <- max(pca$x[,1]) + deltax/4
+  ymin   <- min(pca$x[,2]) - deltay/4
+  ymax   <- max(pca$x[,2]) + deltay/4
   plot(pca$x, col = col_opt, pch = pch_opt, cex = 1.5, xaxs = 'i', yaxs = 'i',
        xaxt = 'n', yaxt = 'n', xlab = '', main = title, ylab = '',
        xlim = c(xmin, xmax), ylim = c(ymin, ymax))
   if(outside) {
     linePos <- 1.5
-    axis(side=1, at = seq(xmin, xmax, by = deltax/8), labels = FALSE, tck = 0.015)
-    axis(side=2, at = seq(ymin, ymax, by = deltay/8), labels = FALSE, tck = 0.015)
-    axis(side=3, at = seq(xmin, xmax, by = deltax/8), labels = FALSE, tck = 0.015)
-    axis(side=4, at = seq(ymin, ymax, by = deltay/8), labels = FALSE, tck = 0.015)
+    axis(side=1, at = seq(xmin, xmax, by = deltax/4), labels = FALSE, tck = 0.015)
+    axis(side=2, at = seq(ymin, ymax, by = deltay/4), labels = FALSE, tck = 0.015)
+    axis(side=3, at = seq(xmin, xmax, by = deltax/4), labels = FALSE, tck = 0.015)
+    axis(side=4, at = seq(ymin, ymax, by = deltay/4), labels = FALSE, tck = 0.015)
   } else {
     linePos <- -1
   }
