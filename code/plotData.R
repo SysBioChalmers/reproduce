@@ -354,10 +354,7 @@ plotLM <- function(x,y,scaling,allInOne) {
   lmodel    <- lm(y ~ x)
   intercept <- lmodel$coefficients[1]
   slope     <- lmodel$coefficients[2]
-  if(scaling == 0) {
-    text_pos <- 0
-  } else {
-    text_pos  <- 1
+  if(scaling > 0) {
     slope     <- 1
     intercept <- log10(scaling)
   }
@@ -367,10 +364,7 @@ plotLM <- function(x,y,scaling,allInOne) {
   # Compute and display R2:
   yp <- slope*x + intercept
   R2 <- round(1 - (sum((y - yp)^2)/sum((y - mean(y))^2)),2)
-  if(!allInOne) {
-    text(round(min(x, na.rm = TRUE))-1,max(y, na.rm = TRUE)-text_pos,
-         bquote('R'^2 ~ '=' ~ .(R2)), pos = 4, col = col_opt)
-  }
+  return(R2)
 }
 
 
@@ -413,8 +407,14 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
     axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
   }
   #Get linear fits:
-  plotLM(x,y,0,allInOne)
-  plotLM(x,y,scaling,allInOne)
+  R1 <- plotLM(x,y,0,allInOne)
+  R2 <- plotLM(x,y,scaling,allInOne)
+  if(!allInOne) {
+    legend_text <- c(as.expression(bquote('R'^2 ~ '=' ~ .(R1))),
+                     as.expression(bquote('R'^2 ~ '=' ~ .(R2))))
+    cols <- getColors(4)
+    legend('topleft', legend_text, bty = 'n', lty=1, col=c(cols[1],cols[4]))
+  }
 }
 
 
