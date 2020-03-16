@@ -34,7 +34,7 @@ plotTotalProt <- function(data,pattern,titleName) {
   factors <- factor(names(totProt))
   cols    <- getColors(nlevels(factors))
   barplot(totProt, col = cols[factors], mgp = c(1.5, 0.5, 0), cex.names = 0.8,
-          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt))
+          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt), las = 1)
   title(main = titleName, cex.main = 0.9)
 }
 
@@ -64,7 +64,7 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
        xlim = c(min_val,max_val), ylim = c(min_val,max_val))
   show_labels <- ifelse(labelx == '', FALSE, TRUE)
   axis(side=1, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015)
-  axis(side=2, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015)
+  axis(side=2, at = seq(min_val, max_val, by = 1), labels = show_labels, tck = 0.015, las = 1)
   axis(side=3, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
   axis(side=4, at = seq(min_val, max_val, by = 1), labels = FALSE, tck = 0.015)
   if(labelx != '') {
@@ -118,7 +118,7 @@ plotRPdata <- function(RPdata,title) {
   }
   # Plot data:
   matplot(data, pch = 1, xaxt = 'n', col = col_opt, main = title,
-          ylab = bquote('log'['10'] ~ '(abundance)'))
+          ylab = bquote('log'['10'] ~ '(abundance)'), las = 1)
   axis(side=1, at = 1:length(RPdata[,1]), labels = RPdata[,1], las=2, cex.axis = 0.7)
   max_x <- length(RPdata[,1])
   lines(c(1,max_x),c(mead_val,mead_val), col = 'black', lwd = 2, lty = 2)
@@ -159,7 +159,7 @@ plotCumulativeDistrib <- function(FCs,varName){
   plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
        xlim = c(min_x, max_x), ylim = c(0, 1), main = title, xlab = '', ylab = '')
   axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
-  axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015)
+  axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015, las = 1)
   axis(side=3, at = seq(min_x, max_x, by = 0.2), labels = FALSE, tck = 0.015)
   axis(side=4, at = seq(0, 1, by = 0.2),         labels = FALSE, tck = 0.015)
   title(xlab=bquote('abs(log'['10'] ~ '(FC))'), line=2.5)
@@ -303,7 +303,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
          xlab = bquote('log'['10'] ~ '(abundance [fmol/sample])'), ylab = '')
     title(ylab = bquote('abs(log'['10'] ~ '(FC))'), line=2.5)
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
-    axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015)
+    axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015, las = 1)
     axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
     axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
   } else {
@@ -386,7 +386,7 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
     interSize <- 0.5
     if(first) {
       plot(x,y, col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
-           xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1,
+           xlim = c(min_x, max_x), ylim = c(min_y, max_y), asp = 1, las = 1,
            xlab = bquote('log'['10'] ~ '(intensity value)'),
            ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(2, 0.5, 0))
       text(min_x, max_y-0.5, bquote('CV'['m'] ~ '=' ~ .(CVm) ~ '%'), pos = 4)
@@ -396,13 +396,13 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   } else {
     interSize <- 0.3
     plot(x,y, pch = s,col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
-         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name)
+         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name, las = 1)
   }
   if(!allInOne || first) {
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x,
          tck = 0.015, mgp = c(2, interSize*2/3, 0))
     axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y,
-         tck = 0.015, mgp = c(2, interSize, 0))
+         tck = 0.015, mgp = c(2, interSize, 0), las = 1)
     axis(side=3, at = seq(min_x, max_x, by = 1), labels = FALSE, tck = 0.015)
     axis(side=4, at = seq(min_y, max_y, by = 1), labels = FALSE, tck = 0.015)
   }
@@ -461,7 +461,7 @@ plotVsLength <- function(data,varNames,titleNames) {
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '')
+    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '', las = 1)
     lmodel <- lm(y ~ x)
     a  <- lmodel$coefficients[1]
     b  <- lmodel$coefficients[2]
