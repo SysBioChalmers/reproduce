@@ -198,7 +198,7 @@ First, let's take a look at the total detected protein amount in each of the 6 s
 ```
 
 ```{r tot-IS, fig.height = 1.5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:tot-IS}Total detected protein amounts in all 6 IS, according to all methods."}
-par(mfcol = c(1,4), mar = c(0.5,2.5,1.5,1), cex = 0.5)
+par(mfcol = c(1,4), mar = c(0.5,2.5,1.5,1), mgp = c(1.5,0.7,0), cex = 0.5)
 IBAQname   <- 'Method 1: iBAQ'
 IRname     <- 'Method 2: iBAQ rescaled'
 TPAname    <- 'Method 3: TPA'
@@ -214,7 +214,7 @@ for(i in 1:length(ISnames)) {
 Let's also take a look at the total detected protein amount of each of the 18 samples, colored by the original ES curve used for the calibration (Figure \ref{fig:tot-IS}):
 
 ```{r tot-samples, fig.height = 1.5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:tot-samples}Total detected protein amounts in all 18 samples, according to all methods."}
-par(mfcol = c(1,4), mar = c(0.5,2.5,1.5,1), cex = 0.5)
+par(mfcol = c(1,4), mar = c(0.5,2.5,1.5,1), mgp = c(1.5,0.7,0), cex = 0.5)
 sampleNames <- c('Abundance.iBAQ.R..1_','Abundance.iBAQrescaled.R..1_',
                  'Abundance.TPA.R..1_','Abundance.TPAnorm.R..1_')
 for(i in 1:length(sampleNames)) {
@@ -237,7 +237,7 @@ Let's now compare accuracy. First, we compare the ES values predicted by each me
 ```
 
 ```{r accuracy-ups2, fig.height = 4.5, fig.width = 4.5, fig.align="center", fig.cap = "\\label{fig:accuracy-ups2}Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
-par(mfrow = c(2,2), mar = c(3.5,4,2,2), cex = 0.7)
+par(mfrow = c(2,2), mar = c(3.5,4,2,2), mgp = c(1,0.5,0), cex = 0.7)
 FCups2IBAQ <- plotESerror(ESdata,'iBAQ',IBAQname)
 FCups2IR   <- plotESerror(ESdata,'iBAQrescaled',IRname)
 FCups2TPA  <- plotESerror(ESdata,'TPA',TPAname)
@@ -281,7 +281,7 @@ These distributions are not very different between them (with exception of metho
 ```{r accuracy-cdf, warning = FALSE, fig.height = 3, fig.width = 6, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for both accuracy evaluation metrics: differences of predicted Vs experimental values of UPS2 (left) and differences to median value in ribosomal measurements (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
 rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
-par(mfrow = c(1,2), mar = c(3.5,4,2,1), cex = 0.7)
+par(mfrow = c(1,2), mar = c(3.5,4,2,1), mgp = c(1.7,0.5,0), cex = 0.7)
 plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
 plotCumulativeDistrib(rpFC,'Ribosomal stoichiometry error')
 ```
@@ -343,7 +343,7 @@ kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
 Let's look further into the reduction of batch variability, by looking at the cumulative distribution of batch variability for each method:
 
 ```{r precision-tech, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
-par(mfrow = c(1,1), mar = c(3.5,4,0.5,1), cex = 0.7)
+par(mfrow = c(1,1), mar = c(3.5,4,0.5,1), mgp = c(1.5,0.5,0), cex = 0.7)
 names      <- c('_batch1','_batch2','_batch3')
 FCtechIBAQ <- getReplicateData(abundanceIBAQ[,-1],names,2,FALSE)
 FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
@@ -359,7 +359,7 @@ We can also look at batch variability by plotting each FC to the corresponding a
 ```
 
 ```{r precision-abundance, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-abundance}Fold change Vs abundances for all methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in gray and black, respectively."}
-par(mfrow = c(1,4), mar = c(4,4,1.5,0.5))
+par(mfrow = c(1,4), mar = c(4,4,1.5,0.5), mgp = c(1.5,0.5,0))
 for(i in 1:length(sampleNames)) {
   tmp <- plotFCvsAbundance(SILACdata,ESdata,sampleNames[i],titleNames[i],FALSE)
 }
@@ -371,7 +371,7 @@ We see that in all cases more than 85% of the data falls within the detection ra
 ```
 
 ```{r precision-splines, fig.height = 5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in gray."}
-par(mfrow = c(1,1), mar = c(4,4,0.5,0.5))
+par(mfrow = c(1,1), mar = c(4,4,0.5,0.5), mgp = c(2.5,0.5,0))
 plotSplines(SILACdata,ESdata)
 ```
 
@@ -422,7 +422,7 @@ TPANvsIBAQ <- cbind(abundanceIBAQ[,-1],abundanceTPAN[,-1])
 TPAvsIR    <- cbind(abundanceIR[,-1],abundanceTPA[,-1])
 TPANvsIR   <- cbind(abundanceIR[,-1],abundanceTPAN[,-1])
 TPANvsTPA  <- cbind(abundanceTPA[,-1],abundanceTPAN[,-1])
-par(mfrow = c(2,3), mar = c(4,4,2,1), cex = 1)
+par(mfrow = c(2,3), mar = c(4,4,2,1), mgp = c(1,0.5,0), cex = 1)
 plotVariability(IRvsIBAQ, c('iBAQ.R','iBAQrescaled.R'), '', IBAQname, IRname, FALSE)
 plotVariability(TPAvsIBAQ, c('iBAQ.R','TPA.R'), '', IBAQname, TPAname, FALSE)
 plotVariability(TPANvsIBAQ, c('iBAQ.R','TPAnorm.R'), '', IBAQname, TPANname, FALSE)
@@ -439,7 +439,7 @@ Finally, let's see the predicted abundances of all samples compared to sequence 
 ```
 
 ```{r general-length, fig.height = 4, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:general-length}Predicted abundances [fmol/sample] Vs sequence length (both in the log10 space) for all proteins and all methods."}
-par(mfrow = c(2,2), mar = c(2,2,1.5,1), cex = 0.8)
+par(mfrow = c(2,2), mar = c(2,2,1.5,1), mgp = c(0,0.7,0), cex = 0.8)
 plotVsLength(SILACdata,sampleNames,titleNames)
 ```
 
