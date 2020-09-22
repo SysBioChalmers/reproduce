@@ -182,6 +182,8 @@ plotCumulativeDistrib <- function(FCs,varName){
   # Plot values for 2-fold position:
   for(i in 1:N) {
     FC  <- sort(FCs[[i]])
+    step <- 1/(length(FC)-1)
+    cdf  <- seq(0, 1, by = step)
     pos <- which.min(abs(FC - log10(2)))
     points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = cols[i])
   }
