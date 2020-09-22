@@ -173,11 +173,7 @@ plotCumulativeDistrib <- function(FCs,varName){
     FC   <- sort(FCs[[i]])
     step <- 1/(length(FC)-1)
     cdf  <- seq(0, 1, by = step)
-    if(startsWith(varName,'Tech') && i == 4) {
-      lines(FC,cdf, col = cols[i], lwd = 2, lty = 2)
-    } else {
-      lines(FC,cdf, col = cols[i], lwd = 2)
-    }
+    lines(FC,cdf, col = cols[i], lwd = 2)
   }
   # Plot values for 2-fold position:
   for(i in 1:N) {
