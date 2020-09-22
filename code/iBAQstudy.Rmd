@@ -246,12 +246,49 @@ FCups2TPAN <- plotESerror(ESdata,'TPAnorm',TPANname)
 
 We see that all predictions from methods 1, 2 and 4 are very similar; by using ES curves (methods 1-2) we don't gain much prediction power than if we just rescale the normalized data (method 4). However, method 3 performs significantly worse.
 
-Now, let's see how are the predictions of ribosomal subunits stoichiometry. For that first we need to create dataframes with only ribosomal proteins, and then plot for each method the corresponding data:
+Now, let's see how are the predictions of ribosomal subunits stoichiometry in the 6 measurements of the internal standard (as they should all be the same, being that they are all belonging to the same sample). For that first we need to create dataframes with only ribosomal proteins, and then plot for each method the corresponding data:
 
 ```{r getRPdata}
 ```
 
 ```{r}
+ISabundanceIBAQ <- ISdata[,c(1,grep('Abundance.iBAQ.IS',names(ISdata)))]
+ISabundanceIR   <- ISdata[,c(1,grep('Abundance.iBAQrescaled.IS',names(ISdata)))]
+ISabundanceTPA  <- ISdata[,c(1,grep('Abundance.TPA.IS',names(ISdata)))]
+ISabundanceTPAN <- ISdata[,c(1,grep('Abundance.TPAnorm.IS',names(ISdata)))]
+ISrpIBAQ  <- getRPdata(ISabundanceIBAQ,RP)
+ISrpIR    <- getRPdata(ISabundanceIR,RP)
+ISrpTPA   <- getRPdata(ISabundanceTPA,RP)
+ISrpTPAN  <- getRPdata(ISabundanceTPAN,RP)
+```
+
+```{r plotRPdata}
+```
+
+```{r accuracy-ribosome-is, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample] in the internal standard, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
+par(mfrow = c(4,1), mar = c(3.5,4,2,1), cex = 0.8)
+FCISrpIBAQ  <- plotRPdata(ISrpIBAQ,IBAQname)
+FCISrpIR    <- plotRPdata(ISrpIR,IRname)
+FCISrpTPA   <- plotRPdata(ISrpTPA,TPAname)
+FCISrpTPAN  <- plotRPdata(ISrpTPAN,TPANname)
+```
+
+These distributions are not very different between them (with exception of method 3), as we can see in the cumulative distributions:
+
+```{r plotCumulativeDistrib}
+```
+
+```{r accuracy-cdf-is, warning = FALSE, fig.height = 3, fig.width = 6, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for both accuracy evaluation metrics: differences of predicted Vs experimental values of UPS2 (left) and differences to median value in ribosomal measurements of IS (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
+ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
+ISrpFC   <- list(FCISrpIBAQ,FCISrpIR,FCISrpTPA,FCISrpTPAN)
+par(mfrow = c(1,2), mar = c(3.5,4,2,1), mgp = c(1.7,0.5,0), cex = 0.7)
+plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
+plotCumulativeDistrib(ISrpFC,'Ribosomal stoichiometry error in IS')
+```
+
+We can see this again for the 18 sample intensities inferred from the L/H ratios:
+
+```{r accuracy-ribosome-silac, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample] in the samples, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
 abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
 abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
 abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]
@@ -260,12 +297,7 @@ rpIBAQ  <- getRPdata(abundanceIBAQ,RP)
 rpIR    <- getRPdata(abundanceIR,RP)
 rpTPA   <- getRPdata(abundanceTPA,RP)
 rpTPAN  <- getRPdata(abundanceTPAN,RP)
-```
 
-```{r plotRPdata}
-```
-
-```{r accuracy-ribosome, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample], according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
 par(mfrow = c(4,1), mar = c(3.5,4,2,1), cex = 0.8)
 FCrpIBAQ  <- plotRPdata(rpIBAQ,IBAQname)
 FCrpIR    <- plotRPdata(rpIR,IRname)
@@ -273,18 +305,13 @@ FCrpTPA   <- plotRPdata(rpTPA,TPAname)
 FCrpTPAN  <- plotRPdata(rpTPAN,TPANname)
 ```
 
-These distributions are not very different between them (with exception of method 3), as we can see in the cumulative distributions:
-
-```{r plotCumulativeDistrib}
-```
-
-```{r accuracy-cdf, warning = FALSE, fig.height = 3, fig.width = 6, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for both accuracy evaluation metrics: differences of predicted Vs experimental values of UPS2 (left) and differences to median value in ribosomal measurements (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
-ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
+```{r accuracy-cdf-silac, warning = FALSE, fig.height = 3, fig.width = 3, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for differences to median value in ribosomal measurements of samples (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
-par(mfrow = c(1,2), mar = c(3.5,4,2,1), mgp = c(1.7,0.5,0), cex = 0.7)
-plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
-plotCumulativeDistrib(rpFC,'Ribosomal stoichiometry error')
+par(mfrow = c(1,1), mar = c(3.5,4,2,1), mgp = c(1.7,0.5,0), cex = 0.7)
+plotCumulativeDistrib(rpFC,'')
 ```
+
+So in terms of accuracy, methods 1, 2 and 4 perform similarly well, and method 3 performs significantly worse.
 
 ## Evaluating precision
 
@@ -340,9 +367,22 @@ kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
 
 ### Evaluating inter-batch precision
 
-Let's look further into the reduction of batch variability, by looking at the cumulative distribution of batch variability for each method:
+Let's look further into the reduction of batch variability, by looking at the cumulative distribution of batch variability between IS measurements for each method:
 
-```{r precision-tech, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
+```{r precision-tech-is, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability within the IS measurements for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
+par(mfrow = c(1,1), mar = c(3.5,4,1.5,1), mgp = c(1.5,0.5,0), cex = 0.7)
+names      <- c('_batch1','_batch2','_batch3')
+ISFCtechIBAQ <- getReplicateData(ISabundanceIBAQ[,-1],names,2,FALSE)
+ISFCtechIR   <- getReplicateData(ISabundanceIR[,-1],names,2,FALSE)
+ISFCtechTPA  <- getReplicateData(ISabundanceTPA[,-1],names,2,FALSE)
+ISFCtechTPAN <- getReplicateData(ISabundanceTPAN[,-1],names,2,FALSE)
+IStechFC     <- list(ISFCtechIBAQ[,2],ISFCtechIR[,2],ISFCtechTPA[,2],ISFCtechTPAN[,2])
+plotCumulativeDistrib(IStechFC,'Inter-batch precision in IS')
+```
+
+This can be confirmed when looking at the sample data by using the L/H ratios:
+
+```{r precision-tech-silac, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability within samples for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 par(mfrow = c(1,1), mar = c(3.5,4,1.5,1), mgp = c(1.5,0.5,0), cex = 0.7)
 names      <- c('_batch1','_batch2','_batch3')
 FCtechIBAQ <- getReplicateData(abundanceIBAQ[,-1],names,2,FALSE)
@@ -350,7 +390,7 @@ FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
 FCtechTPA  <- getReplicateData(abundanceTPA[,-1],names,2,FALSE)
 FCtechTPAN <- getReplicateData(abundanceTPAN[,-1],names,2,FALSE)
 techFC     <- list(FCtechIBAQ[,2],FCtechIR[,2],FCtechTPA[,2],FCtechTPAN[,2])
-plotCumulativeDistrib(techFC,'Inter-batch precision')
+plotCumulativeDistrib(techFC,'Inter-batch precision in samples')
 ```
 
 We can also look at batch variability by plotting each FC to the corresponding abundance, together with a "UPS2 window" that shows the abundance levels that are detected by the UPS2:
@@ -358,7 +398,7 @@ We can also look at batch variability by plotting each FC to the corresponding a
 ```{r plotFCvsAbundance}
 ```
 
-```{r precision-abundance, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-abundance}Fold change Vs abundances for all methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in gray and black, respectively."}
+```{r precision-abundance, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:precision-abundance}Fold change Vs abundances in samples for all methods. The detection window of UPS2 and the UPS2 datapoints are highlighted in gray and black, respectively."}
 par(mfrow = c(1,4), mar = c(4,4,1.5,0.5), mgp = c(1.5,0.5,0))
 for(i in 1:length(sampleNames)) {
   tmp <- plotFCvsAbundance(SILACdata,ESdata,sampleNames[i],titleNames[i],FALSE)
@@ -370,7 +410,7 @@ We see that in all cases more than 85% of the data falls within the detection ra
 ```{r plotSplines}
 ```
 
-```{r precision-splines, fig.height = 5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in gray."}
+```{r precision-splines, fig.height = 5, fig.width = 5, fig.align = "center", fig.cap = "\\label{fig:precision-splines}Fold change Vs abundances in samples for all methods + smoothing splines. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow). The detection window of UPS2 is highlighted in gray."}
 par(mfrow = c(1,1), mar = c(4,4,0.5,0.5), mgp = c(2.5,0.5,0))
 plotSplines(SILACdata,ESdata)
 ```
