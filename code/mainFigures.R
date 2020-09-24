@@ -18,15 +18,15 @@ dev.off()
 ## @knitr figure2
 pdf("../results/figures/figure2.pdf", height = 3, width = 8.5)
 par(mfrow = c(1,3), mar = c(4,4,1,1), mgp = c(1.5,0.6,0), cex = 1)
-plotVariability(abundanceTPAN[,-1],c('.R1.1','.R2.1','.R3.1'),'',
+plotVariability(abundanceIBAQ[,-1],c('.R1.1','.R2.1','.R3.1'),'',
                 bquote('log'['10'] ~ '(abundance)'),
                 bquote('log'['10'] ~ '(abundance)'))
 text(-3.5, 3, 'A', pos=4, cex = 1.5)
-plotVariability(abundanceTPAN[,-1],c('_batch1','_batch2','_batch3'),'',
+plotVariability(abundanceIBAQ[,-1],c('_batch1','_batch2','_batch3'),'',
                 bquote('log'['10'] ~ '(abundance)'),
                 bquote('log'['10'] ~ '(abundance)'))
 text(-3.5, 3, 'B', pos=4, cex = 1.5)
-plotPCA(abundanceTPAN[,-1],'',TRUE)
+plotPCA(abundanceIBAQ[,-1],'',TRUE)
 text(-6, 3.5, 'C', pos=4, cex = 1.5)
 dev.off()
 
