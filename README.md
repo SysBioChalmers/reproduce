@@ -50,12 +50,6 @@ Repository Structure
     |- reproduce.Rproj  # contains project information used to customize the behavior of RStudio  
     +- requirements.txt # the requirements file for reproducing the analysis environment
 
-Contributors
-------------
-
-* [Kate Campbell](https://www.chalmers.se/en/staff/Pages/katec.aspx) ([@KateCampbell87](https://github.com/KateCampbell87)), Chalmers University of Technology, Sweden
-* [Benjamín J. Sánchez](https://www.chalmers.se/en/staff/Pages/bensan.aspx) ([@BenjaSanchez](https://github.com/benjasanchez)), Chalmers University of Technology, Sweden
-
 Acknowledgements
 ----------------
 
