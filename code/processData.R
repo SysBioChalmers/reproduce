@@ -74,17 +74,15 @@ rescaleData <- function(data,pattern,name,totProt) {
 
 
 ## @knitr normalizeIntensities
-normalizeIntensities <- function(data,varName) {
-  # Create a copy of data and normalize intensities:
-  Ndata <- data
-  MSpos <- grep('Intensity',names(Ndata))
-  Ndata[,MSpos] <- Ndata[,MSpos]/Ndata[[varName]]
+normalizeIntensities <- function(data,pattern,varName) {
+  # Find subset of intensities and normalize them:
+  Ndata <- data[,grep(pattern,names(data))]/data[[varName]]
   #Change variable names:
   varName <- gsub('Sequence.length','length',varName)
   varName <- gsub('theo.peptides','Ntheo',varName)
   names(Ndata) <- gsub('Intensity',paste0('normInt.',varName),names(Ndata))
-  #Merge back:
-  data <- merge(data, Ndata)
+  #Combine both dataframes:
+  data <- cbind(data, Ndata)
   return(data)
 }
 

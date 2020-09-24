@@ -167,9 +167,9 @@ We will also try out to first normalize all MS intensitiy values by the correspo
 ```
 
 ```{r}
-ESdata    <- normalizeIntensities(ESdata,'theo.peptides')
-ISdata    <- normalizeIntensities(ISdata,'theo.peptides')
-SILACdata <- normalizeIntensities(SILACdata,'theo.peptides')
+ESdata    <- normalizeIntensities(ESdata,'Intensity.L.T4h_','theo.peptides')
+ISdata    <- normalizeIntensities(ISdata,'Intensity.H.T4h_','theo.peptides')
+SILACdata <- normalizeIntensities(SILACdata,'Intensity.L.R','theo.peptides')
 ```
 
 ```{r}
