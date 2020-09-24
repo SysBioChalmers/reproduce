@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = FALSE, dev = "png", dpi = 600)
 
 # Summary
 
-Here we will go through the typical way of deducing protein abundances [fmol/sample] from SILAC/iBAQ data, and compare it to rescaling values to a fix total protein abundance based on MS intensities, to assess the usefulness of the external standard curve and iBAQ data. The main observation that comes from this is that as MS measurements are so variable, it's impossible to find a unique ES curve, hence normalizing to a fixed total protein abundance is as good as using the "optimal" fit from the ES curve. We can then use the MS intensity directly and bypass both the ES curve and the iBAQ values.
+Here we will go through the typical way of deducing protein abundances [fmol/sample] from SILAC/iBAQ data, and compare it to rescaling values to a fix total protein abundance based on MS intensities, to assess the usefulness of the external standard curve and iBAQ data. The main observation that comes from this is that as MS measurements are so variable, it's impossible to find a unique external standard (ES) curve, hence normalizing to a fixed total protein abundance is as good as using the "optimal" fit from the ES curve. We can then use the MS intensity directly and bypass the ES curve, the iBAQ values and the internal standard.
 <br>
 
 # Loading and pre-processing data
@@ -92,7 +92,7 @@ Each injected sample consisted of:
 
 ## Number of theoretical peptides
 
-We can obtain the number of theoretical peptides for each of the proteins if we remove the UPS2 sequences and label from the MaxQuant search, which leads the software to report only the iBAQ intensities of the proteins. We then divide the total raw intensity with the total iBAQ intensity to get the desired number, and merge this information with the IS and ES data.
+We can obtain the number of theoretical peptides for each of the proteins if we remove the UPS2 sequences and label from the MaxQuant search, which leads the software to report only the iBAQ intensities of the proteins. We then divide the total raw intensity with the total iBAQ intensity to get the desired number, and merge this information with the IS, ES and sample data.
 
 ```{r loadNtheoPeptides}
 ```
@@ -103,6 +103,8 @@ We can obtain the number of theoretical peptides for each of the proteins if we 
 ```{r}
 ISdata <- addNtheoPeptides(ISdata,NTPdata,'')
 ESdata <- addNtheoPeptides(ESdata,NTPdataUPS2,'.L')
+# add the theoretical number of peptides column to the SILAC data as well:
+SILACdata <- merge(ISdata[,1:2], SILACdata, by = 'Protein.IDs', all.x = FALSE, all.y = TRUE)
 ```
 
 ## Ribosomal proteins
@@ -137,26 +139,23 @@ As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-IS}),
 ```
 
 ```{r}
-ESdata <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.',1.1e6) #1.1 ug
-ISdata <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.',6e6)   #6 ug
-```
-
-We now use the absolute abundances from the IS (fmol/sample) to infer absolute abundances in each sample of the SILAC data (fmol/sample).
-
-```{r}
-SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQrescaled')
+ESdata    <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.',1.1e6) #1.1 ug
+ISdata    <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.',6e6)   #6 ug
+SILACdata <- rescaleData(SILACdata,'Abundance.iBAQ.R','iBAQrescaled.R',6e6)    #6 ug
 ```
 
 ## Method 3: TPA
 
-The alternative: To skip iBAQ values and ES curves entirely, and to assume all MS intensities summed up together (mass-wise) are proportional to the injected amount in ug. This is known as the total protein approach (TPA) [@Wisniewski2014a]:
+If we are rescaling the iBAQ values in method 2, we can alternatively consider skipping iBAQ values and ES curves entirely, and assume that all MS intensities summed up together (mass-wise) are proportional to the injected amount in ug. This is known as the total protein approach (TPA) [@Wisniewski2014a]:
 
 `abundance = (MS intensity)*(injected amount)/(sum of all MS intensities*MW values)`
+
+This can be performed separately for the ES, the IS and the samples.
 
 ```{r}
 ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPA.ES.',1.1e6) #1.1 ug
 ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPA.IS.',6e6)   #6 ug
-SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPA')
+SILACdata <- rescaleData(SILACdata,'Intensity.L.R','TPA.R',6e6)     #6 ug
 ```
 
 ## Method 4: Normalized TPA
@@ -169,14 +168,15 @@ We will also try out to first normalize all MS intensitiy values by the correspo
 ```
 
 ```{r}
-ESdata <- normalizeIntensities(ESdata,'theo.peptides')
-ISdata <- normalizeIntensities(ISdata,'theo.peptides')
+ESdata    <- normalizeIntensities(ESdata,'theo.peptides')
+ISdata    <- normalizeIntensities(ISdata,'theo.peptides')
+SILACdata <- normalizeIntensities(SILACdata,'theo.peptides')
 ```
 
 ```{r}
 ESdata    <- rescaleData(ESdata,'normInt.Ntheo.L.T4h_','TPAnorm.ES.',1.1e6) #1.1 ug
 ISdata    <- rescaleData(ISdata,'normInt.Ntheo.H.T4h_','TPAnorm.IS.',6e6)   #6 ug
-SILACdata <- getSampleAbundance(SILACdata,ISdata,'TPAnorm')
+SILACdata <- rescaleData(SILACdata,'normInt.Ntheo.L.R','TPAnorm.R',6e6)     #6 ug
 ```
 
 Note that for methods 3 and 4 we have essentially created a linear model:
@@ -222,9 +222,9 @@ for(i in 1:length(sampleNames)) {
 }
 ```
 
-In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with iBAQ, and as expected this reduces if we rescale (methods 2, 3 and 4). Note that for all cases the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
+In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with method 1, and as expected the variaion goes to zero if we rescale (methods 2, 3 and 4). Note that for method 1, the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
-Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which led us to have to infer them as described in section \ref{number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so for any other software this would not be a limitation. In any case, the coverage decrease was very low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 $\rightarrow$ 166) and no values when comparing ribosome stoichiometry (731 $\rightarrow$ 731). When analyzing precision (section \ref{evaluating-inter-batch-precision}), we only lost 1.2% of values (21,320 $\rightarrow$ 21,061).
+Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which led us to have to infer them as described in section \ref{number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so for any other software this would not be a limitation. In any case, the coverage decrease is overall low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 $\rightarrow$ 166), no values when comparing ribosome stoichiometry in the IS (312 $\rightarrow$ 312) and we gained 19 values when comparing ribosome stoichiometry in the samples (731 $\rightarrow$ 750). On the other hand, When analyzing precision (section \ref{evaluating-inter-batch-precision}), we lost 4.5% of values (14,858 $\rightarrow$ 14,182) in the IS data, but gained 6.3% of values (21,320 $\rightarrow$ 22,657) in the sample data.
 
 ## Evaluating accuracy
 
@@ -286,7 +286,7 @@ plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
 plotCumulativeDistrib(ISrpFC,'Ribosomal stoichiometry error in IS')
 ```
 
-We can see this again for the 18 sample intensities inferred from the L/H ratios:
+We can confirm this for the 18 samples:
 
 ```{r accuracy-ribosome-silac, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample] in the samples, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
 abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
@@ -337,7 +337,7 @@ plotAllVariability(abundanceTPA,FALSE)
 plotAllVariability(abundanceTPAN,FALSE)
 ```
 
-We see a lower median fold change between batches + a better separation of the "batch clusters" in the PCA when we use method 3 or 4 (PC1+PC2 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between batches than with methods 1 and 2. This is confirmed by looking at the breakdown of proteins by method:
+We see a lower median fold change between batches + a better separation of the "batch clusters" in the PCA when we use method 3 or 4 (PC1+PC2 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between batches than with methods 1 and 2. This only comes at a cost of higher median fold changes between biological replicates, but within acceptible margins. Overall, variability between replicates is the lowest for method 4, if we look at the breakdown of proteins by method:
 
 ```{r FCbreakdownRep}
 ```
@@ -367,7 +367,7 @@ kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
 
 ### Evaluating inter-batch precision
 
-Let's look further into the reduction of batch variability, by looking at the cumulative distribution of batch variability between IS measurements for each method:
+Let's look further into the reduction of batch variability, by looking at the cumulative distribution of batch variability for each method. We see that predictions for methods 3 and 4 are less variable, both in the IS data:
 
 ```{r precision-tech-is, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability within the IS measurements for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 par(mfrow = c(1,1), mar = c(3.5,4,1.5,1), mgp = c(1.5,0.5,0), cex = 0.7)
@@ -380,7 +380,7 @@ IStechFC     <- list(ISFCtechIBAQ[,2],ISFCtechIR[,2],ISFCtechTPA[,2],ISFCtechTPA
 plotCumulativeDistrib(IStechFC,'Inter-batch precision in IS')
 ```
 
-This can be confirmed when looking at the sample data by using the L/H ratios:
+And also in the sample data:
 
 ```{r precision-tech-silac, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability within samples for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 par(mfrow = c(1,1), mar = c(3.5,4,1.5,1), mgp = c(1.5,0.5,0), cex = 0.7)
@@ -449,7 +449,7 @@ The blue fits give us the transformation from light (L) MS intensity of the UPS2
 plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,TRUE)
 ```
 
-In conclusion, we can skip entirely the UPS2 data and just assume that the normalized MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples. In this approach, the iBAQ run is only used to do the rescaling, but this could be equally performed with any SILAC run.
+In conclusion, we can skip entirely the UPS2 data and iBAQ values, and instead assume that the normalized MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples.
 
 ### Predictions between methods
 
