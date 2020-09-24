@@ -167,7 +167,7 @@ plotCumulativeDistrib <- function(FCs,varName){
   title(ylab='Cumulative Distribution', line=2.5)
   lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
   # Plot fold changes as a cdf:
-  N    <- length(names(FCs))
+  N    <- length(FCs)
   cols <- getColors(N)
   for(i in 1:N) {
     FC   <- sort(FCs[[i]])

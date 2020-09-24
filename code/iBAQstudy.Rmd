@@ -246,7 +246,7 @@ FCups2TPAN <- plotESerror(ESdata,'TPAnorm',TPANname)
 
 We see that all predictions from methods 1, 2 and 4 are very similar; by using ES curves (methods 1-2) we don't gain much prediction power than if we just rescale the normalized data (method 4). However, method 3 performs significantly worse.
 
-Now, let's see how are the predictions of ribosomal subunits stoichiometry in the 6 measurements of the internal standard (as they should all be the same, being that they are all belonging to the same sample). For that first we need to create dataframes with only ribosomal proteins, and then plot for each method the corresponding data:
+Now, let's see how are the predictions of ribosomal subunit stoichiometry in the 6 measurements of the internal standard, as they should all be the same, being that a) they all belong to the same sample, and b) all ribosomal proteins are expressed in a 1:1 ratio. For this, first we need to create dataframes with only ribosomal proteins, and then plot for each method the corresponding data:
 
 ```{r getRPdata}
 ```
@@ -273,7 +273,7 @@ FCISrpTPA   <- plotRPdata(ISrpTPA,TPAname)
 FCISrpTPAN  <- plotRPdata(ISrpTPAN,TPANname)
 ```
 
-These distributions are not very different between them (with exception of method 3), as we can see in the cumulative distributions:
+These distributions are not very different between them (with exception of method 3), as we can see in the cumulative distributions (Figure \ref{fig:accuracy-cdf-is}).
 
 ```{r plotCumulativeDistrib}
 ```
@@ -308,14 +308,14 @@ FCrpTPAN  <- plotRPdata(rpTPAN,TPANname)
 ```{r accuracy-cdf-silac, warning = FALSE, fig.height = 3, fig.width = 3, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for differences to median value in ribosomal measurements of samples (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
 par(mfrow = c(1,1), mar = c(3.5,4,2,1), mgp = c(1.7,0.5,0), cex = 0.7)
-plotCumulativeDistrib(rpFC,'')
+plotCumulativeDistrib(rpFC,'Ribosomal stoich. error in samples')
 ```
 
-So in terms of accuracy, methods 1, 2 and 4 perform similarly well, and method 3 performs significantly worse.
+So in conclusion, methods 1, 2 and 4 perform similarly well in terms of accuracy, and method 3 performs significantly worse.
 
 ## Evaluating precision
 
-We now display the variability of the final abundance data between biological replicates and between batches, for all methods. For that we first define a function that gives all possible combinations between replicates. For instance, for biological replicates, the text in the variable's label regarding biological replicate (`.R1.1`, `.R2.1` and `.R3.1`) will be first removed, and then 2 columns will be paired up if the rest of the name matches (meaning it's the same batch/MS method but 2 different biological replicates). With that, we then plot the data with variability plots and a PCA:
+We now display the variability of the abundance data in the samples between biological replicates and between batches, for all methods. For that we first define a function that gives all possible combinations between replicates, and we then plot the data with scatter plots and PCAs:
 
 ```{r getReplicateData}
 ```
@@ -405,7 +405,7 @@ for(i in 1:length(sampleNames)) {
 }
 ```
 
-We see that in all cases more than 85% of the data falls within the detection range of UPS2, which is good. However, all datasets look similar in shape, so instead let's look at the trend of the data with the help of smooth splines:
+We see that in all cases more than 85% of the data falls within the detection range of UPS2, which is good. However, all datasets look similar in shape, so instead let's look at trends with the help of smooth splines:
 
 ```{r plotSplines}
 ```
@@ -415,7 +415,7 @@ par(mfrow = c(1,1), mar = c(4,4,0.5,0.5), mgp = c(2.5,0.5,0))
 plotSplines(SILACdata,ESdata)
 ```
 
-We see that method 4 (normalized TPA) has overall less variability than the both iBAQ and rescaled iBAQ, both for lowly and highly abundant proteins. It also performs better than the traditional TPA (method 3) at low abundances.
+We see that method 4 has overall less variability than methods 3 and 4, both for lowly and highly abundant proteins. It also performs better than method 3 at low abundances. So in conclusion, method 4 is the best method from all 4 assesed, as it is as accurate as methods 1 and 2, but significantly more precise.
 
 ## Additional comparisons
 
