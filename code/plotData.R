@@ -33,13 +33,13 @@ plotTotalProt <- function(data,pattern,titleName) {
   factors <- factor(names(totProt))
   cols    <- getColors(nlevels(factors))
   barplot(totProt, col = cols[factors], mgp = c(1.5, 0.5, 0), cex.names = 0.8,
-          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt), las = 1)
+          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,7), las = 1)
   title(main = titleName, cex.main = 0.9)
 }
 
 
 ## @knitr plotScatter
-plotScatter <- function(data1,data2,title,labelx,labely) {
+plotScatter <- function(data1,data2,title,labelx,labely,min_val,max_val) {
   # Remove NA values - zeros - Infs:
   no_na  <- is.na(data1) + is.na(data2) == 0
   data1  <- data1[no_na]
@@ -56,8 +56,6 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   # Plot data:
   data1   <- log10(data1)
   data2   <- log10(data2)
-  min_val <- round(min(c(data1,data2)))-1
-  max_val <- round(max(c(data1,data2)))
   plot(data1, data2, col = col_scheme, xaxt = 'n', yaxt = 'n',
        xaxs = 'i', yaxs = 'i', main = title,  xlab = '', ylab = '',
        xlim = c(min_val,max_val), ylim = c(min_val,max_val))
@@ -92,7 +90,7 @@ plotESerror <- function(ESdata,method,title) {
     }
   }
   FC <- plotScatter(dataExp,dataPred,title,bquote('log'['10'] ~ '(measured)'),
-                    bquote('log'['10'] ~ '(predicted)'))
+                    bquote('log'['10'] ~ '(predicted)'), -1, +5)
   return(FC)
 }
 
@@ -190,7 +188,7 @@ plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData
   # Get data:
   data <- getReplicateData(data,groupNames,1,repeatData)
   # Plot all combinations:
-  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely)
+  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely, -4, +4)
 }
 
 
@@ -290,10 +288,10 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
     print(paste(titleName,'->',round(belowThreshold),'proteins below UPS2 detection range'))
   }
   # Plot FC of abundanceData
-  min_x <- round(min(sampleData[,1])) + 1
-  max_x <- round(max(sampleData[,1]))
+  min_x <- -3
+  max_x <- 3
   min_y <- 0
-  max_y <- round(max(sampleData[,2])) - 1
+  max_y <- 2
   if(!allInOne || grepl('iBAQ.R',pattern)) {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data,
