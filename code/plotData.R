@@ -27,9 +27,8 @@ plotTotalProt <- function(data,pattern,titleName) {
   coverage <- sum(!is.na(meanVals))
   print(paste(titleName,'-',coverage,'proteins detected'))
   # Get total protein detected:
-  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
-  totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
-  meanProt       <- round(mean(totProt))+1
+  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.       #(fmol/ug)*kDa = pg/ug
+  totProt        <- colSums(data[,pos], na.rm = TRUE)*6/1e6 #(pg/ug)*(ug/sample)/(pg/ug) = ug/sample
   names(totProt) <- gsub(pattern,'',names(totProt))
   factors <- factor(names(totProt))
   cols    <- getColors(nlevels(factors))
@@ -299,7 +298,7 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data,
          xlim = c(min_x, max_x), ylim = c(min_y, max_y),
-         xlab = bquote('log'['10'] ~ '(abundance [fmol/sample])'), ylab = '')
+         xlab = bquote('log'['10'] ~ '(abundance [fmol/' ~ mu ~ 'g])'), ylab = '')
     title(ylab = bquote('abs(log'['10'] ~ '(FC))'), line=2.5)
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
     axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015, las = 1)

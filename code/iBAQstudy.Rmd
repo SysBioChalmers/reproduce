@@ -117,7 +117,7 @@ We used a list of ribosomal genes based on previous work [@Jenner2012].
 
 ## Method 1: iBAQ
 
-Method 1 uses the computed iBAQ abundances available in the MaxQuant [@Cox2008] output file, which are inferred using an ES curve of the UPS2 proteins (in the L fraction) [@Schwanhausser2011]. As the data already comes in fmol/sample, the only thing missing is to use the values from the IS (H fraction) together with the normalized L/H ratios in the SILAC data for getting absolute abundances in each sample of the SILAC data (fmol/sample), by doing:
+Method 1 uses the computed iBAQ abundances available in the MaxQuant [@Cox2008] output file, which are inferred using an ES curve of the UPS2 proteins (in the L fraction) [@Schwanhausser2011]. As the data comes in fmol/sample, the only steps missing are to convert all values to fmol/ug (by dividing by the sample mass), and then use the values from the IS (H fraction) together with the normalized L/H ratios in the SILAC data for getting absolute abundances in each sample of the SILAC data (fmol/sample), by doing:
 
 `abundance(sample) = (L/H)ratio * abundance(IS)`
 
@@ -125,6 +125,10 @@ Method 1 uses the computed iBAQ abundances available in the MaxQuant [@Cox2008] 
 ```
 
 ```{r}
+# convert to proper units:
+ESdata[,grep('Abundance.iBAQ.ES.',names(ESdata))] <- ESdata[,grep('Abundance.iBAQ.ES.',names(ESdata))]/1.1  # 1.1 ug
+ISdata[,grep('Abundance.iBAQ.IS.',names(ISdata))] <- ISdata[,grep('Abundance.iBAQ.IS.',names(ISdata))]/6    # 6 ug
+# infer sample data:
 SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQ')
 ```
 
@@ -138,9 +142,9 @@ As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-IS}),
 ```
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.',1.1e6) #1.1 ug
-ISdata    <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.',6e6)   #6 ug
-SILACdata <- rescaleData(SILACdata,'Abundance.iBAQ.R','iBAQrescaled.R',6e6)    #6 ug
+ESdata    <- rescaleData(ESdata,'Abundance.iBAQ.ES.','iBAQrescaled.ES.')
+ISdata    <- rescaleData(ISdata,'Abundance.iBAQ.IS.','iBAQrescaled.IS.')
+SILACdata <- rescaleData(SILACdata,'Abundance.iBAQ.R','iBAQrescaled.R')
 ```
 
 ## Method 3: TPA
@@ -152,9 +156,9 @@ If we are rescaling the iBAQ values in method 2, we can alternatively consider s
 This can be performed separately for the ES, the IS and the samples.
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPA.ES.',1.1e6) #1.1 ug
-ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPA.IS.',6e6)   #6 ug
-SILACdata <- rescaleData(SILACdata,'Intensity.L.R','TPA.R',6e6)     #6 ug
+ESdata    <- rescaleData(ESdata,'Intensity.L.T4h_','TPA.ES.')
+ISdata    <- rescaleData(ISdata,'Intensity.H.T4h_','TPA.IS.')
+SILACdata <- rescaleData(SILACdata,'Intensity.L.R','TPA.R')
 ```
 
 ## Method 4: Normalized TPA
@@ -173,14 +177,14 @@ SILACdata <- normalizeIntensities(SILACdata,'Intensity.L.R','theo.peptides')
 ```
 
 ```{r}
-ESdata    <- rescaleData(ESdata,'normInt.Ntheo.L.T4h_','TPAnorm.ES.',1.1e6) #1.1 ug
-ISdata    <- rescaleData(ISdata,'normInt.Ntheo.H.T4h_','TPAnorm.IS.',6e6)   #6 ug
-SILACdata <- rescaleData(SILACdata,'normInt.Ntheo.L.R','TPAnorm.R',6e6)     #6 ug
+ESdata    <- rescaleData(ESdata,'normInt.Ntheo.L.T4h_','TPAnorm.ES.')
+ISdata    <- rescaleData(ISdata,'normInt.Ntheo.H.T4h_','TPAnorm.IS.')
+SILACdata <- rescaleData(SILACdata,'normInt.Ntheo.L.R','TPAnorm.R')
 ```
 
 Note that for methods 3 and 4 we have essentially created a linear model:
 
-`abundance = m*intensity`, where `m = (6 ug)/(sum of intensities*MWs)`
+`abundance = m*intensity`, where `m = 1/(sum of intensities*MWs)`
 
 `log(abundance) = log(intensity) + log(m)` -> linear model with a = 1 and b = log(m) in the log space.
 
@@ -235,7 +239,7 @@ Let's now compare accuracy. First, we compare the ES values predicted by each me
 ```{r plotESerror}
 ```
 
-```{r accuracy-ups2, fig.height = 4.5, fig.width = 4.5, fig.align="center", fig.cap = "\\label{fig:accuracy-ups2}Comparison of predicted Vs real abundance values [fmol/sample] from UPS2, according to all methods. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
+```{r accuracy-ups2, fig.height = 4.5, fig.width = 4.5, fig.align="center", fig.cap = "\\label{fig:accuracy-ups2}Comparison of predicted Vs real abundance values [fmol/$\\mu$g protein] from UPS2, according to all methods. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10."}
 par(mfrow = c(2,2), mar = c(3.5,4,2,2), mgp = c(1,0.5,0), cex = 0.7)
 FCups2IBAQ <- plotESerror(ESdata,'iBAQ',IBAQname)
 FCups2IR   <- plotESerror(ESdata,'iBAQrescaled',IRname)
@@ -264,7 +268,7 @@ ISrpTPAN  <- getRPdata(ISabundanceTPAN,RP)
 ```{r plotRPdata}
 ```
 
-```{r accuracy-ribosome-is, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample] in the internal standard, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
+```{r accuracy-ribosome-is, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/$\\mu$g protein] in the internal standard, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
 par(mfrow = c(4,1), mar = c(3.5,4,2,1), cex = 0.8)
 FCISrpIBAQ  <- plotRPdata(ISrpIBAQ,IBAQname)
 FCISrpIR    <- plotRPdata(ISrpIR,IRname)
@@ -287,7 +291,7 @@ plotCumulativeDistrib(ISrpFC,'Ribosomal stoichiometry error in IS')
 
 We can confirm this for the 18 samples:
 
-```{r accuracy-ribosome-silac, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/sample] in the samples, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
+```{r accuracy-ribosome-silac, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/$\\mu$g protein] in the samples, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
 abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
 abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
 abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]

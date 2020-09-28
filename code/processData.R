@@ -57,14 +57,14 @@ getSampleAbundance <- function(SILACdata,ISdata,method) {
 
 
 ## @knitr rescaleData
-rescaleData <- function(data,pattern,name,totProt) {
+rescaleData <- function(data,pattern,name) {
   pos <- grep(pattern,names(data))   #Values in the data to rescale
   for(i in pos) {
     # Compute new abundance:
     abundance <- data[,i]*data$Mol..weight..kDa.
-    abundance <- abundance/sum(abundance, na.rm = TRUE) #g/g in sample
-    abundance <- abundance*totProt                      #pg in sample
-    abundance <- abundance/data$Mol..weight..kDa.       #fmol in sample
+    abundance <- abundance/sum(abundance, na.rm = TRUE) #g/g protein
+    abundance <- abundance/data$Mol..weight..kDa.       #mmol/g protein
+    abundance <- abundance*1e12/1e6                     #fmol/ug protein
     # Add abundances to dataset:
     new_name <- gsub(pattern,paste0('Abundance.',name),names(data)[i])
     data[[new_name]] <- abundance
