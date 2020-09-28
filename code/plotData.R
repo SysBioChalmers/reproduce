@@ -306,19 +306,19 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
     points(sampleData[,1],sampleData[,2], col = color_data)
   }
   # Plot UPS2 window:
-  if(!allInOne || grepl('TPAnorm.R',pattern)) {
+  if(grepl('iBAQ.R',pattern)) {
     polygon(c(min_es,min_es,max_es,max_es,min_es),c(min_y,max_y,max_y,min_y,min_y),
             col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1), border = NA)
   }
   # Plot UPS2 points:
-  if(!allInOne) {
+  if(!allInOne && grepl('iBAQ.R',pattern)) {
     title(main = titleName)
     points(ESdata[,1],ESdata[,2], col = 'black')
     # Compute fraction in window:
     in_window <- (sampleData[,1] > min_es)*(sampleData[,1] < max_es)
     fraction  <- sum(in_window)/length(in_window)*100
     fraction  <- round(fraction, digits = 1)
-    text(min_es-1, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
+    text(min_es-2, max_y-0.3, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
   }
   return(sampleData)
 }
