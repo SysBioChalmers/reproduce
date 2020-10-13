@@ -392,7 +392,9 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   } else {
     interSize <- 0.3
     plot(x,y, pch = s,col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
-         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name, las = 1)
+         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name, las = 1,
+         xlab = bquote('log'['10'] ~ '(intensity value)'),
+         ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(1.5, 0.5, 0))
   }
   if(!allInOne || first) {
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x,
@@ -425,7 +427,7 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   CVm  <- round(CVm, digits = 1)
   #Plot data:
   if(allInOne) { par(mfrow = c(1,1), mar = c(3,3,0,0), pty = "s", cex = 0.8) }
-  else         { par(mfrow = c(2,3), mar = c(2, 2, 2, 1), cex = 0.5) }
+  else         { par(mfrow = c(2,3), mar = c(3,3,2,1), cex = 0.5) }
   ESdata <- ESdata[order(ESdata$amount.fmoles),]
   plotES(ESdata,pattern,scaling,'top5_batch1',allInOne,TRUE,CVm)
   plotES(ESdata,pattern,scaling,'top5_batch2',allInOne,FALSE,CVm)
@@ -443,6 +445,7 @@ plotVsLength <- function(data,varNames,titleNames) {
       x <- log10(data$Sequence.length)
       y <- log10(data[[varNames]])
       col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.1)
+      y_label <- 'number of theoretical peptides'
     } else {
       name   <- varNames[i]
       data_i <- data[,grep(name,names(data))]
@@ -453,11 +456,14 @@ plotVsLength <- function(data,varNames,titleNames) {
         y <- c(y,log10(data_i[,j]))
       }
       col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
+      y_label <- 'abundance'
     }
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '', las = 1)
+    plot(x, y, col = col_opt, main = titleNames[i], las = 1,
+         xlab = bquote('log'['10'] ~ '(sequence length)'),
+         ylab = bquote('log'['10'] ~ '(' ~ .(y_label) ~ ')'))
     lmodel <- lm(y ~ x)
     a  <- lmodel$coefficients[1]
     b  <- lmodel$coefficients[2]
