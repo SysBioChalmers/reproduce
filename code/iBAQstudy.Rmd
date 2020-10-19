@@ -134,7 +134,7 @@ SILACdata <- getSampleAbundance(SILACdata,ISdata,'iBAQ')
 
 ## Method 2: Rescaling iBAQ values
 
-As iBAQ values don't add up always to the same totals (Figure \ref{fig:tot-IS}), we should asses the benefits of rescaling all of these values to add up to the injected amounts:
+As iBAQ values don't add up always to the total injected protein mass (Figure \ref{fig:tot-IS}), we should assess the benefits of rescaling all of these values to add up to the injected amounts:
 
 `abundance = (iBAQ abundance)*(injected amount)/(sum of all iBAQ abundances*MW values)`
 
@@ -227,7 +227,7 @@ for(i in 1:length(sampleNames)) {
 
 Both in figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein varies considerably among samples calculated with method 1 (a coefficient of variation of ~16%), and as expected the variation goes to zero if we rescale (methods 2, 3 and 4). Note that for method 1, the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
-Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which led us to have to infer them as described in section \ref{number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so for any other software this would not be a limitation. In any case, the coverage decrease is overall low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 $\rightarrow$ 166), no values when comparing ribosome stoichiometry in the IS (312 $\rightarrow$ 312) and we gained 19 values when comparing ribosome stoichiometry in the samples (731 $\rightarrow$ 750). On the other hand, When analyzing precision (section \ref{evaluating-inter-batch-precision}), we lost 4.5% of values (14,858 $\rightarrow$ 14,182) in the IS data, but gained 6.3% of values (21,320 $\rightarrow$ 22,657) in the sample data.
+Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which led us to have to infer them as described in section \ref{number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so this would not be a limitation if choosing other software. In any case, the coverage decrease is overall low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 $\rightarrow$ 166), no values when comparing ribosome stoichiometry in the IS (312 $\rightarrow$ 312) and we gained 19 values when comparing ribosome stoichiometry in the samples (731 $\rightarrow$ 750). On the other hand, When analyzing precision (section \ref{evaluating-inter-batch-precision}), we lost 4.5% of values (14,858 $\rightarrow$ 14,182) in the IS data, but gained 6.3% of values (21,320 $\rightarrow$ 22,657) in the sample data.
 
 ## Evaluating accuracy
 
@@ -318,7 +318,7 @@ So in conclusion, methods 1, 2 and 4 perform similarly well in terms of accuracy
 
 ## Evaluating precision
 
-We now display the variability of the abundance data in the samples between biological replicates and between batches, for all methods. For that we first define a function that gives all possible combinations between replicates, and we then plot the data with scatter plots and PCAs:
+We now display the variability of the abundance between biological replicates and between batches, for all methods. For that we first define a function that gives all possible combinations between replicates, and we then plot the data with scatter plots and PCAs:
 
 ```{r getReplicateData}
 ```
@@ -340,7 +340,7 @@ plotAllVariability(abundanceTPA,FALSE)
 plotAllVariability(abundanceTPAN,FALSE)
 ```
 
-We see a lower median fold change between batches + a better separation of the "batch clusters" in the PCA when we use method 3 or 4 (PC1+PC2 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between batches than with methods 1 and 2. This only comes at a cost of higher median fold changes between biological replicates, but within acceptible margins. Overall, variability between replicates is the lowest for method 4, if we look at the breakdown of proteins by method:
+We see a lower median fold change between batches + a better separation of the "batch clusters" in the PCA when we use method 3 or 4 (PC1+PC2 represents less variability). This means that by using rescaled MS data (methods 3 or 4) we achieve lower variability between batches than with methods 1 and 2. In turn, methods 3 and 4 have a higher median fold change between biological replicates, but within acceptable margins. Overall, variability between replicates is the lowest for method 4, if we look at the breakdown of proteins by method:
 
 ```{r FCbreakdownRep}
 ```
@@ -418,7 +418,7 @@ par(mfrow = c(1,1), mar = c(4,4,0.5,0.5), mgp = c(2.5,0.5,0))
 plotSplines(SILACdata,ESdata)
 ```
 
-We see that method 4 has overall less variability than methods 3 and 4, both for lowly and highly abundant proteins. It also performs better than method 3 at low abundances. So in conclusion, method 4 is the best method from all 4 assesed, as it is as accurate as methods 1 and 2, but significantly more precise.
+We see that method 4 has overall less variability than methods 1 and 2, both for lowly and highly abundant proteins. It also performs better than method 3 at low abundances. So in conclusion, method 4 is the best method from all 4 assesed, as it is as accurate as methods 1 and 2, but significantly more precise.
 
 ## Additional comparisons
 
@@ -452,7 +452,7 @@ The blue fits give us the transformation from light (L) MS intensity of the UPS2
 plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,TRUE)
 ```
 
-In conclusion, we can skip entirely the UPS2 data and iBAQ values, and instead assume that the normalized MS intensities should always adds up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across samples.
+In conclusion, we can skip entirely the UPS2 data and iBAQ values, and instead assume that the normalized MS intensities should always add up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across replicates.
 
 ### Predictions between methods
 
