@@ -225,7 +225,7 @@ for(i in 1:length(sampleNames)) {
 }
 ```
 
-In both figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein seems to vary quite a bit among samples calculated with method 1, and as expected the variaion goes to zero if we rescale (methods 2, 3 and 4). Note that for method 1, the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
+Both in figures \ref{fig:tot-IS} and \ref{fig:tot-samples}, the total detected protein varies considerably among samples calculated with method 1 (a coefficient of variation of ~16%), and as expected the variation goes to zero if we rescale (methods 2, 3 and 4). Note that for method 1, the total amount of protein detected in the samples is lower than the amount detected in the internal standard, due to more proteins detected in the internal standard (as the latter is a mix of different conditions and not just one sample).
 
 Note as well that the coverage of method 4 is lower than methods 1, 2 and 3. This appears as a limitation of method 4, but it is actually a limitation of the MaxQuant software, which does not provide as an output the number of theoretical peptides for each protein, which led us to have to infer them as described in section \ref{number-of-theoretical-peptides}. In fact methods 1 and 2 also employ the number of theoretical peptides, so for any other software this would not be a limitation. In any case, the coverage decrease is overall low for the proteins later analyzed: When analyzing accuracy (section \ref{evaluating-accuracy}) we only lost one value when comparing UPS2 values (167 $\rightarrow$ 166), no values when comparing ribosome stoichiometry in the IS (312 $\rightarrow$ 312) and we gained 19 values when comparing ribosome stoichiometry in the samples (731 $\rightarrow$ 750). On the other hand, When analyzing precision (section \ref{evaluating-inter-batch-precision}), we lost 4.5% of values (14,858 $\rightarrow$ 14,182) in the IS data, but gained 6.3% of values (21,320 $\rightarrow$ 22,657) in the sample data.
 
@@ -268,7 +268,7 @@ ISrpTPAN  <- getRPdata(ISabundanceTPAN,RP)
 ```{r plotRPdata}
 ```
 
-```{r accuracy-ribosome-is, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/$\\mu$g protein] in the internal standard, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
+```{r accuracy-ribosome-is, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/$\\mu$g protein] in the internal standard, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and both the median fold change to that line and the coeficcient of variation for all data are displayed."}
 par(mfrow = c(4,1), mar = c(3.5,4,2,1), cex = 0.8)
 FCISrpIBAQ  <- plotRPdata(ISrpIBAQ,IBAQname)
 FCISrpIR    <- plotRPdata(ISrpIR,IRname)
@@ -291,7 +291,7 @@ plotCumulativeDistrib(ISrpFC,'Ribosomal stoichiometry error in IS')
 
 We can confirm this for the 18 samples:
 
-```{r accuracy-ribosome-silac, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/$\\mu$g protein] in the samples, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and the median fold change to that line for all data is displayed."}
+```{r accuracy-ribosome-silac, fig.height = 7, fig.width = 6, fig.align="center", fig.cap = "\\label{fig:accuracy-ribosome}Comparison of predicted ribosomal subunit abundances [fmol/$\\mu$g protein] in the samples, according to all methods. Colors correspond to different technical replicates. The median value is displayed with a segmented line, and both the median fold change to that line and the coeficcient of variation for all data are displayed."}
 abundanceIBAQ <- SILACdata[,c(1,grep('Abundance.iBAQ.R',names(SILACdata)))]
 abundanceIR   <- SILACdata[,c(1,grep('Abundance.iBAQrescaled.R',names(SILACdata)))]
 abundanceTPA  <- SILACdata[,c(1,grep('Abundance.TPA.R',names(SILACdata)))]

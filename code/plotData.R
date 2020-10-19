@@ -25,10 +25,11 @@ plotTotalProt <- function(data,pattern,titleName) {
   meanVals <- rowMeans(data[,pos], na.rm = TRUE)
   meanVals[meanVals <= 0] <- NA
   coverage <- sum(!is.na(meanVals))
-  print(paste(titleName,'-',coverage,'proteins detected'))
   # Get total protein detected:
-  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.       #(fmol/ug)*kDa = pg/ug
-  totProt        <- colSums(data[,pos], na.rm = TRUE)*6/1e6 #(pg/ug)*(ug/sample)/(pg/ug) = ug/sample
+  data[,pos] <- data[,pos]*data$Mol..weight..kDa.       #(fmol/ug)*kDa = pg/ug
+  totProt    <- colSums(data[,pos], na.rm = TRUE)*6/1e6 #(pg/ug)*(ug/sample)/(pg/ug) = ug/sample
+  cvProt     <- round(sd(totProt)/mean(totProt)*100, digits = 1)
+  print(paste0(titleName,' - ',coverage,' proteins detected - ', cvProt, '% variation'))
   names(totProt) <- gsub(pattern,'',names(totProt))
   factors <- factor(names(totProt))
   cols    <- getColors(nlevels(factors))
@@ -120,7 +121,10 @@ plotRPdata <- function(RPdata,title) {
   axis(side=1, at = 1:length(RPdata[,1]), labels = RPdata[,1], las=2, cex.axis = 0.7)
   max_x <- length(RPdata[,1])
   lines(c(1,max_x),c(mead_val,mead_val), col = 'black', lwd = 2, lty = 2)
+  # Show median fold change and overall coefficient of variation:
   text(max_x, mead_val-1, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 2)
+  cv  <- round(sd(data, na.rm = TRUE)/mean(data, na.rm = TRUE)*100, digits = 1)
+  text(max_x, mead_val-1.5, paste0('CV = ', cv, '%'), pos = 2)
   return(FC)
 }
 
