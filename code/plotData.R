@@ -153,13 +153,8 @@ plotCumulativeDistrib <- function(FCs,varName){
   # Plot data:
   min_x <- 0
   max_x <- 1
-  if(nchar(varName) > 4) {
-    title <- varName
-  } else {
-    title <- ''
-  }
   plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
-       xlim = c(min_x, max_x), ylim = c(0, 1), main = title, xlab = '', ylab = '')
+       xlim = c(min_x, max_x), ylim = c(0, 1), xlab = '', ylab = '')
   axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
   axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015, las = 1)
   axis(side=3, at = seq(min_x, max_x, by = 0.2), labels = FALSE, tck = 0.015)

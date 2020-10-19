@@ -285,8 +285,8 @@ These distributions are not very different between them (with exception of metho
 ups2FC <- list(FCups2IBAQ,FCups2IR,FCups2TPA,FCups2TPAN)
 ISrpFC   <- list(FCISrpIBAQ,FCISrpIR,FCISrpTPA,FCISrpTPAN)
 par(mfrow = c(1,2), mar = c(3.5,4,2,1), mgp = c(1.7,0.5,0), cex = 0.7)
-plotCumulativeDistrib(ups2FC,'UPS2 abundance error')
-plotCumulativeDistrib(ISrpFC,'Ribosomal stoichiometry error in IS')
+plotCumulativeDistrib(ups2FC,'UPS2 error')
+plotCumulativeDistrib(ISrpFC,'Ribosomal error')
 ```
 
 We can confirm this for the 18 samples:
@@ -311,7 +311,7 @@ FCrpTPAN  <- plotRPdata(rpTPAN,TPANname)
 ```{r accuracy-cdf-silac, warning = FALSE, fig.height = 3, fig.width = 3, fig.align = "center", fig.cap = "\\label{fig:accuracy-cdf}Cumulative distributions of absolute fold changes for differences to median value in ribosomal measurements of samples (right). A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 rpFC   <- list(FCrpIBAQ,FCrpIR,FCrpTPA,FCrpTPAN)
 par(mfrow = c(1,1), mar = c(3.5,4,2,1), mgp = c(1.7,0.5,0), cex = 0.7)
-plotCumulativeDistrib(rpFC,'Ribosomal stoich. error in samples')
+plotCumulativeDistrib(rpFC,'Ribosomal error')
 ```
 
 So in conclusion, methods 1, 2 and 4 perform similarly well in terms of accuracy, and method 3 performs significantly worse.
@@ -380,7 +380,7 @@ ISFCtechIR   <- getReplicateData(ISabundanceIR[,-1],names,2,FALSE)
 ISFCtechTPA  <- getReplicateData(ISabundanceTPA[,-1],names,2,FALSE)
 ISFCtechTPAN <- getReplicateData(ISabundanceTPAN[,-1],names,2,FALSE)
 IStechFC     <- list(ISFCtechIBAQ[,2],ISFCtechIR[,2],ISFCtechTPA[,2],ISFCtechTPAN[,2])
-plotCumulativeDistrib(IStechFC,'Inter-batch precision in IS')
+plotCumulativeDistrib(IStechFC,'Inter-batch precision')
 ```
 
 And also in the sample data:
@@ -393,7 +393,7 @@ FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
 FCtechTPA  <- getReplicateData(abundanceTPA[,-1],names,2,FALSE)
 FCtechTPAN <- getReplicateData(abundanceTPAN[,-1],names,2,FALSE)
 techFC     <- list(FCtechIBAQ[,2],FCtechIR[,2],FCtechTPA[,2],FCtechTPAN[,2])
-plotCumulativeDistrib(techFC,'Inter-batch precision in samples')
+plotCumulativeDistrib(techFC,'Inter-batch precision')
 ```
 
 We can also look at batch variability by plotting each FC to the corresponding abundance, together with a "UPS2 window" for method 1, that shows the abundance levels that are detected by the UPS2:
