@@ -12,6 +12,7 @@ output:
   pdf_document:
     number_sections: true
     highlight: tango
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
@@ -27,6 +28,21 @@ knitr::opts_chunk$set(echo = FALSE, dev = "png", dpi = 600)
 
 Here we will go through the typical way of deducing protein abundances [fmol/$\mu$g protein] from SILAC/iBAQ data, and compare it to rescaling values to a fix total protein abundance based on MS intensities, to assess the usefulness of the external standard curve and iBAQ data. The main observation that comes from this is that as MS measurements are so variable, it's impossible to find a unique external standard (ES) curve, hence normalizing to a fixed total protein abundance is as good as using the "optimal" fit from the ES curve. We can then use the MS intensity directly and bypass the ES curve, the iBAQ values and the internal standard.
 <br>
+
+# Additional experimental details
+
+## Cell lysis and sample preparation for LC/MS/MS
+
+Cell pellets were suspended in lysis buffer consisting of 6 M guanidine HCl, 100 mM Tris-HCl pH 8.0, 20 mM dithiothreitol (DTT), heated at 95°C for 10 min and sonicated with Bioruptor (Diagenode, Denville, NJ, USA) sonication (15 min, _“High”_ setting). Samples were further homogenized by FastPrep24 (MP Biomedicals, Santa Ana, CA, USA) bead beating device 2x at 4 m/s for 30 s with cooling between cycles. After removal of beads, the samples were precleared with centrifugation at 17,000 g for 10 min at 4°C. Aliquots of samples were precipitated overnight with 10% trichloroacetic acid (TCA) at 4°C and used for protein concentration measurement with the Micro BCA™ Protein Assay Kit (Thermo Fisher Scientific, Waltham, MA, USA). For absolute quantification of the internal standard (IS), 1.1 µg of Proteomics Dynamic Range Standard Set (UPS2, Sigma Aldrich) (ES) was mixed with 6 µg of heavy-labelled yeast grown in previously described minimal medium supplemented with ^15^N~2~^13^C~6~- labelled lysine (Lys8) (Cambridge Isotope Laboratories, Tewksbury, MA, USA). The biological replicate samples were spiked in 1:1 ratio with the IS. Next, samples were precipitated with 10% TCA and suspended in 7:2 M urea:thiourea, 100 mM ammonium bicarbonate (ABC) buffer. After reduction with 5 mM dithiothreitol and alkylation with 10 mM chloroacetamide, samples were digested for 4 h at room temperature with 1:50 (enzyme to protein) Achromobacter lyticus Lys-C (Wako Pure Chemical Industries, Osaka, Japan). Solutions were diluted 5x with 100 mM ABC and further digested overnight at room temperature. Peptides were desalted using in-house made C18 (3M Empore, Maplewood, MO, USA) tips and reconstituted in 0.5% trifluoroacetic acid (TFA).
+
+## Nano-LC/MS/MS analysis
+
+Peptide samples were injected to an Ultimate 3000 RSLCnano system (Dionex, Sunnyvale, CA, USA) using a 0.3 × 5 mm trap-column (5 µm C18 particles, Dionex) and an in-house packed (3 µm C18 100 `r knitr::asis_output("\U212B")`, Dr Maisch, Ammerbuch, Germany) analytical 50 cm x 75 µm emitter-column (New Objective, Woburn, MA, USA). Peptides were eluted at 250 nl/min with an 8-40% (4 h) A to B gradient (buffer A: 0.1% (v/v) formic acid; buffer B: 80% (v/v) acetonitrile + 0.1% (v/v) formic acid) to a quadrupole-orbitrap Q Exactive Plus (Thermo Fisher Scientific) MS/MS via a nano-electrospray source (positive mode, spray voltage of 2.5 kV). The MS was operated with a top-5 or top-10 data-dependent acquisition strategy. Briefly, one 350-1,400 m/z MS scan at a resolution setting of R = 70,000 was followed by higher-energy collisional dissociation fragmentation (normalized collision energy of 26) of the 5 or 10 most intense ions (z: +2 to +6) at R = 17,500. MS and MS/MS ion target values were 3,000,000 and 50,000 ions with 50 and 100 ms injection times, respectively. Dynamic exclusion was limited to 70 s.
+
+## Mass-spectrometric raw data identification and quantification
+Raw data were identified and quantified with the MaxQuant 1.4.0.8 software package [@Tyanova2016]. For samples spiked with the heavy IS, the labelling state (_multiplicity_) was set to 2, and Lys8 was defined as the heavy label. Methionine oxidation, asparagine/glutamine deamidation and protein N-terminal acetylation were set as variable modifications, and cysteine carbamidomethylation was defined as a fixed modification. Search was performed against the UniProt (www.uniprot.org) _S. cerevisiae_ S288C reference proteome database (version from July 2016), with this reference genome being selected over CEN.PK due to better annotation. This was performed using the LysC/P digestion rule. Only protein identifications with a minimum of 1 peptide of 7 amino acids long were accepted, and transfer of peptide identifications between runs was enabled. Signal integration (re-quantification) of missing label channels was enabled. Protein quantification was reported when at least one peptide had been quantified (i.e. the protein minimum ratio count was set to 1). Peptide-spectrum match, peptide and protein false discovery rate (FDR) were kept below 1% using a target-decoy approach. All other parameters were default.
+
+For absolute quantification of the heavy IS with the ES, the iBAQ feature [@Schwanhausser2011] of MaxQuant was enabled. Briefly, this function normalizes protein intensities by the number of theoretically observable peptides and enables rough intra-sample estimation of protein abundance. The UPS2 proteins log~10~ iBAQ intensities are then plotted against log~10~ quantities of the UPS2 proteins. This regression is then used to derive absolute quantities of all other proteins in the IS.
 
 # Loading and pre-processing data
 
