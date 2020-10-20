@@ -34,7 +34,7 @@ plotTotalProt <- function(data,pattern,titleName) {
   factors <- factor(names(totProt))
   cols    <- getColors(nlevels(factors))
   barplot(totProt, col = cols[factors], mgp = c(1.5, 0.5, 0), cex.names = 0.8,
-          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,7), las = 1)
+          ylab = bquote('Total detected protein [' ~ mu ~ 'g]'), xaxt = 'n', ylim = c(0,7), las = 1)
   title(main = titleName, cex.main = 0.9)
 }
 
