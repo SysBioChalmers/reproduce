@@ -119,7 +119,6 @@ ISdata    <- addNtheoPeptides(ISdata,NTPdata,'')        #sum of all
 SILACdata <- addNtheoPeptides(SILACdata,NTPdata,'')     #sum of all
 ```
 
-
 Ribosomal proteins: We used a list of ribosomal genes based on previous work [@Jenner2012].
 
 ```{r loadRibProteins, message = FALSE}
@@ -376,11 +375,10 @@ col3 <- FCbreakdown(abundanceTPA)
 col4 <- FCbreakdown(abundanceTPAN)
 breakdown <- cbind(col1,col2,col3,col4)
 colnames(breakdown)  <- c("Method 1","Method 2","Method 3","Method 4")
-row.names(breakdown) <- c("FC < 2","2 < FC < 10","10 < FC",
-                          "FC < 2","2 < FC < 10","10 < FC",
-                          "FC < 2","2 < FC < 10","10 < FC")
-tablecap <- paste("Protein breakdown by method and type of replicate.",
-                  "For each protein, the maximum fold change is considered.")
+row.names(breakdown) <- c("FC < 2","2 <= FC <= 10","10 < FC",
+                          "FC < 2","2 <= FC <= 10","10 < FC",
+                          "FC < 2","2 <= FC <= 10","10 < FC")
+tablecap <- "Protein breakdown by method and type of replicate. For each protein, the maximum fold change is considered."
 kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
   kable_styling(latex_options = "hold_position") %>%
   group_rows("Variability between biological replicates:", 1, 3) %>%
@@ -473,6 +471,39 @@ plotAllES(ESdata,'normInt.Ntheo.L.T4h_',scaling,TRUE)
 ```
 
 In conclusion, we can skip entirely the UPS2 data and iBAQ values, and instead assume that the normalized MS intensities should always add up to a given protein amount. With this, we can reproduce very closely the ES curves, and achieve more consistent results across replicates.
+
+### Peptide performance
+
+We will look into some metrics at the peptide level. First we will look at differences between the number of peptides detected and assigned to each protein (known as the razor unique peptides):
+
+```{r peptideDifferences}
+#function for getting peptide variability
+```
+
+```{r breakdownPeptide, warning = FALSE}
+peptideData <-SILACdata[,grep('Razor...unique.peptides.R',names(SILACdata))]
+unionPeptides <- SILACdata$Peptide.counts..razor.unique.
+peptideBreakdown <- NULL
+peptideBreakdown[1:3] <- peptideDifferences(peptideData,unionPeptides,'Bio')
+peptideBreakdown[4:6] <- peptideDifferences(peptideData,unionPeptides,'Tech')
+peptideBreakdown[7:9] <- peptideDifferences(peptideData,unionPeptides,'All')
+peptideBreakdown <- t(t(peptideBreakdown))
+colnames(peptideBreakdown)  <- c("Peptides")
+row.names(peptideBreakdown) <- c("Mean Diference <= 2","2 < Mean Diference < 5","5 <= Mean Diference",
+                                 "Mean Diference <= 2","2 < Mean Diference < 5","5 <= Mean Diference",
+                                 "Mean Diference <= 2","2 < Mean Diference < 5","5 <= Mean Diference")
+tablecap <- "Peptide breakdown by type of replicate. For each protein, the mean difference of peptides with the union of peptides detected under all conditions was calculated."
+kable(peptideBreakdown, "latex", caption = tablecap, booktabs = T) %>%
+  kable_styling(latex_options = "hold_position") %>%
+  group_rows("Differences between biological replicates:", 1, 3) %>%
+  group_rows("Differences between batches:", 4, 6) %>%
+  group_rows("Differences between all replicates:", 7, 9)
+```
+
+```{r peptide-variability, fig.height = 3, fig.width = 3, fig.align = "center", fig.cap = "\\label{fig:peptide-variability}Variability of number of peptides detected by protein."}
+par(mfrow = c(1,1), mar = c(4,4,1,1), mgp = c(1,0.5,0), cex = 1)
+plotVariability(peptideData, getReplicateGroups('Tech'), '', 'Number of peptides', 'Number of peptides', TRUE,-0.5,+2.5)
+```
 
 ### Predictions between methods
 

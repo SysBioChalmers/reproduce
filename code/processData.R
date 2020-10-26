@@ -188,3 +188,26 @@ FCbreakdown <- function(data) {
   return(x)
 }
 
+
+## @knitr peptideDifferences
+peptideDifferences <- function(data,unionPeptides,replicateType) {
+  for(groupName in getReplicateGroups(replicateType)) {
+    names(data) <- gsub(groupName,'',names(data))
+  }
+  peptideDiffs <- NULL
+  groups <- unique(names(data))
+  for(group in groups) {
+    peptidesDiff <- t(t(as.integer(unionPeptides))) - data[,grep(group,names(data))]
+    peptidesDiff <- apply(peptidesDiff, 1, mean, na.rm = TRUE)
+    peptidesDiff <- na.omit(peptidesDiff)
+    peptideDiffs <- c(peptideDiffs,peptidesDiff)
+  }
+  print(paste(replicateType,'median peptide difference:',round(mean(peptideDiffs),digits = 2)))
+  peptideDiffSummary    <- NULL
+  peptideDiffSummary[1] <- sum(peptideDiffs <= 2)/length(peptideDiffs)
+  peptideDiffSummary[2] <- sum((peptideDiffs > 2)*(peptideDiffs < 5))/length(peptideDiffs)
+  peptideDiffSummary[3] <- sum(peptideDiffs >= 5)/length(peptideDiffs)
+  peptideDiffSummary    <- paste0(round(peptideDiffSummary*100,digits = 1),"%")
+  return(peptideDiffSummary)
+}
+

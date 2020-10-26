@@ -183,11 +183,11 @@ plotCumulativeDistrib <- function(FCs,varName){
 
 
 ## @knitr plotVariability
-plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE) {
+plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE,minVal=-4,maxVal=+4) {
   # Get data:
   data <- getReplicateData(data,groupNames,1,repeatData)
   # Plot all combinations:
-  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely, -4, +4)
+  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely, minVal, maxVal)
 }
 
 
