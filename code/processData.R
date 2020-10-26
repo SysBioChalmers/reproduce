@@ -30,6 +30,38 @@ addNtheoPeptides <- function(data,NTPdata,fraction) {
 }
 
 
+## @knitr standardizePeptideData
+standardizePeptideData <- function(data,fraction) {
+  # The 8 hour gradient setting will not be used in this study:
+  if(length(grep('T8h_',data$Experiment))>0) {
+    data <- data[-grep('T8h_',data$Experiment),]
+  }
+  # Other format fixes:
+  data$Experiment <- gsub('T4h_','',data$Experiment)
+  data$Experiment <- gsub('_Batch','_batch',data$Experiment)
+  data$Experiment <- gsub('-1_top','.1_top',data$Experiment)
+  # Create new dataframe:
+  variables <- c(paste('Intensity',fraction,sep='.'),'Charge','Retention.time')
+  experiments <- unique(data$Experiment)
+  varNames <- expand.grid(variables,experiments)
+  varNames <- paste(varNames[,1],varNames[,2],sep='.')
+  varNames <- paste(varNames,collapse=',')
+  varNames <- paste('Sequence',varNames,sep=',')
+  standardData <- read.csv(text=varNames)
+  sequences <- unique(data$Sequence)
+  standardData[1:length(sequences),1] <- sequences
+  for(i in 1:length(sequences)) {
+    sequence <- data$Sequence[i]
+    for(variable in variables) {
+      rowPos <- grep(sequence,standardData$Sequence)
+      colName <- paste(variable,data$Experiment[i],sep='.')
+      standardData[[colName]][rowPos] <- data[[variable]][i]
+    }
+  }
+  return(standardData)
+}
+
+
 ## @knitr getSampleAbundance
 getSampleAbundance <- function(SILACdata,ISdata,method) {
   # Merge abundance data from IS into SILAC dataset:

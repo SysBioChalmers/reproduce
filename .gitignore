@@ -1,6 +1,5 @@
-# folders holding intermediate/final data
+# folders holding final data
 data/final/
-data/intermediate/
 
 # the scratch folder which, by definition should not contain anything worth saving
 scratch/
