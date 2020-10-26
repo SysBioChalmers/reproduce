@@ -341,6 +341,9 @@ We now display the variability of the abundance between biological replicates an
 ```{r getReplicateData}
 ```
 
+```{r getReplicateGroups}
+```
+
 ```{r plotVariability}
 ```
 
@@ -392,11 +395,11 @@ Let's look further into the reduction of batch variability, by looking at the cu
 
 ```{r precision-tech-is, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability within the IS measurements for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 par(mfrow = c(1,1), mar = c(3.5,4,1.5,1), mgp = c(1.5,0.5,0), cex = 0.7)
-names      <- c('_batch1','_batch2','_batch3')
-ISFCtechIBAQ <- getReplicateData(ISabundanceIBAQ[,-1],names,2,FALSE)
-ISFCtechIR   <- getReplicateData(ISabundanceIR[,-1],names,2,FALSE)
-ISFCtechTPA  <- getReplicateData(ISabundanceTPA[,-1],names,2,FALSE)
-ISFCtechTPAN <- getReplicateData(ISabundanceTPAN[,-1],names,2,FALSE)
+groupNames <- getReplicateGroups('Tech')
+ISFCtechIBAQ <- getReplicateData(ISabundanceIBAQ[,-1],groupNames,2,FALSE)
+ISFCtechIR   <- getReplicateData(ISabundanceIR[,-1],groupNames,2,FALSE)
+ISFCtechTPA  <- getReplicateData(ISabundanceTPA[,-1],groupNames,2,FALSE)
+ISFCtechTPAN <- getReplicateData(ISabundanceTPAN[,-1],groupNames,2,FALSE)
 IStechFC     <- list(ISFCtechIBAQ[,2],ISFCtechIR[,2],ISFCtechTPA[,2],ISFCtechTPAN[,2])
 plotCumulativeDistrib(IStechFC,'Inter-batch precision')
 ```
@@ -405,11 +408,10 @@ And also in the sample data:
 
 ```{r precision-tech-silac, fig.height = 3, fig.width = 4,  fig.align = "center", fig.cap = "\\label{fig:precision-tech}Fold change cumulative distributions of batch variability within samples for all methods. A fold change of 2 is indicated with a vertical segmented line. Colors represent the methods: 1) iBAQ (blue), 2) iBAQ rescaled (gray), 3) TPA (brown) and 4) TPA normalized (yellow)."}
 par(mfrow = c(1,1), mar = c(3.5,4,1.5,1), mgp = c(1.5,0.5,0), cex = 0.7)
-names      <- c('_batch1','_batch2','_batch3')
-FCtechIBAQ <- getReplicateData(abundanceIBAQ[,-1],names,2,FALSE)
-FCtechIR   <- getReplicateData(abundanceIR[,-1],names,2,FALSE)
-FCtechTPA  <- getReplicateData(abundanceTPA[,-1],names,2,FALSE)
-FCtechTPAN <- getReplicateData(abundanceTPAN[,-1],names,2,FALSE)
+FCtechIBAQ <- getReplicateData(abundanceIBAQ[,-1],groupNames,2,FALSE)
+FCtechIR   <- getReplicateData(abundanceIR[,-1],groupNames,2,FALSE)
+FCtechTPA  <- getReplicateData(abundanceTPA[,-1],groupNames,2,FALSE)
+FCtechTPAN <- getReplicateData(abundanceTPAN[,-1],groupNames,2,FALSE)
 techFC     <- list(FCtechIBAQ[,2],FCtechIR[,2],FCtechTPA[,2],FCtechTPAN[,2])
 plotCumulativeDistrib(techFC,'Inter-batch precision')
 ```

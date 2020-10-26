@@ -249,8 +249,8 @@ plotAllVariability <- function(abundance,showTitle) {
   } else {
     titleNames = c('','','')
   }
-  plotVariability(abundance[,-1],c('.R1.1','.R2.1','.R3.1'),titleNames[1])
-  plotVariability(abundance[,-1],c('_batch1','_batch2','_batch3'),titleNames[2])
+  plotVariability(abundance[,-1],getReplicateGroups('Bio'),titleNames[1])
+  plotVariability(abundance[,-1],getReplicateGroups('Tech'),titleNames[2])
   plotPCA(abundance[,-1],titleNames[3])
 }
 
@@ -274,11 +274,11 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   }
   # Get FC values for sample data:
   abundance  <- sampleData[,grep(pattern,names(sampleData))]
-  sampleData <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
+  sampleData <- getReplicateData(abundance,getReplicateGroups('Tech'),2)
   # Get FC values for ES data:
   ESdata_pattern <- gsub('.R..1_','.ES',pattern)
   ESabundance    <- ESdata[,grep(ESdata_pattern,names(ESdata))]
-  ESdata         <- getReplicateData(ESabundance,c('_batch1','_batch2','_batch3'),2)
+  ESdata         <- getReplicateData(ESabundance,getReplicateGroups('Tech'),2)
   # Print number of yeast proteins below minimum detected UPS2 protein
   min_es <- min(ESdata[,1], na.rm = TRUE)
   max_es <- max(ESdata[,1], na.rm = TRUE)

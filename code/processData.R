@@ -105,8 +105,8 @@ getRPdata <- function(data,RP) {
 ## @knitr getReplicateData
 getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
   # Erase distinction from name:
-  for(i in 1:length(groupNames)) {
-    names(data) <- gsub(groupNames[i],'',names(data))
+  for(groupName in groupNames) {
+    names(data) <- gsub(groupName,'',names(data))
   }
   data1 <- NULL
   data2 <- NULL
@@ -142,10 +142,23 @@ getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
 }
 
 
+## @knitr getReplicateGroups
+getReplicateGroups <- function(replicateType) {
+  if(replicateType == 'Bio'){
+    groupNames <- c('.R1.1','.R2.1','.R3.1')
+  } else if(replicateType == 'Tech') {
+    groupNames <- c('_batch1','_batch2','_batch3')
+  } else if(replicateType == 'All') {
+    groupNames <- c('.R1.1','.R2.1','.R3.1','_batch1','_batch2','_batch3')
+  }
+  return(groupNames)
+}
+
+
 ## @knitr FCbreakdownRep
-FCbreakdownRep <- function(data,groupNames) {
-  for(i in 1:length(groupNames)) {
-    names(data) <- gsub(groupNames[i],'',names(data))
+FCbreakdownRep <- function(data,replicateType) {
+  for(groupName in getReplicateGroups(replicateType)) {
+    names(data) <- gsub(groupName,'',names(data))
   }
   FCs <- NULL
   for(i in 1:(length(names(data))-1)) {
@@ -169,9 +182,9 @@ FCbreakdownRep <- function(data,groupNames) {
 ## @knitr FCbreakdown
 FCbreakdown <- function(data) {
   x      <- NULL
-  x[1:3] <- FCbreakdownRep(data,c('.R1.1','.R2.1','.R3.1'))
-  x[4:6] <- FCbreakdownRep(data,c('_batch1','_batch2','_batch3'))
-  x[7:9] <- FCbreakdownRep(data,c('.R1.1','.R2.1','.R3.1','_batch1','_batch2','_batch3'))
+  x[1:3] <- FCbreakdownRep(data,'Bio')
+  x[4:6] <- FCbreakdownRep(data,'Tech')
+  x[7:9] <- FCbreakdownRep(data,'All')
   return(x)
 }
 
