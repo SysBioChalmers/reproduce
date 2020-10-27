@@ -383,7 +383,7 @@ colnames(breakdown)  <- c("Method 1","Method 2","Method 3","Method 4")
 row.names(breakdown) <- c("FC < 2","2 <= FC <= 10","10 < FC",
                           "FC < 2","2 <= FC <= 10","10 < FC",
                           "FC < 2","2 <= FC <= 10","10 < FC")
-tablecap <- "Protein breakdown by method and type of replicate. For each protein, the maximum fold change is considered."
+tablecap <- "Protein breakdown by method and type of replicate. For each protein, the median fold change is considered."
 kable(breakdown, "latex", caption = tablecap, booktabs = T) %>%
   kable_styling(latex_options = "hold_position") %>%
   group_rows("Variability between biological replicates:", 1, 3) %>%

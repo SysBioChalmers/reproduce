@@ -201,11 +201,12 @@ FCbreakdownRep <- function(data,replicateType) {
     }
   }
   FCs[is.infinite(FCs)] <- NA
-  maxFC <- apply(FCs, 1, max, na.rm = TRUE)
+  medFC <- apply(FCs, 1, median, na.rm = TRUE)
+  medFC <- na.omit(medFC)
   x     <- NULL
-  x[1]  <- sum(maxFC < 2, na.rm = TRUE)/length(maxFC)
-  x[2]  <- sum((maxFC >= 2)*(maxFC <= 10), na.rm = TRUE)/length(maxFC)
-  x[3]  <- sum(maxFC > 10, na.rm = TRUE)/length(maxFC)
+  x[1]  <- sum(medFC < 2, na.rm = TRUE)/length(medFC)
+  x[2]  <- sum((medFC >= 2)*(medFC <= 10), na.rm = TRUE)/length(medFC)
+  x[3]  <- sum(medFC > 10, na.rm = TRUE)/length(medFC)
   x     <- paste0(round(x*100,digits = 1),"%")
   return(x)
 }
@@ -234,7 +235,7 @@ peptideDifferences <- function(data,unionPeptides,replicateType) {
     peptidesDiff <- na.omit(peptidesDiff)
     peptideDiffs <- c(peptideDiffs,peptidesDiff)
   }
-  print(paste(replicateType,'median peptide difference:',round(mean(peptideDiffs),digits = 2)))
+  print(paste(replicateType,'mean peptide difference:',round(mean(peptideDiffs),digits = 2)))
   peptideDiffSummary    <- NULL
   peptideDiffSummary[1] <- sum(peptideDiffs <= 2)/length(peptideDiffs)
   peptideDiffSummary[2] <- sum((peptideDiffs > 2)*(peptideDiffs < 5))/length(peptideDiffs)
