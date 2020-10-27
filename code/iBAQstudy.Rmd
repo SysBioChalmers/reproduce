@@ -119,6 +119,11 @@ ISdata    <- addNtheoPeptides(ISdata,NTPdata,'')        #sum of all
 SILACdata <- addNtheoPeptides(SILACdata,NTPdata,'')     #sum of all
 ```
 
+Peptide data: Will be used later for misc checks at the peptide level.
+
+```{r loadPeptideData}
+```
+
 Ribosomal proteins: We used a list of ribosomal genes based on previous work [@Jenner2012].
 
 ```{r loadRibProteins, message = FALSE}
@@ -503,6 +508,29 @@ kable(peptideBreakdown, "latex", caption = tablecap, booktabs = T) %>%
 ```{r peptide-variability, fig.height = 3, fig.width = 3, fig.align = "center", fig.cap = "\\label{fig:peptide-variability}Variability of number of peptides detected by protein."}
 par(mfrow = c(1,1), mar = c(4,4,1,1), mgp = c(1,0.5,0), cex = 1)
 plotVariability(peptideData, getReplicateGroups('Tech'), '', 'Number of peptides', 'Number of peptides', TRUE,-0.5,+2.5)
+```
+
+We will also look at some other basic metrics at the peptide level in the samples, so as to compare bio and tech replicates, including:
+
+1. Charge state variability
+
+```{r charge-state, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:charge-state}Peptide charge state variability. In the log/log variability plots (left and middle), 2 petide charges are plotted if they belong to the same biological replicate or batch, respectively. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10. In the PCA plots (right column), colors refer to MS batches and shapes to biological replicates."}
+par(mfrow = c(1,3), mar = c(0, 1, 1.5, 0), cex = 1)
+plotAllVariability(peptidesSamples[,grep('Charge.R',names(peptidesSamples))],FALSE,-1,+2)
+```
+
+2. Retention time variability
+
+```{r retention-time, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:retention-time}Peptide retention time variability. In the log/log variability plots (left and middle), 2 peptide retention times are plotted if they belong to the same biological replicate or batch, respectively. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10. In the PCA plots (right column), colors refer to MS batches and shapes to biological replicates."}
+par(mfrow = c(1,3), mar = c(0, 1, 1.5, 0), cex = 1)
+plotAllVariability(peptidesSamples[,grep('Retention.time.R',names(peptidesSamples))],FALSE,+1,+3)
+```
+
+3. Ion intensity variability
+
+```{r ion-intensity, fig.height = 3, fig.width = 10, fig.align = "center", fig.cap = "\\label{fig:ion-intensity}Peptide ion intensity variability. In the log/log variability plots (left and middle), 2 petide intensity are plotted if they belong to the same biological replicate or batch, respectively. Blue is a FC lower than 2, yellow between 2 and 10, and gray over 10. In the PCA plots (right column), colors refer to MS batches and shapes to biological replicates."}
+par(mfrow = c(1,3), mar = c(0, 1, 1.5, 0), cex = 1)
+plotAllVariability(peptidesSamples[,grep('Intensity.L.R',names(peptidesSamples))],FALSE,+5,+10)
 ```
 
 ### Predictions between methods

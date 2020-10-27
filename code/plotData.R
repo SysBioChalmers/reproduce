@@ -243,14 +243,14 @@ plotPCA <- function(data,title,outside = FALSE){
 
 
 ## @knitr plotAllVariability
-plotAllVariability <- function(abundance,showTitle) {
+plotAllVariability <- function(abundance,showTitle,minVal=-4,maxVal=+4) {
   if(showTitle) {
     titleNames = c('Biological Variability','Batch Variability','PCA')
   } else {
     titleNames = c('','','')
   }
-  plotVariability(abundance[,-1],getReplicateGroups('Bio'),titleNames[1])
-  plotVariability(abundance[,-1],getReplicateGroups('Tech'),titleNames[2])
+  plotVariability(abundance[,-1],getReplicateGroups('Bio'),titleNames[1],'','',TRUE,minVal,maxVal)
+  plotVariability(abundance[,-1],getReplicateGroups('Tech'),titleNames[2],'','',TRUE,minVal,maxVal)
   plotPCA(abundance[,-1],titleNames[3])
 }
 
