@@ -30,6 +30,38 @@ addNtheoPeptides <- function(data,NTPdata,fraction) {
 }
 
 
+## @knitr standardizePeptideData
+standardizePeptideData <- function(data,fraction) {
+  # The 8 hour gradient setting will not be used in this study:
+  if(length(grep('T8h_',data$Experiment))>0) {
+    data <- data[-grep('T8h_',data$Experiment),]
+  }
+  # Other format fixes:
+  data$Experiment <- gsub('T4h_','',data$Experiment)
+  data$Experiment <- gsub('_Batch','_batch',data$Experiment)
+  data$Experiment <- gsub('-1_top','.1_top',data$Experiment)
+  # Create new dataframe:
+  variables <- c(paste('Intensity',fraction,sep='.'),'Charge','Retention.time')
+  experiments <- unique(data$Experiment)
+  varNames <- expand.grid(variables,experiments)
+  varNames <- paste(varNames[,1],varNames[,2],sep='.')
+  varNames <- paste(varNames,collapse=',')
+  varNames <- paste('Sequence',varNames,sep=',')
+  standardData <- read.csv(text=varNames)
+  sequences <- unique(data$Sequence)
+  standardData[1:length(sequences),1] <- sequences
+  for(i in 1:length(sequences)) {
+    sequence <- data$Sequence[i]
+    for(variable in variables) {
+      rowPos <- grep(sequence,standardData$Sequence)
+      colName <- paste(variable,data$Experiment[i],sep='.')
+      standardData[[colName]][rowPos] <- data[[variable]][i]
+    }
+  }
+  return(standardData)
+}
+
+
 ## @knitr getSampleAbundance
 getSampleAbundance <- function(SILACdata,ISdata,method) {
   # Merge abundance data from IS into SILAC dataset:
@@ -57,14 +89,14 @@ getSampleAbundance <- function(SILACdata,ISdata,method) {
 
 
 ## @knitr rescaleData
-rescaleData <- function(data,pattern,name,totProt) {
+rescaleData <- function(data,pattern,name) {
   pos <- grep(pattern,names(data))   #Values in the data to rescale
   for(i in pos) {
     # Compute new abundance:
     abundance <- data[,i]*data$Mol..weight..kDa.
-    abundance <- abundance/sum(abundance, na.rm = TRUE) #g/g in sample
-    abundance <- abundance*totProt                      #pg in sample
-    abundance <- abundance/data$Mol..weight..kDa.       #fmol in sample
+    abundance <- abundance/sum(abundance, na.rm = TRUE) #g/g protein
+    abundance <- abundance/data$Mol..weight..kDa.       #mmol/g protein
+    abundance <- abundance*1e12/1e6                     #fmol/ug protein
     # Add abundances to dataset:
     new_name <- gsub(pattern,paste0('Abundance.',name),names(data)[i])
     data[[new_name]] <- abundance
@@ -74,17 +106,15 @@ rescaleData <- function(data,pattern,name,totProt) {
 
 
 ## @knitr normalizeIntensities
-normalizeIntensities <- function(data,varName) {
-  # Create a copy of data and normalize intensities:
-  Ndata <- data
-  MSpos <- grep('Intensity',names(Ndata))
-  Ndata[,MSpos] <- Ndata[,MSpos]/Ndata[[varName]]
+normalizeIntensities <- function(data,pattern,varName) {
+  # Find subset of intensities and normalize them:
+  Ndata <- data[,grep(pattern,names(data))]/data[[varName]]
   #Change variable names:
   varName <- gsub('Sequence.length','length',varName)
   varName <- gsub('theo.peptides','Ntheo',varName)
   names(Ndata) <- gsub('Intensity',paste0('normInt.',varName),names(Ndata))
-  #Merge back:
-  data <- merge(data, Ndata)
+  #Combine both dataframes:
+  data <- cbind(data, Ndata)
   return(data)
 }
 
@@ -107,8 +137,8 @@ getRPdata <- function(data,RP) {
 ## @knitr getReplicateData
 getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
   # Erase distinction from name:
-  for(i in 1:length(groupNames)) {
-    names(data) <- gsub(groupNames[i],'',names(data))
+  for(groupName in groupNames) {
+    names(data) <- gsub(groupName,'',names(data))
   }
   data1 <- NULL
   data2 <- NULL
@@ -144,10 +174,23 @@ getReplicateData <- function(data,groupNames,option,repeatData=TRUE){
 }
 
 
+## @knitr getReplicateGroups
+getReplicateGroups <- function(replicateType) {
+  if(replicateType == 'Bio'){
+    groupNames <- c('.R1.1','.R2.1','.R3.1')
+  } else if(replicateType == 'Tech') {
+    groupNames <- c('_batch1','_batch2','_batch3')
+  } else if(replicateType == 'All') {
+    groupNames <- c('.R1.1','.R2.1','.R3.1','_batch1','_batch2','_batch3')
+  }
+  return(groupNames)
+}
+
+
 ## @knitr FCbreakdownRep
-FCbreakdownRep <- function(data,groupNames) {
-  for(i in 1:length(groupNames)) {
-    names(data) <- gsub(groupNames[i],'',names(data))
+FCbreakdownRep <- function(data,replicateType) {
+  for(groupName in getReplicateGroups(replicateType)) {
+    names(data) <- gsub(groupName,'',names(data))
   }
   FCs <- NULL
   for(i in 1:(length(names(data))-1)) {
@@ -158,11 +201,12 @@ FCbreakdownRep <- function(data,groupNames) {
     }
   }
   FCs[is.infinite(FCs)] <- NA
-  maxFC <- apply(FCs, 1, max, na.rm = TRUE)
+  medFC <- apply(FCs, 1, median, na.rm = TRUE)
+  medFC <- na.omit(medFC)
   x     <- NULL
-  x[1]  <- sum(maxFC < 2, na.rm = TRUE)/length(maxFC)
-  x[2]  <- sum((maxFC >= 2)*(maxFC <= 10), na.rm = TRUE)/length(maxFC)
-  x[3]  <- sum(maxFC > 10, na.rm = TRUE)/length(maxFC)
+  x[1]  <- sum(medFC < 2, na.rm = TRUE)/length(medFC)
+  x[2]  <- sum((medFC >= 2)*(medFC <= 10), na.rm = TRUE)/length(medFC)
+  x[3]  <- sum(medFC > 10, na.rm = TRUE)/length(medFC)
   x     <- paste0(round(x*100,digits = 1),"%")
   return(x)
 }
@@ -171,9 +215,32 @@ FCbreakdownRep <- function(data,groupNames) {
 ## @knitr FCbreakdown
 FCbreakdown <- function(data) {
   x      <- NULL
-  x[1:3] <- FCbreakdownRep(data,c('.R1.1','.R2.1','.R3.1'))
-  x[4:6] <- FCbreakdownRep(data,c('_batch1','_batch2','_batch3'))
-  x[7:9] <- FCbreakdownRep(data,c('.R1.1','.R2.1','.R3.1','_batch1','_batch2','_batch3'))
+  x[1:3] <- FCbreakdownRep(data,'Bio')
+  x[4:6] <- FCbreakdownRep(data,'Tech')
+  x[7:9] <- FCbreakdownRep(data,'All')
   return(x)
+}
+
+
+## @knitr peptideDifferences
+peptideDifferences <- function(data,unionPeptides,replicateType) {
+  for(groupName in getReplicateGroups(replicateType)) {
+    names(data) <- gsub(groupName,'',names(data))
+  }
+  peptideDiffs <- NULL
+  groups <- unique(names(data))
+  for(group in groups) {
+    peptidesDiff <- t(t(as.integer(unionPeptides))) - data[,grep(group,names(data))]
+    peptidesDiff <- apply(peptidesDiff, 1, mean, na.rm = TRUE)
+    peptidesDiff <- na.omit(peptidesDiff)
+    peptideDiffs <- c(peptideDiffs,peptidesDiff)
+  }
+  print(paste(replicateType,'mean peptide difference:',round(mean(peptideDiffs),digits = 2)))
+  peptideDiffSummary    <- NULL
+  peptideDiffSummary[1] <- sum(peptideDiffs <= 2)/length(peptideDiffs)
+  peptideDiffSummary[2] <- sum((peptideDiffs > 2)*(peptideDiffs < 5))/length(peptideDiffs)
+  peptideDiffSummary[3] <- sum(peptideDiffs >= 5)/length(peptideDiffs)
+  peptideDiffSummary    <- paste0(round(peptideDiffSummary*100,digits = 1),"%")
+  return(peptideDiffSummary)
 }
 

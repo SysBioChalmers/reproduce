@@ -36,6 +36,18 @@ NTPdataUPS2 <-read.csv(file = fileName, sep = '\t', header = TRUE)
 NTPdataUPS2$Protein.IDs <- gsub(';.*','',NTPdataUPS2$Protein.IDs)
 
 
+## @knitr loadPeptideDataOld
+peptidesIS <- read.csv('../data/raw_internal/evidence_is.csv')
+peptidesIS <- standardizePeptideData(peptidesIS,'H')
+peptidesSamples <- read.csv('../data/raw_internal/evidence_is_spiked_samples.csv')
+peptidesSamples <- standardizePeptideData(peptidesSamples,'L')
+
+
+## @knitr loadPeptideData
+peptidesIS <- read.csv('../data/intermediate/peptides_is.csv')
+peptidesSamples <- read.csv('../data/intermediate/peptides_samples.csv')
+
+
 ## @knitr loadRibProteins
 RP <- read.csv('../data/raw_external/RP-list.csv')
 # Add uniprot IDs:
@@ -47,3 +59,4 @@ RP      <- getBM(attributes=c('wikigene_name','uniprot_swissprot'),
 RP <- RP[!duplicated(RP$uniprot_swissprot),]
 # Change variable name:
 names(RP) <- gsub('uniprot_swissprot','Protein.IDs',names(RP))
+

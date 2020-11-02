@@ -25,22 +25,22 @@ plotTotalProt <- function(data,pattern,titleName) {
   meanVals <- rowMeans(data[,pos], na.rm = TRUE)
   meanVals[meanVals <= 0] <- NA
   coverage <- sum(!is.na(meanVals))
-  print(paste(titleName,'-',coverage,'proteins detected'))
   # Get total protein detected:
-  data[,pos]     <- data[,pos]*data$Mol..weight..kDa.      #fmol/sample*kDa = pg/sample
-  totProt        <- colSums(data[,pos], na.rm = TRUE)/1e6  #ug/sample
-  meanProt       <- round(mean(totProt))+1
+  data[,pos] <- data[,pos]*data$Mol..weight..kDa.       #(fmol/ug)*kDa = pg/ug
+  totProt    <- colSums(data[,pos], na.rm = TRUE)*6/1e6 #(pg/ug)*(ug/sample)/(pg/ug) = ug/sample
+  cvProt     <- round(sd(totProt)/mean(totProt)*100, digits = 1)
+  print(paste0(titleName,' - ',coverage,' proteins detected - ', cvProt, '% variation'))
   names(totProt) <- gsub(pattern,'',names(totProt))
   factors <- factor(names(totProt))
   cols    <- getColors(nlevels(factors))
   barplot(totProt, col = cols[factors], mgp = c(1.5, 0.5, 0), cex.names = 0.8,
-          ylab = 'Total detected protein [ug]', xaxt = 'n', ylim = c(0,meanProt), las = 1)
+          ylab = bquote('Total detected protein [' ~ mu ~ 'g]'), xaxt = 'n', ylim = c(0,7), las = 1)
   title(main = titleName, cex.main = 0.9)
 }
 
 
 ## @knitr plotScatter
-plotScatter <- function(data1,data2,title,labelx,labely) {
+plotScatter <- function(data1,data2,title,labelx,labely,min_val,max_val) {
   # Remove NA values - zeros - Infs:
   no_na  <- is.na(data1) + is.na(data2) == 0
   data1  <- data1[no_na]
@@ -57,8 +57,6 @@ plotScatter <- function(data1,data2,title,labelx,labely) {
   # Plot data:
   data1   <- log10(data1)
   data2   <- log10(data2)
-  min_val <- round(min(c(data1,data2)))-1
-  max_val <- round(max(c(data1,data2)))
   plot(data1, data2, col = col_scheme, xaxt = 'n', yaxt = 'n',
        xaxs = 'i', yaxs = 'i', main = title,  xlab = '', ylab = '',
        xlim = c(min_val,max_val), ylim = c(min_val,max_val))
@@ -93,7 +91,7 @@ plotESerror <- function(ESdata,method,title) {
     }
   }
   FC <- plotScatter(dataExp,dataPred,title,bquote('log'['10'] ~ '(measured)'),
-                    bquote('log'['10'] ~ '(predicted)'))
+                    bquote('log'['10'] ~ '(predicted)'), -1, +5)
   return(FC)
 }
 
@@ -123,7 +121,10 @@ plotRPdata <- function(RPdata,title) {
   axis(side=1, at = 1:length(RPdata[,1]), labels = RPdata[,1], las=2, cex.axis = 0.7)
   max_x <- length(RPdata[,1])
   lines(c(1,max_x),c(mead_val,mead_val), col = 'black', lwd = 2, lty = 2)
+  # Show median fold change and overall coefficient of variation:
   text(max_x, mead_val-1, bquote('FC'['m'] ~ '=' ~ .(FCm)), pos = 2)
+  cv  <- round(sd(data, na.rm = TRUE)/mean(data, na.rm = TRUE)*100, digits = 1)
+  text(max_x, mead_val-1.5, paste0('CV = ', cv, '%'), pos = 2)
   return(FC)
 }
 
@@ -152,13 +153,8 @@ plotCumulativeDistrib <- function(FCs,varName){
   # Plot data:
   min_x <- 0
   max_x <- 1
-  if(nchar(varName) > 4) {
-    title <- varName
-  } else {
-    title <- ''
-  }
   plot(1,1, xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n', type='n',
-       xlim = c(min_x, max_x), ylim = c(0, 1), main = title, xlab = '', ylab = '')
+       xlim = c(min_x, max_x), ylim = c(0, 1), xlab = '', ylab = '')
   axis(side=1, at = seq(min_x, max_x, by = 0.2), labels = TRUE,  tck = 0.015)
   axis(side=2, at = seq(0, 1, by = 0.2),         labels = TRUE,  tck = 0.015, las = 1)
   axis(side=3, at = seq(min_x, max_x, by = 0.2), labels = FALSE, tck = 0.015)
@@ -167,21 +163,19 @@ plotCumulativeDistrib <- function(FCs,varName){
   title(ylab='Cumulative Distribution', line=2.5)
   lines(c(log10(2),log10(2)),c(0,1), col = 'black', lwd = 2, lty = 2)
   # Plot fold changes as a cdf:
-  N    <- length(names(FCs))
+  N    <- length(FCs)
   cols <- getColors(N)
   for(i in 1:N) {
     FC   <- sort(FCs[[i]])
     step <- 1/(length(FC)-1)
     cdf  <- seq(0, 1, by = step)
-    if(startsWith(varName,'Tech') && i == 4) {
-      lines(FC,cdf, col = cols[i], lwd = 2, lty = 2)
-    } else {
-      lines(FC,cdf, col = cols[i], lwd = 2)
-    }
+    lines(FC,cdf, col = cols[i], lwd = 2)
   }
   # Plot values for 2-fold position:
   for(i in 1:N) {
     FC  <- sort(FCs[[i]])
+    step <- 1/(length(FC)-1)
+    cdf  <- seq(0, 1, by = step)
     pos <- which.min(abs(FC - log10(2)))
     points(log10(2),cdf[pos[1]], pch = 21, col = 'black', bg = cols[i])
   }
@@ -189,11 +183,11 @@ plotCumulativeDistrib <- function(FCs,varName){
 
 
 ## @knitr plotVariability
-plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE) {
+plotVariability <- function(data,groupNames,title,labelx='',labely='',repeatData=TRUE,minVal=-4,maxVal=+4) {
   # Get data:
   data <- getReplicateData(data,groupNames,1,repeatData)
   # Plot all combinations:
-  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely)
+  tmp <- plotScatter(data[,1],data[,2],title,labelx,labely, minVal, maxVal)
 }
 
 
@@ -249,14 +243,14 @@ plotPCA <- function(data,title,outside = FALSE){
 
 
 ## @knitr plotAllVariability
-plotAllVariability <- function(abundance,showTitle) {
+plotAllVariability <- function(abundance,showTitle,minVal=-4,maxVal=+4) {
   if(showTitle) {
     titleNames = c('Biological Variability','Batch Variability','PCA')
   } else {
     titleNames = c('','','')
   }
-  plotVariability(abundance[,-1],c('.R1.1','.R2.1','.R3.1'),titleNames[1])
-  plotVariability(abundance[,-1],c('_batch1','_batch2','_batch3'),titleNames[2])
+  plotVariability(abundance[,-1],getReplicateGroups('Bio'),titleNames[1],'','',TRUE,minVal,maxVal)
+  plotVariability(abundance[,-1],getReplicateGroups('Tech'),titleNames[2],'','',TRUE,minVal,maxVal)
   plotPCA(abundance[,-1],titleNames[3])
 }
 
@@ -280,11 +274,11 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
   }
   # Get FC values for sample data:
   abundance  <- sampleData[,grep(pattern,names(sampleData))]
-  sampleData <- getReplicateData(abundance,c('_batch1','_batch2','_batch3'),2)
+  sampleData <- getReplicateData(abundance,getReplicateGroups('Tech'),2)
   # Get FC values for ES data:
   ESdata_pattern <- gsub('.R..1_','.ES',pattern)
   ESabundance    <- ESdata[,grep(ESdata_pattern,names(ESdata))]
-  ESdata         <- getReplicateData(ESabundance,c('_batch1','_batch2','_batch3'),2)
+  ESdata         <- getReplicateData(ESabundance,getReplicateGroups('Tech'),2)
   # Print number of yeast proteins below minimum detected UPS2 protein
   min_es <- min(ESdata[,1], na.rm = TRUE)
   max_es <- max(ESdata[,1], na.rm = TRUE)
@@ -293,15 +287,15 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
     print(paste(titleName,'->',round(belowThreshold),'proteins below UPS2 detection range'))
   }
   # Plot FC of abundanceData
-  min_x <- round(min(sampleData[,1])) + 1
-  max_x <- round(max(sampleData[,1]))
+  min_x <- -3
+  max_x <- 3
   min_y <- 0
-  max_y <- round(max(sampleData[,2])) - 1
+  max_y <- 2
   if(!allInOne || grepl('iBAQ.R',pattern)) {
     plot(sampleData[,1],sampleData[,2], xaxs = 'i', yaxs = 'i',
          xaxt = 'n', yaxt = 'n', col = color_data,
          xlim = c(min_x, max_x), ylim = c(min_y, max_y),
-         xlab = bquote('log'['10'] ~ '(abundance [fmol/sample])'), ylab = '')
+         xlab = bquote('log'['10'] ~ '(abundance [fmol/' ~ mu ~ 'g])'), ylab = '')
     title(ylab = bquote('abs(log'['10'] ~ '(FC))'), line=2.5)
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x, tck = 0.015)
     axis(side=2, at = seq(min_y, max_y, by = 1), labels = min_y:max_y, tck = 0.015, las = 1)
@@ -311,19 +305,19 @@ plotFCvsAbundance <- function(sampleData,ESdata,pattern,titleName,allInOne){
     points(sampleData[,1],sampleData[,2], col = color_data)
   }
   # Plot UPS2 window:
-  if(!allInOne || grepl('TPAnorm.R',pattern)) {
+  if(grepl('iBAQ.R',pattern)) {
     polygon(c(min_es,min_es,max_es,max_es,min_es),c(min_y,max_y,max_y,min_y,min_y),
             col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1), border = NA)
   }
   # Plot UPS2 points:
-  if(!allInOne) {
+  if(!allInOne && grepl('iBAQ.R',pattern)) {
     title(main = titleName)
     points(ESdata[,1],ESdata[,2], col = 'black')
     # Compute fraction in window:
     in_window <- (sampleData[,1] > min_es)*(sampleData[,1] < max_es)
     fraction  <- sum(in_window)/length(in_window)*100
     fraction  <- round(fraction, digits = 1)
-    text(min_es-1, max_y-0.5, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
+    text(min_es-2, max_y-0.3, bquote('Fraction in window =' ~ .(fraction) ~ '%'), pos = 4)
   }
   return(sampleData)
 }
@@ -397,7 +391,9 @@ plotES <- function(ESdata,pattern,scaling,name,allInOne,first,CVm) {
   } else {
     interSize <- 0.3
     plot(x,y, pch = s,col = 'black', xaxs = 'i', yaxs = 'i', xaxt = 'n', yaxt = 'n',
-         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name, las = 1)
+         asp = 1, xlim = c(min_x, max_x), ylim = c(min_y, max_y), main = name, las = 1,
+         xlab = bquote('log'['10'] ~ '(intensity value)'),
+         ylab = bquote('log'['10'] ~ '(abundance)'), mgp = c(1.5, 0.5, 0))
   }
   if(!allInOne || first) {
     axis(side=1, at = seq(min_x, max_x, by = 1), labels = min_x:max_x,
@@ -430,7 +426,7 @@ plotAllES <- function(ESdata,pattern,scaling,allInOne) {
   CVm  <- round(CVm, digits = 1)
   #Plot data:
   if(allInOne) { par(mfrow = c(1,1), mar = c(3,3,0,0), pty = "s", cex = 0.8) }
-  else         { par(mfrow = c(2,3), mar = c(2, 2, 2, 1), cex = 0.5) }
+  else         { par(mfrow = c(2,3), mar = c(3,3,2,1), cex = 0.5) }
   ESdata <- ESdata[order(ESdata$amount.fmoles),]
   plotES(ESdata,pattern,scaling,'top5_batch1',allInOne,TRUE,CVm)
   plotES(ESdata,pattern,scaling,'top5_batch2',allInOne,FALSE,CVm)
@@ -448,6 +444,7 @@ plotVsLength <- function(data,varNames,titleNames) {
       x <- log10(data$Sequence.length)
       y <- log10(data[[varNames]])
       col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.1)
+      y_label <- 'number of theoretical peptides'
     } else {
       name   <- varNames[i]
       data_i <- data[,grep(name,names(data))]
@@ -458,11 +455,14 @@ plotVsLength <- function(data,varNames,titleNames) {
         y <- c(y,log10(data_i[,j]))
       }
       col_opt <- rgb(red = 0, green = 0, blue = 0, alpha = 0.03)
+      y_label <- 'abundance'
     }
     y[is.infinite(y)] <- NA
     x <- x[!is.na(y)]
     y <- y[!is.na(y)]
-    plot(x, y, col = col_opt, main = titleNames[i], xlab = '', ylab = '', las = 1)
+    plot(x, y, col = col_opt, main = titleNames[i], las = 1,
+         xlab = bquote('log'['10'] ~ '(sequence length)'),
+         ylab = bquote('log'['10'] ~ '(' ~ .(y_label) ~ ')'))
     lmodel <- lm(y ~ x)
     a  <- lmodel$coefficients[1]
     b  <- lmodel$coefficients[2]
