@@ -3,7 +3,7 @@ reproduce
 
 [![DOI](https://zenodo.org/badge/140708206.svg)](https://zenodo.org/badge/latestdoi/140708206)
 
-Assessing the quality and reproducibility of absolute proteomic data. Companion repository to the pre-print [_"Benchmarking accuracy and precision of intensity-based absolute quantification of protein abundances in Saccharomyces cerevisiae"_](https://www.biorxiv.org/content/10.1101/2020.03.23.998237v1).
+Assessing the quality and reproducibility of absolute proteomic data. Companion repository to the publication [_"Benchmarking accuracy and precision of intensity‐based absolute quantification of protein abundances in Saccharomyces cerevisiae"_](https://doi.org/10.1002/pmic.202000093).
 
 This repository is administered by Benjamín J. Sánchez ([@BenjaSanchez](https://github.com/benjasanchez)), Division of Systems and Synthetic Biology, Department of Biology and Biological Engineering, Chalmers University of Technology.
 
